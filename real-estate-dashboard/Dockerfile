@@ -21,7 +21,7 @@ FROM nginx:alpine
 
 
 # Copy the built Angular app from the previous stage
-COPY --from=build /usr/src/app/dist/your-angular-app-name /usr/share/nginx/html
+COPY --from=build /usr/src/app/dist/real-estate-dashboard /usr/share/nginx/html
 
 # Copy custom Nginx configuration file
 COPY nginx.conf /etc/nginx/nginx.conf
