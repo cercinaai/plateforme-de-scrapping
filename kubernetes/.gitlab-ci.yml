@@ -1,0 +1,31 @@
+stages:
+  - build
+  - test
+  - deploy
+
+build_server:
+  stage: build
+  script:
+    - cd real-estate-server
+    - docker build -t $CI_REGISTRY_IMAGE/server:$CI_COMMIT_SHORT_SHA .
+    - docker tag $CI_REGISTRY_IMAGE/server:$CI_COMMIT_SHORT_SHA $CI_REGISTRY_IMAGE/server:latest
+    - docker push $CI_REGISTRY_IMAGE/server:$CI_COMMIT_SHORT_SHA
+    - docker push $CI_REGISTRY_IMAGE/server:latest
+
+build_dashboard:
+  stage: build
+  script:
+    - cd real-estate-dashboard
+    - docker build -t $CI_REGISTRY_IMAGE/dashboard:$CI_COMMIT_SHORT_SHA .
+    - docker tag $CI_REGISTRY_IMAGE/dashboard:$CI_COMMIT_SHORT_SHA $CI_REGISTRY_IMAGE/dashboard:latest
+    - docker push $CI_REGISTRY_IMAGE/dashboard:$CI_COMMIT_SHORT_SHA
+    - docker push $CI_REGISTRY_IMAGE/dashboard:latest
+
+deploy:
+  stage: deploy
+  script:
+    - echo "$KUBE_CONFIG" | base64 -d > $KUBECONFIG
+    - kubectl --kubeconfig=$KUBECONFIG apply -f kubernetes/deployment.yaml
+    - kubectl --kubeconfig=$KUBECONFIG apply -f kubernetes/service.yaml
+  only:
+    - main

@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: real-estate-server
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: real-estate-server
+  template:
+    metadata:
+      labels:
+        app: real-estate-server
+    spec:
+      containers:
+      - name: real-estate-server
+        image: real-estate-server:latest
+        ports:
+        - containerPort: 3000
+        env:
+        - name: NODE_ENV
+          value: "production"
