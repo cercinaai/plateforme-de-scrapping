@@ -5,21 +5,26 @@ stages:
 
 build_server:
   stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - docker info
   script:
     - cd real-estate-server
-    - docker build -t $CI_REGISTRY_IMAGE/server:$CI_COMMIT_SHORT_SHA .
-    - docker tag $CI_REGISTRY_IMAGE/server:$CI_COMMIT_SHORT_SHA $CI_REGISTRY_IMAGE/server:latest
-    - docker push $CI_REGISTRY_IMAGE/server:$CI_COMMIT_SHORT_SHA
-    - docker push $CI_REGISTRY_IMAGE/server:latest
+    - docker build -t $CI_REGISTRY_IMAGE/real-estate-server:$CI_COMMIT_SHORT_SHA .
+    - docker tag $CI_REGISTRY_IMAGE/real-estate-server:$CI_COMMIT_SHORT_SHA $CI_REGISTRY_IMAGE/real-estate-server:latest
+    - docker push $CI_REGISTRY_IMAGE/real-estate-server:$CI_COMMIT_SHORT_SHA
+    - docker push $CI_REGISTRY_IMAGE/real-estate-server:latest
 
 build_dashboard:
   stage: build
   script:
     - cd real-estate-dashboard
-    - docker build -t $CI_REGISTRY_IMAGE/dashboard:$CI_COMMIT_SHORT_SHA .
-    - docker tag $CI_REGISTRY_IMAGE/dashboard:$CI_COMMIT_SHORT_SHA $CI_REGISTRY_IMAGE/dashboard:latest
-    - docker push $CI_REGISTRY_IMAGE/dashboard:$CI_COMMIT_SHORT_SHA
-    - docker push $CI_REGISTRY_IMAGE/dashboard:latest
+    - docker build -t $CI_REGISTRY_IMAGE/real-estate-dashboard:$CI_COMMIT_SHORT_SHA .
+    - docker tag $CI_REGISTRY_IMAGE/real-estate-dashboard:$CI_COMMIT_SHORT_SHA $CI_REGISTRY_IMAGE/real-estate-dashboard:latest
+    - docker push $CI_REGISTRY_IMAGE/real-estate-dashboard:$CI_COMMIT_SHORT_SHA
+    - docker push $CI_REGISTRY_IMAGE/real-estate-dashboard:latest
 
 deploy:
   stage: deploy
