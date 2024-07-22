@@ -1,0 +1,59 @@
+{
+  "requestsFinished": 0,
+  "requestsFailed": 1,
+  "requestsRetries": 1,
+  "requestsFailedPerMinute": 3,
+  "requestsFinishedPerMinute": 0,
+  "requestMinDurationMillis": null,
+  "requestMaxDurationMillis": 0,
+  "requestTotalFailedDurationMillis": 1750,
+  "requestTotalFinishedDurationMillis": 0,
+  "crawlerStartedAt": "2024-07-22T21:51:20.019Z",
+  "crawlerFinishedAt": "2024-07-22T21:51:39.710Z",
+  "statsPersistedAt": "2024-07-22T21:51:39.710Z",
+  "crawlerRuntimeMillis": 19700,
+  "crawlerLastStartTimestamp": 1721685080010,
+  "requestRetryHistogram": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    1
+  ],
+  "statsId": 0,
+  "requestAvgFailedDurationMillis": 1750,
+  "requestAvgFinishedDurationMillis": null,
+  "requestTotalDurationMillis": 1750,
+  "requestsTotal": 1,
+  "requestsWithStatusCode": {
+    "403": 11
+  },
+  "errors": {
+    "/home/haythem/Documents/projects/real-estate/real-estate-server/node_modules/@crawlee/src/internals/browser-crawler.ts:577:30": {
+      "missing error code": {
+        "Error": {
+          "Detected a session error, rotating session... ": {
+            "count": 1
+          }
+        }
+      }
+    }
+  },
+  "retryErrors": {
+    "/home/haythem/Documents/projects/real-estate/real-estate-server/node_modules/@crawlee/src/internals/browser-crawler.ts:577:30": {
+      "missing error code": {
+        "Error": {
+          "Detected a session error, rotating session... ": {
+            "count": 10
+          }
+        }
+      }
+    }
+  }
+}
