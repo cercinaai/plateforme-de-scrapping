@@ -6,6 +6,7 @@ stages:
 variables:
   DOCKER_DRIVER: overlay2
   CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/real-estate-server
+  DASHBOARD_IMAGE: $CI_REGISTRY_IMAGE/real-estate-dashboard
 
 build_server:
   stage: build
@@ -21,13 +22,18 @@ build_server:
     - docker push $CONTAINER_IMAGE:$CI_COMMIT_SHORT_SHA
     - docker push $CONTAINER_IMAGE:latest
 
-test_server:
-  stage: test
-  image: docker:latest
-  services:
-    - docker:dind
+build_dashboard:
+  stage: build
+  image: node:14
+  before_script:
+    - cd real-estate-dashboard
   script:
-    - docker run --rm $CONTAINER_IMAGE:$CI_COMMIT_SHORT_SHA yarn test
+    - npm install
+    - npm run build
+    - docker build -t $DASHBOARD_IMAGE:$CI_COMMIT_SHORT_SHA .
+    - docker tag $DASHBOARD_IMAGE:$CI_COMMIT_SHORT_SHA $DASHBOARD_IMAGE:latest
+    - docker push $DASHBOARD_IMAGE:$CI_COMMIT_SHORT_SHA
+    - docker push $DASHBOARD_IMAGE:latest
 
 deploy:
   stage: deploy
