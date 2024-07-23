@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7.2.5
+    container_name: redis-container
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./local-data/redis_data:/data
+
+  mongodb:
+    image: mongo:5.0.28
+    container_name: mongodb-container
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./local-data/mongd_data:/data/db
+
+  prometheus:
+    image: prom/prometheus:v2.53.1
+    container_name: prometheus-container
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+
+  grafana:
+    image: grafana/grafana:10.0.0
+    container_name: grafana-container
+    ports:
+      - "3001:3000"
+    depends_on:
+      - prometheus
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
