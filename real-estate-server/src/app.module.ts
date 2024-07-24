@@ -4,11 +4,13 @@ import { AppService } from './app.service';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ScheduleTasksService } from './schedule-tasks/schedule-tasks.service';
 import { CrawlerModule } from './crawler/crawler.module';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_CONFIG } from './config/app.config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { BullModule } from '@nestjs/bull';
 import { PrometheusModule } from '@willsoto/nestjs-prometheus';
+import { ExpressAdapter } from "@bull-board/express";
+import { BullBoardModule } from '@bull-board/nestjs';
 
 const PATH = APP_CONFIG.PRODUCTION ? 'prod.env' : 'dev.env';
 
@@ -17,11 +19,19 @@ const PATH = APP_CONFIG.PRODUCTION ? 'prod.env' : 'dev.env';
     ScheduleModule.forRoot(),
     ConfigModule.forRoot({ envFilePath: `env/${PATH}`, isGlobal: true, cache: true }),
     EventEmitterModule.forRoot(),
-    BullModule.forRoot({
-      redis: {
-        host: 'localhost',
-        port: 6379
-      }
+    BullModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        redis: {
+          host: configService.get<string>('REDIS_HOST'),
+          port: configService.get<number>('REDIS_PORT')
+        }
+      }),
+      inject: [ConfigService]
+    }),
+    BullBoardModule.forRoot({
+      route: '/queues',
+      adapter: ExpressAdapter
     }),
     PrometheusModule.register(),
     CrawlerModule,
