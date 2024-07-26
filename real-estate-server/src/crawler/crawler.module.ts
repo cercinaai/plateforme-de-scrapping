@@ -4,6 +4,8 @@ import { BullModule } from '@nestjs/bull';
 import { BullBoardModule } from '@bull-board/nestjs';
 import { BullAdapter } from "@bull-board/api/bullAdapter";
 import { BoncoinCrawler } from './boncoin/boncoin.crawler';
+import { DataProcessingModule } from 'src/data-processing/data-processing.module';
+
 
 @Module({
     imports: [
@@ -14,6 +16,7 @@ import { BoncoinCrawler } from './boncoin/boncoin.crawler';
             name: 'crawler',
             adapter: BullAdapter,
         }),
+        DataProcessingModule
     ],
     controllers: [],
     providers: [CrawlerService, BoncoinCrawler],
