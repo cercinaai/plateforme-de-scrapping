@@ -10,7 +10,7 @@ export class CrawlerService {
 
     async startPeriodicCrawlers() {
         await this.crawlerQueue.add('boncoin-crawler', {}, { attempts: 3, });
-        // await this.crawlerQueue.add('seloger-crawler', {}, { attempts: 3, });
+        await this.crawlerQueue.add('seloger-crawler', {}, { attempts: 3, });
     }
 
     async heathCheck(): Promise<{ crawler_success: crawler_healthCheck_positive[], crawler_failure: crawler_healthCheck_negative[] }> {

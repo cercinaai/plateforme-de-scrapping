@@ -5,6 +5,8 @@ import { BullBoardModule } from '@bull-board/nestjs';
 import { BullAdapter } from "@bull-board/api/bullAdapter";
 import { BoncoinCrawler } from './boncoin/boncoin.crawler';
 import { DataProcessingModule } from 'src/data-processing/data-processing.module';
+import { SelogerCrawler } from './seloger/seloger.crawler';
+import { ProxyService } from './proxy.service';
 
 
 @Module({
@@ -19,7 +21,7 @@ import { DataProcessingModule } from 'src/data-processing/data-processing.module
         DataProcessingModule
     ],
     controllers: [],
-    providers: [CrawlerService, BoncoinCrawler],
+    providers: [CrawlerService, ProxyService, BoncoinCrawler, SelogerCrawler],
     exports: [CrawlerService]
 })
 export class CrawlerModule { }

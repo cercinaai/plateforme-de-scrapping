@@ -1,27 +1,22 @@
-import { BrowserName, DeviceCategory, OperatingSystemsName, PlaywrightCrawler, ProxyConfiguration } from 'crawlee';
+import { PlaywrightCrawler, ProxyConfiguration } from 'crawlee';
 import { Processor, Process } from '@nestjs/bull';
 import { Job } from 'bull';
 import { Scope } from '@nestjs/common';
 import { DataProcessingService } from 'src/data-processing/data-processing.service';
-import { ConfigService } from '@nestjs/config';
+import { boncoinConfig, boncoinCrawlerOption } from './boncoin.config';
+import { ProxyService } from '../proxy.service';
 
 @Processor({ name: 'crawler', scope: Scope.REQUEST })
 export class BoncoinCrawler {
-    private proxy_url: string = 'https://proxy.webshare.io/api/v2/proxy/list/?mode=backbone&page=2&page_size=1'
 
-    constructor(private dataProcessingService: DataProcessingService, private configService: ConfigService) { }
+    constructor(private dataProcessingService: DataProcessingService, private proxyService: ProxyService) { }
 
     @Process('boncoin-crawler')
     async start(job: Job) {
         let crawler = new PlaywrightCrawler({
-            useSessionPool: true,
-            persistCookiesPerSession: true,
-            maxRequestRetries: 3,
-            maxSessionRotations: 3,
-            retryOnBlocked: true,
-            sameDomainDelaySecs: 0,
+            ...boncoinCrawlerOption,
             proxyConfiguration: new ProxyConfiguration({
-                newUrlFunction: async () => this.new_proxy()
+                newUrlFunction: async () => this.proxyService.new_proxy()
             }),
             requestHandler: async ({ waitForSelector, page, enqueueLinks, log }) => {
                 const base_url = 'https://www.leboncoin.fr';
@@ -39,23 +34,7 @@ export class BoncoinCrawler {
                     label: 'next_page'
                 });
             },
-            browserPoolOptions: {
-                useFingerprints: true,
-                fingerprintOptions: {
-                    fingerprintGeneratorOptions: {
-                        browsers: [{
-                            name: BrowserName.chrome,
-                            minVersion: 96,
-                        }],
-                        devices: [
-                            DeviceCategory.desktop,
-                        ],
-                        operatingSystems: [
-                            OperatingSystemsName.windows,
-                        ],
-                    },
-                },
-            },
+
             failedRequestHandler: async ({ request, proxyInfo, crawler }, error) => {
                 await job.moveToFailed(error);
                 let crawler_stat = crawler.stats.state;
@@ -71,7 +50,8 @@ export class BoncoinCrawler {
                     proxy_used: proxyInfo.url
                 });
             },
-        });
+        }, boncoinConfig);
+
         await crawler.run(['https://www.leboncoin.fr/recherche?category=9&owner_type=pro']);
         if (!crawler.requestQueue.isEmpty()) {
             await crawler.requestQueue.drop();
@@ -88,16 +68,5 @@ export class BoncoinCrawler {
         await job.moveToCompleted("success");
     }
 
-    private async new_proxy(): Promise<string> {
-        const url = new URL(this.proxy_url);
-        const response = await fetch(url.href, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Token ${this.configService.get<string>('PROXY_API_KEY')}`
-            }
-        })
-        let data = await response.json();
-        this.proxy_url = data['next']
-        return `http://${data.results[0].username}:${data.results[0].password}@p.webshare.io:${data.results[0].port}`
-    }
+
 }
