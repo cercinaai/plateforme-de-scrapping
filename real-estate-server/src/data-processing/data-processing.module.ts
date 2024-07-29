@@ -8,6 +8,7 @@ import { Ad, AdSchema } from 'src/models/ad.schema';
 import { BoncoinIngestion } from './ingestion/boncoin.ingestion';
 import { HttpModule } from '@nestjs/axios';
 import { SelogerIngestion } from './ingestion/seloger.ingestion';
+import { BienIciIngestion } from './ingestion/bienici.ingestion';
 
 @Module({
     imports: [
@@ -16,10 +17,10 @@ import { SelogerIngestion } from './ingestion/seloger.ingestion';
             name: 'data-processing',
             adapter: BullAdapter,
         }),
-
+        MongooseModule.forFeature([{ name: Ad.name, schema: AdSchema }]),
         HttpModule
     ],
-    providers: [DataProcessingService, BoncoinIngestion, SelogerIngestion],
+    providers: [DataProcessingService, BoncoinIngestion, SelogerIngestion, BienIciIngestion],
     exports: [DataProcessingService],
     controllers: [],
 })

@@ -10,7 +10,7 @@ import * as fs from 'fs';
 import { first } from "rxjs";
 
 
-@Processor({ name: 'data-processing', scope: Scope.REQUEST })
+@Processor({ name: 'data-processing', scope: Scope.DEFAULT })
 export class SelogerIngestion {
 
     private readonly logger = new Logger(SelogerIngestion.name);
@@ -79,7 +79,7 @@ export class SelogerIngestion {
     }
 
     private async process_data(data: any) {
-
+        return data;
     }
 
     private async save_data(data: any, job: Job) {

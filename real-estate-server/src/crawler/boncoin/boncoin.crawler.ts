@@ -5,9 +5,8 @@ import { Inject, Scope } from '@nestjs/common';
 import { DataProcessingService } from 'src/data-processing/data-processing.service';
 import { boncoinConfig, boncoinCrawlerOption } from './boncoin.config';
 import { ProxyService } from '../proxy.service';
-import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 
-@Processor({ name: 'crawler', scope: Scope.REQUEST })
+@Processor({ name: 'crawler', scope: Scope.DEFAULT })
 export class BoncoinCrawler {
 
     constructor(private dataProcessingService: DataProcessingService, private proxyService: ProxyService) { }

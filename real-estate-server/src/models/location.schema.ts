@@ -23,10 +23,10 @@ export class Location {
     @Prop({ required: true })
     postalCode: string;
 
-    @Prop({ required: true })
+    @Prop()
     departmentCode: string;
 
-    @Prop({ required: true })
+    @Prop()
     regionCode: string;
 
     @Prop({ type: CoordinatesSchema, required: true })

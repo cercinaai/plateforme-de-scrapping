@@ -17,6 +17,10 @@ export class DataProcessingService {
             await this.dataQueues.add('seloger-ingestion', { data_ingestion: data_to_process })
             return
         }
+        if (_from == 'bienici-crawler') {
+            await this.dataQueues.add('bienici-ingestion', { data_ingestion: data_to_process })
+            return
+        }
     }
 
     async heathCheck() { }

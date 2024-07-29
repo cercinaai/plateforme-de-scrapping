@@ -8,7 +8,7 @@ import { ProxyService } from "../proxy.service";
 import { Page } from "playwright";
 
 
-@Processor({ name: 'crawler', scope: Scope.REQUEST })
+@Processor({ name: 'crawler', scope: Scope.DEFAULT })
 export class SelogerCrawler {
 
 

@@ -9,7 +9,7 @@ import * as fs from 'fs';
 import { HttpService } from "@nestjs/axios";
 import { first } from "rxjs";
 
-@Processor({ name: 'data-processing', scope: Scope.REQUEST })
+@Processor({ name: 'data-processing', scope: Scope.DEFAULT })
 export class BoncoinIngestion {
     private readonly logger = new Logger(BoncoinIngestion.name);
 
@@ -86,21 +86,7 @@ export class BoncoinIngestion {
     }
 
     private async process_data(data: any) {
-        const potentialDuplicates = await this.adModel.find({
-            title: data.title,
-            origin: data.origin,
-            'publisher.name': data.publisher.name,
-            'location.coordinates.lat': data.location.coordinates.lat,
-            'location.coordinates.lon': data.location.coordinates.lon,
-        }).exec();
-        if (potentialDuplicates.length > 0) {
-            data.duplicates = potentialDuplicates.map(ad => ({
-                uniqueId: ad._id,
-                origin: ad.origin,
-                adId: ad.adId,
-            }));
-        }
-        return data
+        return data;
     }
 
     private async save_data(data: any, job: Job) {
