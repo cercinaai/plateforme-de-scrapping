@@ -3,7 +3,7 @@ import { Logger, Scope } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Job } from "bull";
 import { Model } from "mongoose";
-import { Ad } from "src/models/ad.schema";
+import { Ad, AdDocument } from "src/models/ad.schema";
 import { ConfigService } from "@nestjs/config";
 import * as fs from 'fs';
 import { HttpService } from "@nestjs/axios";
@@ -20,8 +20,7 @@ export class BoncoinIngestion {
         try {
             for (let data of job.data.data_ingestion) {
                 let cleaned_data = await this.clean_data(data);
-                let processed_data = await this.process_data(cleaned_data);
-                await this.save_data(processed_data, job);
+                await this.process_data(cleaned_data, job);
             }
             this.logger.log(`Job ${job.id} has been processed successfully`);
             await job.moveToCompleted()
@@ -30,7 +29,7 @@ export class BoncoinIngestion {
         }
     }
 
-    private async clean_data(data: any) {
+    private async clean_data(data: any): Promise<Partial<AdDocument>> {
         const getValue = (attributes: any[], key: any) => {
             const attribute = attributes.find((attr: any) => attr.key === key);
             return attribute ? attribute.value : null;
@@ -85,17 +84,45 @@ export class BoncoinIngestion {
         };
     }
 
-    private async process_data(data: any) {
-        return data;
+    private async process_data(data: Partial<AdDocument>, job: Job) {
+        const duplicates = await this.findDuplicatesByLocation(data.location.coordinates.lat, data.location.coordinates.lon);
+        if (duplicates.length === 0) {
+            // No duplicates found, insert new ad
+            const newAdDoc = new this.adModel(data);
+            await newAdDoc.save();
+        }
+        let sameOriginAd = duplicates.find(ad => ad.origin === data.origin);
+        if (sameOriginAd) {
+            // Update existing ad with the same origin
+            await this.adModel.findByIdAndUpdate(sameOriginAd._id, {
+                ...data,
+                lastCheckDate: new Date()
+            });
+            return;
+        } else {
+            // Handle duplicates with different origins
+            const newAdDoc = new this.adModel(data);
+            await newAdDoc.save();
+            for (const duplicate of duplicates) {
+                await this.adModel.findByIdAndUpdate(duplicate._id, {
+                    $addToSet: { duplicates: newAdDoc._id }
+                });
+                await this.adModel.findByIdAndUpdate(newAdDoc._id, {
+                    $addToSet: { duplicates: duplicate._id }
+                });
+            }
+            return;
+        }
     }
 
-    private async save_data(data: any, job: Job) {
-        // STARTING BY SAVING FILES AND CHANGING URLS
-        // data.pictureUrl = await this.save_files([data.pictureUrl], job)[0];
-        // data.pictureUrls = await this.save_files(data.pictureUrls, job);
-        const ad = new this.adModel(data);
-        await ad.save();
-        return ad;
+    private async findDuplicatesByLocation(lat: number, lon: number, radius: number = 0.01): Promise<AdDocument[]> {
+        return this.adModel.find({
+            'location.coordinates': {
+                $geoWithin: {
+                    $centerSphere: [[lon, lat], radius / 6378.1]
+                }
+            }
+        }).exec();
     }
 
     private async save_files(files: string[], job: Job) {
