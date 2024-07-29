@@ -48,7 +48,7 @@ export class BieniciCrawler {
                 await job.moveToFailed(error);
             }
         }, bieniciConfig);
-        await crawler.run(['https://www.bienici.com/recherche/achat/france/maisonvilla,appartement,parking,terrain,loft,commerce,batiment,chateau,local,bureau,hotel,autres']);
+        await crawler.run(['https://www.bienici.com/recherche/achat/france/maisonvilla,appartement,parking,terrain,loft,commerce,batiment,chateau,local,bureau,hotel,autres?mode=liste&tri=publication-desc']);
         if (!crawler.requestQueue.isEmpty()) {
             await crawler.requestQueue.drop();
         }

@@ -21,6 +21,10 @@ export class DataProcessingService {
             await this.dataQueues.add('bienici-ingestion', { data_ingestion: data_to_process })
             return
         }
+        if (_from == 'logicimmo-crawler') {
+            await this.dataQueues.add('logicimmo-ingestion', { data_ingestion: data_to_process })
+            return
+        }
     }
 
     async heathCheck() { }

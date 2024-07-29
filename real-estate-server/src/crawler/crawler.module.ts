@@ -8,6 +8,7 @@ import { DataProcessingModule } from 'src/data-processing/data-processing.module
 import { SelogerCrawler } from './seloger/seloger.crawler';
 import { ProxyService } from './proxy.service';
 import { BieniciCrawler } from './bienici/bienici.crawler';
+import { LogicImmoCrawler } from './logic-immo/logicimmo.crawler';
 
 
 @Module({
@@ -22,7 +23,7 @@ import { BieniciCrawler } from './bienici/bienici.crawler';
         DataProcessingModule,
     ],
     controllers: [],
-    providers: [CrawlerService, ProxyService, BoncoinCrawler, SelogerCrawler, BieniciCrawler],
+    providers: [CrawlerService, ProxyService, BoncoinCrawler, SelogerCrawler, BieniciCrawler, LogicImmoCrawler],
     exports: [CrawlerService]
 })
 export class CrawlerModule { }

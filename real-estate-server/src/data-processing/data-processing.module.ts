@@ -9,6 +9,7 @@ import { BoncoinIngestion } from './ingestion/boncoin.ingestion';
 import { HttpModule } from '@nestjs/axios';
 import { SelogerIngestion } from './ingestion/seloger.ingestion';
 import { BienIciIngestion } from './ingestion/bienici.ingestion';
+import { LogicImmoIngestion } from './ingestion/logicimmo.ingestion';
 
 @Module({
     imports: [
@@ -20,7 +21,7 @@ import { BienIciIngestion } from './ingestion/bienici.ingestion';
         MongooseModule.forFeature([{ name: Ad.name, schema: AdSchema }]),
         HttpModule
     ],
-    providers: [DataProcessingService, BoncoinIngestion, SelogerIngestion, BienIciIngestion],
+    providers: [DataProcessingService, BoncoinIngestion, SelogerIngestion, BienIciIngestion, LogicImmoIngestion],
     exports: [DataProcessingService],
     controllers: [],
 })

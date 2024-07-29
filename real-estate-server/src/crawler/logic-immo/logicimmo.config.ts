@@ -1,7 +1,6 @@
-import { BrowserName, Configuration, DeviceCategory, LogLevel, OperatingSystemsName, } from "crawlee";
+import { BrowserName, Configuration, DeviceCategory, LogLevel, OperatingSystemsName } from "crawlee"
 
-
-export const bieniciConfig = new Configuration({
+export const logicimmoConfig = new Configuration({
     logLevel: LogLevel.ERROR,
     persistStorage: false,
     storageClientOptions: {
@@ -10,7 +9,7 @@ export const bieniciConfig = new Configuration({
     },
     headless: true
 })
-export const bieniciCrawlerOption = {
+export const logicimmoCrawlerOption = {
     useSessionPool: true,
     persistCookiesPerSession: true,
     maxRequestRetries: 3,

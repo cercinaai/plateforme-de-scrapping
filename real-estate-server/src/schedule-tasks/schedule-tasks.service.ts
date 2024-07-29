@@ -15,7 +15,7 @@ export class ScheduleTasksService implements OnModuleInit {
 
     async onModuleInit() {
         // CHECK IF DATABASE IS EMPTY OR NOT
-        // await this.crawlerService.populate_database();
+        await this.crawlerService.populate_database();
     }
 
 
