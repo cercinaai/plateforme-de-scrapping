@@ -8,9 +8,14 @@ export class CrawlerService {
 
     constructor(@InjectQueue('crawler') private crawlerQueue: Queue) { }
 
+    async populate_database() {
+        // await this.crawlerQueue.add('boncoin-crawler', {}, { attempts: 3, });
+        // await this.crawlerQueue.add('seloger-crawler', {}, { attempts: 3, });
+    }
+
     async startPeriodicCrawlers() {
-        await this.crawlerQueue.add('boncoin-crawler', {}, { attempts: 3, });
-        await this.crawlerQueue.add('seloger-crawler', {}, { attempts: 3, });
+        // GET LAST DATE TO STOP AT FROM DATABASE
+
     }
 
     async heathCheck(): Promise<{ crawler_success: crawler_healthCheck_positive[], crawler_failure: crawler_healthCheck_negative[] }> {

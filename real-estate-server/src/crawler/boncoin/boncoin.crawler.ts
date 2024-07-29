@@ -1,10 +1,11 @@
 import { PlaywrightCrawler, ProxyConfiguration } from 'crawlee';
 import { Processor, Process } from '@nestjs/bull';
 import { Job } from 'bull';
-import { Scope } from '@nestjs/common';
+import { Inject, Scope } from '@nestjs/common';
 import { DataProcessingService } from 'src/data-processing/data-processing.service';
 import { boncoinConfig, boncoinCrawlerOption } from './boncoin.config';
 import { ProxyService } from '../proxy.service';
+import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 
 @Processor({ name: 'crawler', scope: Scope.REQUEST })
 export class BoncoinCrawler {
@@ -36,7 +37,7 @@ export class BoncoinCrawler {
             },
 
             failedRequestHandler: async ({ request, proxyInfo, crawler }, error) => {
-                await job.moveToFailed(error);
+                await job.moveToFailed(error, false);
                 let crawler_stat = crawler.stats.state;
                 await job.update({
                     job_id: job.id.toLocaleString(),
@@ -65,6 +66,7 @@ export class BoncoinCrawler {
             success_requests: crawler.stats.state.requestsFinished,
             failed_requests: crawler.stats.state.requestsFailed
         });
+
         await job.moveToCompleted("success");
     }
 

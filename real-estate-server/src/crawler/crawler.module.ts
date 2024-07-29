@@ -7,6 +7,8 @@ import { BoncoinCrawler } from './boncoin/boncoin.crawler';
 import { DataProcessingModule } from 'src/data-processing/data-processing.module';
 import { SelogerCrawler } from './seloger/seloger.crawler';
 import { ProxyService } from './proxy.service';
+import { MongooseModule } from '@nestjs/mongoose';
+import { Ad, AdSchema } from 'src/models/ad.schema';
 
 
 @Module({
@@ -18,7 +20,10 @@ import { ProxyService } from './proxy.service';
             name: 'crawler',
             adapter: BullAdapter,
         }),
-        DataProcessingModule
+        DataProcessingModule,
+        MongooseModule.forFeature([
+            { name: Ad.name, schema: AdSchema },
+        ]),
     ],
     controllers: [],
     providers: [CrawlerService, ProxyService, BoncoinCrawler, SelogerCrawler],

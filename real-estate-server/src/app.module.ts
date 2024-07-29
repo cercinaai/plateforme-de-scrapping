@@ -13,6 +13,8 @@ import { ExpressAdapter } from "@bull-board/express";
 import { BullBoardModule } from '@bull-board/nestjs';
 import { MongooseModule } from '@nestjs/mongoose';
 import { DataProcessingModule } from './data-processing/data-processing.module';
+import { CacheModule } from '@nestjs/cache-manager';
+import { redisStore } from 'cache-manager-redis-yet';
 
 const PATH = APP_CONFIG.PRODUCTION ? 'prod.env' : 'dev.env';
 
@@ -43,6 +45,18 @@ const PATH = APP_CONFIG.PRODUCTION ? 'prod.env' : 'dev.env';
       inject: [ConfigService]
     }),
     PrometheusModule.register(),
+    CacheModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        store: await redisStore({
+          socket: {
+            host: configService.get<string>('REDIS_HOST'),
+            port: configService.get<number>('REDIS_PORT')
+          }
+        })
+      }),
+      inject: [ConfigService]
+    }),
     CrawlerModule,
     DataProcessingModule,
   ],

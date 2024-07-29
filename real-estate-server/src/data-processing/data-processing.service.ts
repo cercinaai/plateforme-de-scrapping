@@ -13,7 +13,10 @@ export class DataProcessingService {
             await this.dataQueues.add('boncoin-ingestion', { data_ingestion: data_to_process });
             return;
         }
-        // if (target == 'seloger-crawler') return await this.dataQueues.add('seloger-ingestion', { data_ingestion: data_to_process });
+        if (_from == 'seloger-crawler') {
+            await this.dataQueues.add('seloger-ingestion', { data_ingestion: data_to_process })
+            return
+        }
     }
 
     async heathCheck() { }

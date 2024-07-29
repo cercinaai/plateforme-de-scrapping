@@ -3,10 +3,9 @@ import { Logger, Scope } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Job } from "bull";
 import { Model } from "mongoose";
-import { Ad, AdDocument } from "src/models/ad.schema";
+import { Ad } from "src/models/ad.schema";
 import { ConfigService } from "@nestjs/config";
 import * as fs from 'fs';
-import * as path from 'path';
 import { HttpService } from "@nestjs/axios";
 import { first } from "rxjs";
 
@@ -72,19 +71,13 @@ export class BoncoinIngestion {
             price: data.price[0],
             originalPrice: getValue(data.attributes, 'old_price') || 0,
             pricePerSquareMeter: getValue(data.attributes, 'price_per_square_meter') || 0,
-            rent: null,
-            propertyCharges: null,
-            propertyTax: null,
             rooms: parseInt(getValue(data.attributes, 'rooms')) || 0,
             bedrooms: parseInt(getValue(data.attributes, 'bedrooms')) || 0,
             surface: parseInt(getValue(data.attributes, 'square')) || 0,
             landSurface: parseInt(getValue(data.attributes, 'land_plot_surface')) || 0,
-            constructionYear: null,
             floor: parseInt(getValue(data.attributes, 'floor_number')) || null,
             buildingFloors: parseInt(getValue(data.attributes, 'nb_floors_building')) || null,
-            energyValue: null,
             energyGrade: getValueLabel(data.attributes, 'energy_rate') || '',
-            gasValue: null,
             gasGrade: getValueLabel(data.attributes, 'ges') || '',
             options: data.attributes.filter((attr: any) => attr.generic && attr.value_label).map((attr: any) => attr.value_label),
             history: [],

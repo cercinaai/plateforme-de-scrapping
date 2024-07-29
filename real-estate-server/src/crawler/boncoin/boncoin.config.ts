@@ -5,7 +5,6 @@ export const boncoinConfig = new Configuration({
     logLevel: LogLevel.ERROR,
     persistStorage: false,
     storageClientOptions: {
-        localDataDirecotry: './boncoin-storage',
         persistStorage: false,
         writeMetadata: false,
     },

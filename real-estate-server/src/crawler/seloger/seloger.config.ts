@@ -2,14 +2,13 @@ import { BrowserName, Configuration, DeviceCategory, LogLevel, OperatingSystemsN
 
 
 export const selogerConfig = new Configuration({
-    logLevel: LogLevel.ERROR,
+    logLevel: LogLevel.INFO,
     persistStorage: false,
     storageClientOptions: {
-        localDataDirecotry: './seloger-storage',
         persistStorage: false,
         writeMetadata: false,
     },
-    headless: true
+    headless: false
 })
 
 export const selogerCrawlerOptions = {
@@ -18,13 +17,12 @@ export const selogerCrawlerOptions = {
     maxRequestRetries: 3,
     maxSessionRotations: 3,
     retryOnBlocked: true,
-    sameDomainDelaySecs: 0,
     browserPoolOptions: {
         useFingerprints: true,
         fingerprintOptions: {
             fingerprintGeneratorOptions: {
                 browsers: [{
-                    name: BrowserName.firefox,
+                    name: BrowserName.chrome,
                     minVersion: 96,
                 }],
                 devices: [
