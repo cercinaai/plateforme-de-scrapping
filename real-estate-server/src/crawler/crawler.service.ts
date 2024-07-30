@@ -9,9 +9,9 @@ export class CrawlerService {
     constructor(@InjectQueue('crawler') private crawlerQueue: Queue) { }
 
     async populate_database() {
-        // await this.crawlerQueue.add('boncoin-crawler', {}, { attempts: 3, });
+        await this.crawlerQueue.add('boncoin-crawler', {}, { attempts: 3, });
         // await this.crawlerQueue.add('seloger-crawler', {}, { attempts: 3, });
-        // await this.crawlerQueue.add('bienici-crawler', {}, { attempts: 3, });
+        await this.crawlerQueue.add('bienici-crawler', {}, { attempts: 3, });
         await this.crawlerQueue.add('logicimmo-crawler', {}, { attempts: 3, });
     }
 

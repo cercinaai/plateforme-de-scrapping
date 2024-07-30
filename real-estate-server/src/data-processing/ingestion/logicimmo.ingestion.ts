@@ -23,12 +23,13 @@ export class LogicImmoIngestion {
         try {
             for (let data of job.data.data_ingestion) {
                 let cleaned_data = await this.clean_data(data);
-                await this.process_data(cleaned_data, job);
+                await this.process_data(cleaned_data);
             }
             this.logger.log(`Job ${job.id} has been processed successfully`);
-            await job.moveToCompleted();
+            await job.moveToCompleted(`job-${job.id}-logicimmo-ingestion-completed`, false);
         } catch (error) {
-            job.moveToFailed(error);
+            this.logger.error(error);
+            job.moveToFailed(error, false);
         }
     }
 
@@ -42,9 +43,9 @@ export class LogicImmoIngestion {
             origin: 'logic-immo',
             adId: data.id.toString(),
             reference: data.client_id || '',
-            creationDate: new Date(), // No creation date provided in the data, using current date
-            lastCheckDate: new Date(), // No last check date provided in the data, using current date
-            title: data.name || '', // Using 'name' as title if available
+            creationDate: new Date(),
+            lastCheckDate: new Date(),
+            title: data.name || data.title || '',
             type: data.type_use || '',
             category: data_types.at(extractNumber(data.estate_type)) || '',
             publisher: {
@@ -53,7 +54,7 @@ export class LogicImmoIngestion {
                 phoneNumber: ''
             },
             description: data.description || '', // No description provided in the data
-            url: `https://www.logic-immo.com/detail-vente${data.id}.htm`,
+            url: `https://www.logic-immo.com/detail-vente-${data.id}.htm`,
             pictureUrl: data.pictureUrl || '', // No main picture URL provided in the data
             pictureUrls: [], // Assuming empty array as no URLs provided
             location: {
@@ -84,23 +85,17 @@ export class LogicImmoIngestion {
         };
     }
 
-    private async process_data(data: Partial<AdDocument>, job: Job) {
-        const duplicates = await this.findDuplicatesByLocation(data.location.coordinates.lat, data.location.coordinates.lon);
-        if (duplicates.length === 0) {
-            // No duplicates found, insert new ad
-            const newAdDoc = new this.adModel(data);
-            await newAdDoc.save();
-        }
-        let sameOriginAd = duplicates.find(ad => ad.origin === data.origin);
-        if (sameOriginAd) {
+    private async process_data(data: Partial<AdDocument>) {
+        const existingAd = await this.adModel.findOne({ origin: data.origin, adId: data.adId });
+        if (existingAd) {
             // Update existing ad with the same origin
-            await this.adModel.findByIdAndUpdate(sameOriginAd._id, {
+            await this.adModel.findByIdAndUpdate(existingAd._id, {
                 ...data,
                 lastCheckDate: new Date()
             });
-            return;
         } else {
-            // Handle duplicates with different origins
+            // Handle duplicates with different origins by location
+            const duplicates = await this.findDuplicatesByLocation(data.location.coordinates.lat, data.location.coordinates.lon);
             const newAdDoc = new this.adModel(data);
             await newAdDoc.save();
             for (const duplicate of duplicates) {
@@ -111,7 +106,6 @@ export class LogicImmoIngestion {
                     $addToSet: { duplicates: duplicate._id }
                 });
             }
-            return;
         }
     }
 

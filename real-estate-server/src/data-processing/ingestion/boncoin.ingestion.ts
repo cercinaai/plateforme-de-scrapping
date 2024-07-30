@@ -20,12 +20,13 @@ export class BoncoinIngestion {
         try {
             for (let data of job.data.data_ingestion) {
                 let cleaned_data = await this.clean_data(data);
-                await this.process_data(cleaned_data, job);
+                await this.process_data(cleaned_data);
             }
             this.logger.log(`Job ${job.id} has been processed successfully`);
-            await job.moveToCompleted()
+            await job.moveToCompleted(`job-${job.id}-boncoin-ingestion-completed`)
         } catch (error) {
             this.logger.error(error);
+            await job.moveToFailed(error, false);
         }
     }
 
@@ -84,23 +85,17 @@ export class BoncoinIngestion {
         };
     }
 
-    private async process_data(data: Partial<AdDocument>, job: Job) {
-        const duplicates = await this.findDuplicatesByLocation(data.location.coordinates.lat, data.location.coordinates.lon);
-        if (duplicates.length === 0) {
-            // No duplicates found, insert new ad
-            const newAdDoc = new this.adModel(data);
-            await newAdDoc.save();
-        }
-        let sameOriginAd = duplicates.find(ad => ad.origin === data.origin);
-        if (sameOriginAd) {
+    private async process_data(data: Partial<AdDocument>) {
+        const existingAd = await this.adModel.findOne({ origin: data.origin, adId: data.adId });
+        if (existingAd) {
             // Update existing ad with the same origin
-            await this.adModel.findByIdAndUpdate(sameOriginAd._id, {
+            await this.adModel.findByIdAndUpdate(existingAd._id, {
                 ...data,
                 lastCheckDate: new Date()
             });
-            return;
         } else {
-            // Handle duplicates with different origins
+            // Handle duplicates with different origins by location
+            const duplicates = await this.findDuplicatesByLocation(data.location.coordinates.lat, data.location.coordinates.lon);
             const newAdDoc = new this.adModel(data);
             await newAdDoc.save();
             for (const duplicate of duplicates) {
@@ -111,7 +106,6 @@ export class BoncoinIngestion {
                     $addToSet: { duplicates: duplicate._id }
                 });
             }
-            return;
         }
     }
 

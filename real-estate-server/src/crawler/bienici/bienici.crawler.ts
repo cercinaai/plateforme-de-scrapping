@@ -13,20 +13,27 @@ export class BieniciCrawler {
 
     @Process('bienici-crawler')
     async start(job: Job) {
-
         let crawler = new PlaywrightCrawler({
             ...bieniciCrawlerOption,
-            // proxyConfiguration: new ProxyConfiguration({
-            //     newUrlFunction: async () => this.proxyService.new_proxy()
-            // }),
             preNavigationHooks: [
-                async ({ page }) => {
+                async ({ page, waitForSelector }) => {
                     await page.route('https://www.bienici.com/realEstateAds**', async (route) => {
+                        const base_url = 'https://www.bienici.com';
                         let res = await route.fetch();
                         let body = await res.json();
                         if (!body.realEstateAds || body.realEstateAds.length === 0) return;
-                        await this.dataProcessingService.process(body.realEstateAds, 'bienici-crawler');
+                        let ads = body.realEstateAds;
                         await route.continue();
+                        await waitForSelector("#searchResults > div > div.resultsListContainer");
+                        const formated_ads = await Promise.all(ads.map(async (ad: any) => {
+                            let ads_link_html = await page.$(`article[data-id="${ad.id}"]  a`);
+                            let ad_link = await ads_link_html?.getAttribute('href');
+                            return {
+                                ...ad,
+                                url: ad_link ? `${base_url}${ad_link}` : ''
+                            }
+                        }));
+                        await this.dataProcessingService.process(formated_ads, 'bienici-crawler');
                     });
                 }
             ],
@@ -43,9 +50,9 @@ export class BieniciCrawler {
                     label: 'next_page'
                 });
             },
-            failedRequestHandler: async ({ request, proxyInfo, crawler, log }, error) => {
+            failedRequestHandler: async ({ request, proxyInfo, log }, error) => {
                 log.error('Failed request', { request, proxyInfo, error });
-                await job.moveToFailed(error);
+                await job.moveToFailed(error, false);
             }
         }, bieniciConfig);
         await crawler.run(['https://www.bienici.com/recherche/achat/france/maisonvilla,appartement,parking,terrain,loft,commerce,batiment,chateau,local,bureau,hotel,autres?mode=liste&tri=publication-desc']);
@@ -53,6 +60,7 @@ export class BieniciCrawler {
             await crawler.requestQueue.drop();
         }
         await crawler.teardown();
+        if (job.isFailed()) return;
         await job.update({
             success_date: new Date(),
             crawler_origin: 'bienici',
@@ -60,6 +68,6 @@ export class BieniciCrawler {
             success_requests: crawler.stats.state.requestsFinished,
             failed_requests: crawler.stats.state.requestsFailed
         });
-        await job.moveToCompleted("success");
+        await job.moveToCompleted("success", false);
     }
 }

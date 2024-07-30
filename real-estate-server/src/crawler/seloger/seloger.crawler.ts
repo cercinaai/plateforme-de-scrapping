@@ -67,7 +67,7 @@ export class SelogerCrawler {
             success_requests: crawler.stats.state.requestsFinished,
             failed_requests: crawler.stats.state.requestsFailed
         });
-        await job.moveToCompleted("success");
+        await job.moveToCompleted("success", false);
     }
 
     async go_to_buy_page(page: Page, waitForSelector: Function) {

@@ -26,6 +26,10 @@ const PATH = APP_CONFIG.PRODUCTION ? 'prod.env' : 'dev.env';
     BullModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
+        settings: {
+          lockDuration: 300000,
+          maxStalledCount: 10
+        },
         redis: {
           host: configService.get<string>('REDIS_HOST'),
           port: configService.get<number>('REDIS_PORT')

@@ -35,20 +35,9 @@ export class BoncoinCrawler {
                 });
             },
 
-            failedRequestHandler: async ({ request, proxyInfo, crawler }, error) => {
+            failedRequestHandler: async ({ request, proxyInfo, log }, error) => {
+                log.error('Failed request', { request, proxyInfo, error });
                 await job.moveToFailed(error, false);
-                let crawler_stat = crawler.stats.state;
-                await job.update({
-                    job_id: job.id.toLocaleString(),
-                    error_date: new Date(),
-                    crawler_origin: 'boncoin',
-                    status: 'failed',
-                    failedReason: error.message,
-                    failed_request_url: request.url,
-                    success_requests: crawler_stat.requestsFinished,
-                    failed_requests: crawler_stat.requestsFailed,
-                    proxy_used: proxyInfo.url
-                });
             },
         }, boncoinConfig);
 
@@ -65,8 +54,7 @@ export class BoncoinCrawler {
             success_requests: crawler.stats.state.requestsFinished,
             failed_requests: crawler.stats.state.requestsFailed
         });
-
-        await job.moveToCompleted("success");
+        await job.moveToCompleted("success", false);
     }
 
 

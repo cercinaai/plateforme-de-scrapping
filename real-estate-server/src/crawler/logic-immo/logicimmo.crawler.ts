@@ -35,8 +35,10 @@ export class LogicImmoCrawler {
                     let description = await page.$(`#${id} > div.announceContent.announceSearch > div.announceDtl > div.announceDtlDescription`);
                     let agencyName = await page.$(`#${id} > div.topAnnounce.announceSearch > div > span > a`);
                     let agencyUrl = await page.$(`#${id} > div.topAnnounce.announceSearch > div > a`);
+                    let ad_title = await page.$(`#${id} > span.announceDtlInfosPropertyType`);
                     return {
                         ...ad,
+                        title: ad_title ? await ad_title.textContent() : '',
                         pictureUrl: pictureUrl ? await pictureUrl.getAttribute('src') : '',
                         description: description ? await description.textContent() : '',
                         agencyName: agencyName ? await agencyName.textContent() : '',
@@ -63,8 +65,9 @@ export class LogicImmoCrawler {
                     return;
                 }
             },
-            failedRequestHandler: async ({ request, proxyInfo, crawler, log }, error) => {
-                await job.moveToFailed(error);
+            failedRequestHandler: async ({ request, proxyInfo, log }, error) => {
+                log.error('Failed request', { request, proxyInfo, error });
+                await job.moveToFailed(error, false);
             }
         }, logicimmoConfig);
 
@@ -73,6 +76,7 @@ export class LogicImmoCrawler {
             await crawler.requestQueue.drop();
         }
         await crawler.teardown();
+        if (job.isFailed()) return;
         await job.update({
             success_date: new Date(),
             crawler_origin: 'logic-immo',
@@ -80,7 +84,7 @@ export class LogicImmoCrawler {
             success_requests: crawler.stats.state.requestsFinished,
             failed_requests: crawler.stats.state.requestsFailed
         });
-        await job.moveToCompleted("success");
+        await job.moveToCompleted("success", false);
     }
 
     private escapeId(id: string) {

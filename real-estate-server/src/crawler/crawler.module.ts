@@ -14,7 +14,11 @@ import { LogicImmoCrawler } from './logic-immo/logicimmo.crawler';
 @Module({
     imports: [
         BullModule.registerQueue({
-            name: 'crawler'
+            name: 'crawler',
+            settings: {
+                lockDuration: 300000,
+                maxStalledCount: 10
+            }
         }),
         BullBoardModule.forFeature({
             name: 'crawler',

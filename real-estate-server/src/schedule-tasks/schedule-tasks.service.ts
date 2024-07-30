@@ -7,7 +7,7 @@ import { CrawlerService } from 'src/crawler/crawler.service';
 export class ScheduleTasksService implements OnModuleInit {
 
     private readonly logger = new Logger(ScheduleTasksService.name);
-    public static populated_database_finish: boolean = false;
+    public static populate_database_active: boolean = true;
 
     constructor(private crawlerService: CrawlerService, @Inject(CACHE_MANAGER) private cacheManager: Cache) {
 
@@ -19,12 +19,12 @@ export class ScheduleTasksService implements OnModuleInit {
     }
 
 
-    @Cron(CronExpression.EVERY_12_HOURS, { disabled: ScheduleTasksService.populated_database_finish })
+    @Cron(CronExpression.EVERY_12_HOURS, { disabled: ScheduleTasksService.populate_database_active })
     async startPeriodicCrawlers() {
         await this.crawlerService.startPeriodicCrawlers();
     }
 
-    @Cron(CronExpression.EVERY_10_MINUTES, { disabled: ScheduleTasksService.populated_database_finish })
+    @Cron(CronExpression.EVERY_10_MINUTES, { disabled: ScheduleTasksService.populate_database_active })
     async crawler_heath_check() {
         let stat = await this.crawlerService.heathCheck();
         this.logger.log(stat);
