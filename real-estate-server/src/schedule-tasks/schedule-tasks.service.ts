@@ -9,7 +9,7 @@ export class ScheduleTasksService implements OnModuleInit {
     private readonly logger = new Logger(ScheduleTasksService.name);
     public static populate_database_active: boolean = true;
 
-    constructor(private crawlerService: CrawlerService, @Inject(CACHE_MANAGER) private cacheManager: Cache) {
+    constructor(private crawlerService: CrawlerService) {
 
     }
 
@@ -19,9 +19,10 @@ export class ScheduleTasksService implements OnModuleInit {
     }
 
 
+
     @Cron(CronExpression.EVERY_12_HOURS, { disabled: ScheduleTasksService.populate_database_active })
     async startPeriodicCrawlers() {
-        await this.crawlerService.startPeriodicCrawlers();
+        await this.crawlerService.populate_database();
     }
 
     @Cron(CronExpression.EVERY_10_MINUTES, { disabled: ScheduleTasksService.populate_database_active })

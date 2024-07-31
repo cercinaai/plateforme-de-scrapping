@@ -48,7 +48,7 @@ export class BienIciIngestion {
             category: data.propertyType,
             publisher: {
                 name: data.userRelativeData.accountIds[0], // Assuming first accountId as the publisher name
-                storeUrl: '', // No store URL provided in the data
+                storeUrl: data.agencyFeeUrl,
                 phoneNumber: data.phoneDisplays.length ? data.phoneDisplays[0] : '' // Assuming the first phone display if available
             },
             description: data.description,
@@ -70,7 +70,7 @@ export class BienIciIngestion {
             pricePerSquareMeter: getFirstValidNumber(data.pricePerSquareMeter) || 0,
             rooms: getFirstValidNumber(data.roomsQuantity) || 0,
             bedrooms: data.bedroomsQuantity || 0,
-            surface: data.surfaceArea || 0,
+            surface: getFirstValidNumber(data.surfaceArea) || 0,
             landSurface: 0,
             floor: data.floor || null,
             buildingFloors: data.floorQuantity || null,

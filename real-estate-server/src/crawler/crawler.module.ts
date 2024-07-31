@@ -9,6 +9,8 @@ import { SelogerCrawler } from './seloger/seloger.crawler';
 import { ProxyService } from './proxy.service';
 import { BieniciCrawler } from './bienici/bienici.crawler';
 import { LogicImmoCrawler } from './logic-immo/logicimmo.crawler';
+import { MongooseModule } from '@nestjs/mongoose';
+import { Ad, AdSchema } from 'src/models/ad.schema';
 
 
 @Module({
@@ -24,6 +26,7 @@ import { LogicImmoCrawler } from './logic-immo/logicimmo.crawler';
             name: 'crawler',
             adapter: BullAdapter,
         }),
+        MongooseModule.forFeature([{ name: Ad.name, schema: AdSchema }]),
         DataProcessingModule,
     ],
     controllers: [],

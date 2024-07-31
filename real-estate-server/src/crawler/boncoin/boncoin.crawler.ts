@@ -1,18 +1,20 @@
 import { PlaywrightCrawler, ProxyConfiguration } from 'crawlee';
 import { Processor, Process } from '@nestjs/bull';
 import { Job } from 'bull';
-import { Inject, Scope } from '@nestjs/common';
+import { Inject, Logger, Scope } from '@nestjs/common';
 import { DataProcessingService } from 'src/data-processing/data-processing.service';
 import { boncoinConfig, boncoinCrawlerOption } from './boncoin.config';
 import { ProxyService } from '../proxy.service';
 
 @Processor({ name: 'crawler', scope: Scope.DEFAULT })
 export class BoncoinCrawler {
+    private readonly logger = new Logger(BoncoinCrawler.name);
 
     constructor(private dataProcessingService: DataProcessingService, private proxyService: ProxyService) { }
 
     @Process('boncoin-crawler')
-    async start(job: Job) {
+    async full_data_crawler(job: Job) {
+        let check_date = new Date();
         let crawler = new PlaywrightCrawler({
             ...boncoinCrawlerOption,
             proxyConfiguration: new ProxyConfiguration({
@@ -23,7 +25,17 @@ export class BoncoinCrawler {
                 await waitForSelector("script[id='__NEXT_DATA__']");
                 let data = await page.$("script[id='__NEXT_DATA__']");
                 let json_content = JSON.parse(await data?.textContent() as string)["props"]["pageProps"]["searchData"]["ads"];
-                await this.dataProcessingService.process(json_content, 'boncoin-crawler');
+                let date_filter_content = Array.from(json_content).filter((ad: any) => {
+                    let ad_date = new Date(ad['first_publication_date']);
+                    return ad_date.getUTCFullYear() === check_date.getUTCFullYear() &&
+                        ad_date.getUTCMonth() === check_date.getUTCMonth() &&
+                        ad_date.getUTCDate() === check_date.getUTCDate();
+                });
+                await this.dataProcessingService.process(date_filter_content, 'boncoin-crawler');
+                if (json_content.length > date_filter_content.length || date_filter_content.length === 0) {
+                    this.logger.log("Found ads older than check_date. Stopping the crawler.");
+                    return;
+                };
                 await waitForSelector("a[title='Page suivante']");
                 const next_page_html = await page.$('a[title="Page suivante"]');
                 const next_page = await next_page_html?.getAttribute('href');
@@ -35,8 +47,8 @@ export class BoncoinCrawler {
                 });
             },
 
-            failedRequestHandler: async ({ request, proxyInfo, log }, error) => {
-                log.error('Failed request', { request, proxyInfo, error });
+            failedRequestHandler: async ({ request, proxyInfo }, error) => {
+                this.logger.error('Failed request', { request, proxyInfo, error });
                 await job.moveToFailed(error, false);
             },
         }, boncoinConfig);

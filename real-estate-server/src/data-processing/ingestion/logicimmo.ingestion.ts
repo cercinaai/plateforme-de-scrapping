@@ -45,7 +45,7 @@ export class LogicImmoIngestion {
             reference: data.client_id || '',
             creationDate: new Date(),
             lastCheckDate: new Date(),
-            title: data.name || data.title || '',
+            title: data.title || data.name || '',
             type: data.type_use || '',
             category: data_types.at(extractNumber(data.estate_type)) || '',
             publisher: {
@@ -58,7 +58,7 @@ export class LogicImmoIngestion {
             pictureUrl: data.pictureUrl || '', // No main picture URL provided in the data
             pictureUrls: [], // Assuming empty array as no URLs provided
             location: {
-                city: data.city,
+                city: data.city || '',
                 postalCode: data.zip_code,
                 departmentCode: data.province,
                 regionCode: '', // No region code provided in the data

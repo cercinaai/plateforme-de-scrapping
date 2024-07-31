@@ -46,7 +46,7 @@ export class BoncoinIngestion {
             adId: data.list_id.toString(),
             reference: getValue(data.attributes, 'custom_ref') || '',
             creationDate: new Date(data.first_publication_date),
-            lastCheckDate: new Date(data.index_date),
+            lastCheckDate: new Date(),
             title: data.subject,
             type: data.ad_type,
             category: data.category_name,
