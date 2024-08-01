@@ -3,7 +3,7 @@ import { Logger, Scope } from "@nestjs/common";
 import { ProxyService } from "../proxy.service";
 import { DataProcessingService } from "src/data-processing/data-processing.service";
 import { Job } from "bull";
-import { PlaywrightCrawler } from "crawlee";
+import { FinalStatistics, PlaywrightCrawler } from "crawlee";
 import { logicimmoConfig, logicimmoCrawlerOption } from "./logicimmo.config";
 import { Page } from "playwright";
 import { InjectModel } from "@nestjs/mongoose";
@@ -15,8 +15,8 @@ import { Model } from "mongoose";
 export class LogicImmoCrawler {
 
     private readonly logger = new Logger(LogicImmoCrawler.name);
-    private readonly LIMIT_PAGE = 100;
-    constructor(private dataProcessingService: DataProcessingService, private proxyService: ProxyService, @InjectModel(Ad.name) private adModel: Model<Ad>) { }
+    private readonly LIMIT_PAGE = 20;
+    constructor(private dataProcessingService: DataProcessingService, @InjectModel(Ad.name) private adModel: Model<Ad>) { }
 
     @Process('logicimmo-crawler')
     async start(job: Job) {
@@ -73,25 +73,32 @@ export class LogicImmoCrawler {
                 }
             },
             failedRequestHandler: async ({ request, proxyInfo, log }, error) => {
-                this.logger.error('Failed request', { request, proxyInfo, error });
-                await job.moveToFailed(error, false);
+                await job.update({
+                    job_id: job.id.toLocaleString(),
+                    error_date: new Date(),
+                    crawler_origin: 'logic-immo',
+                    status: 'failed',
+                    failedReason: request.errorMessages[-1] || error.message || 'Unknown error',
+                    failed_request_url: request.url,
+                    proxy_used: proxyInfo.url
+                });
             }
         }, logicimmoConfig);
 
-        await crawler.run([`https://www.logic-immo.com/vente-immobilier-${france_localities[localite_index]}/options/groupprptypesids=1,2,6,7,12,3,18,4,5,14,13,11,10,9,8/searchoptions=0,1,3/page=${list_page}/order=update_date_desc`]);
-        if (!crawler.requestQueue.isEmpty()) {
-            await crawler.requestQueue.drop();
-        }
+        let stat: FinalStatistics = await crawler.run([`https://www.logic-immo.com/vente-immobilier-${france_localities[localite_index]}/options/groupprptypesids=1,2,6,7,12,3,18,4,5,14,13,11,10,9,8/searchoptions=0,1,3/page=${list_page}/order=update_date_desc`]);
         await crawler.teardown();
-        if (job.isFailed()) return;
+        if (stat.requestsFailed > 0) {
+            await job.moveToFailed(new Error(`Failed requests: ${stat.requestsFailed}`), false);
+            return;
+        }
         await job.update({
             success_date: new Date(),
             crawler_origin: 'logic-immo',
             status: 'success',
-            success_requests: crawler.stats.state.requestsFinished,
-            failed_requests: crawler.stats.state.requestsFailed
+            total_request: stat.requestsTotal,
+            success_requests: stat.requestsFinished,
+            failed_requests: stat.requestsFailed,
         });
-        await job.moveToCompleted("success", false);
     }
 
     private escapeId(id: string) {

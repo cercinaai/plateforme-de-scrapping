@@ -25,9 +25,5 @@ export class ScheduleTasksService implements OnModuleInit {
         await this.crawlerService.populate_database();
     }
 
-    @Cron(CronExpression.EVERY_10_MINUTES, { disabled: ScheduleTasksService.populate_database_active })
-    async crawler_heath_check() {
-        let stat = await this.crawlerService.heathCheck();
-        this.logger.log(stat);
-    }
+
 }

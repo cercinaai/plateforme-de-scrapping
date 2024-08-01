@@ -4,14 +4,14 @@ import { DataProcessingService } from "src/data-processing/data-processing.servi
 import { ProxyService } from "../proxy.service";
 import { Job } from "bull";
 import { bieniciConfig, bieniciCrawlerOption } from "./bienici.config";
-import { PlaywrightCrawler, ProxyConfiguration } from "crawlee";
+import { FinalStatistics, PlaywrightCrawler, ProxyConfiguration } from "crawlee";
 import { Page } from "playwright";
 
 
 @Processor({ name: 'crawler', scope: Scope.DEFAULT })
 export class BieniciCrawler {
     private readonly logger = new Logger(BieniciCrawler.name);
-
+    private readonly target_url: string[] = ["https://www.bienici.com/recherche/achat/france/maisonvilla,appartement,parking,terrain,loft,commerce,batiment,chateau,local,bureau,hotel,autres?mode=liste&tri=publication-desc"]
     constructor(private dataProcessingService: DataProcessingService, private proxyService: ProxyService) { }
 
     @Process('bienici-crawler')
@@ -20,7 +20,7 @@ export class BieniciCrawler {
         let crawler = new PlaywrightCrawler({
             ...bieniciCrawlerOption,
             preNavigationHooks: [
-                async ({ page, waitForSelector }) => {
+                async ({ page }) => {
                     await page.route('https://www.bienici.com/realEstateAds**', async (route) => {
                         let res = await route.fetch();
                         let body = await res.json();
@@ -65,25 +65,32 @@ export class BieniciCrawler {
                     label: 'next_page'
                 });
             },
-            failedRequestHandler: async ({ request, proxyInfo, log }, error) => {
-                this.logger.error('Failed request', { request, proxyInfo, error });
-                await job.moveToFailed(error, false);
+            failedRequestHandler: async ({ request, proxyInfo }, error) => {
+                await job.update({
+                    job_id: job.id.toLocaleString(),
+                    error_date: new Date(),
+                    crawler_origin: 'bienici',
+                    status: 'failed',
+                    failedReason: request.errorMessages[-1] || error.message || 'Unknown error',
+                    failed_request_url: request.url,
+                    proxy_used: proxyInfo.url
+                });
             }
         }, bieniciConfig);
-        await crawler.run(['https://www.bienici.com/recherche/achat/france/maisonvilla,appartement,parking,terrain,loft,commerce,batiment,chateau,local,bureau,hotel,autres?mode=liste&tri=publication-desc']);
-        if (!crawler.requestQueue.isEmpty()) {
-            await crawler.requestQueue.drop();
-        }
+        let stat: FinalStatistics = await crawler.run(this.target_url);
         await crawler.teardown();
-        if (job.isFailed()) return;
+        if (stat.requestsFailed > 0) {
+            await job.moveToFailed(new Error(`Failed requests: ${stat.requestsFailed}`), false);
+            return;
+        }
         await job.update({
             success_date: new Date(),
             crawler_origin: 'bienici',
             status: 'success',
-            success_requests: crawler.stats.state.requestsFinished,
-            failed_requests: crawler.stats.state.requestsFailed
+            total_request: stat.requestsTotal,
+            success_requests: stat.requestsFinished,
+            failed_requests: stat.requestsFailed,
         });
-        await job.moveToCompleted("success", false);
     }
 
 

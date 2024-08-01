@@ -1,4 +1,4 @@
-import { BrowserName, Configuration, DeviceCategory, LogLevel, OperatingSystemsName, } from "crawlee";
+import { BrowserName, Configuration, DeviceCategory, LogLevel, OperatingSystemsName, PlaywrightCrawlerOptions, } from "crawlee";
 
 
 export const boncoinConfig = new Configuration({
@@ -8,15 +8,15 @@ export const boncoinConfig = new Configuration({
         persistStorage: false,
         writeMetadata: false,
     },
-    headless: true
+    headless: false
 })
-export const boncoinCrawlerOption = {
+export const boncoinCrawlerOption: PlaywrightCrawlerOptions = {
     useSessionPool: true,
     persistCookiesPerSession: true,
     maxRequestRetries: 3,
     maxSessionRotations: 3,
     retryOnBlocked: true,
-    sameDomainDelaySecs: 0,
+    sameDomainDelaySecs: 2,
     browserPoolOptions: {
         useFingerprints: true,
         fingerprintOptions: {
