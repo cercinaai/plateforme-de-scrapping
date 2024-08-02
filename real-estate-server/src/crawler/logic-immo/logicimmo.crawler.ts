@@ -22,11 +22,20 @@ export class LogicImmoCrawler {
     async start(job: Job) {
         let localite_index = 0;
         let list_page = 1;
+        let total_data_grabbed: number = job.data['total_data_grabbed'] || 0;
+        let attempts_count: number = job.data['attempts_count'] || 0;
+        let retrying_failed_request = job.data['failed_request_url'] || null;
+
         const france_localities = ['ile-de-france,1_0', 'alsace,10_0', 'aquitaine,15_0', 'Auvergne,19_0', 'Bretagne,13_0',
             'centre,5_0', 'Bourgogne,7_0', 'champagne-ardenne,2_0', 'corse,22_0',
             'franche-comte,11_0', 'languedoc-roussillon,20_0', 'limousin,17_0', 'lorraine,9_0',
             'basse-normandie,6_0', 'midi-pyrenees,16_0', 'nord-pas-de-calais,8_0', 'pays-de-la-loire,12_0',
             'picardie,3_0', 'poitou-charentes,14_0', 'provence-alpes-cote-d-azur,21_0', 'rhone-alpes,18_0', 'haute-normandie,4_0'];
+
+        if (retrying_failed_request) {
+            localite_index = this.extract_localities_index(retrying_failed_request, france_localities);
+            list_page = this.extract_list_page(retrying_failed_request);
+        }
         let crawler = new PlaywrightCrawler({
             ...logicimmoCrawlerOption,
             requestHandler: async ({ page, enqueueLinks, closeCookieModals, waitForSelector }) => {
@@ -51,6 +60,7 @@ export class LogicImmoCrawler {
                 }
                 let formatted_ads = await this.format_ads(ads, page);
                 await this.dataProcessingService.process(formatted_ads, 'logicimmo-crawler');
+                total_data_grabbed += formatted_ads.length;
                 // CHECK IF LIMIT PAGE IS REACHED
                 if (await this.limitPageReached(list_page) === false) {
                     let nextPage = await page.$('li[data-position="next"]');
@@ -72,14 +82,16 @@ export class LogicImmoCrawler {
                     })
                 }
             },
-            failedRequestHandler: async ({ request, proxyInfo, log }, error) => {
+            failedRequestHandler: async ({ request, proxyInfo }, error) => {
                 await job.update({
                     job_id: job.id.toLocaleString(),
                     error_date: new Date(),
                     crawler_origin: 'logic-immo',
                     status: 'failed',
+                    total_data_grabbed: total_data_grabbed,
+                    attempts_count: attempts_count + 1,
                     failedReason: request.errorMessages[-1] || error.message || 'Unknown error',
-                    failed_request_url: request.url,
+                    failed_request_url: request.url || '',
                     proxy_used: proxyInfo.url
                 });
             }
@@ -96,6 +108,8 @@ export class LogicImmoCrawler {
             crawler_origin: 'logic-immo',
             status: 'success',
             total_request: stat.requestsTotal,
+            total_data_grabbed: total_data_grabbed,
+            attempts_count: attempts_count + 1,
             success_requests: stat.requestsFinished,
             failed_requests: stat.requestsFailed,
         });
@@ -148,4 +162,12 @@ export class LogicImmoCrawler {
         return true;
     }
 
+    private extract_localities_index(url: string, france_localities: string[]): number {
+        let localities = url.match(/vente-immobilier-(\w+)-/)[1];
+        return france_localities.indexOf(localities);
+    }
+    private extract_list_page(url: string): number {
+        let list_page = url.match(/page=(\d+)/);
+        return list_page ? parseInt(list_page[1]) : 1;
+    }
 }

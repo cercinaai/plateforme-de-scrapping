@@ -1,5 +1,7 @@
-import { BrowserName, Configuration, DeviceCategory, LogLevel, OperatingSystemsName, } from "crawlee";
-
+import { BrowserName, Configuration, DeviceCategory, LogLevel, OperatingSystemsName, PlaywrightCrawlerOptions, } from "crawlee";
+import { chromium } from "playwright-extra";
+import stealthPlugin from 'puppeteer-extra-plugin-stealth';
+import RecaptchaPlugin from 'puppeteer-extra-plugin-recaptcha';
 
 export const selogerConfig = new Configuration({
     logLevel: LogLevel.INFO,
@@ -11,7 +13,10 @@ export const selogerConfig = new Configuration({
     headless: false
 })
 
-export const selogerCrawlerOptions = {
+export const selogerCrawlerOptions: PlaywrightCrawlerOptions = {
+    launchContext: {
+        launcher: chromium.use(stealthPlugin())
+    },
     useSessionPool: true,
     persistCookiesPerSession: true,
     maxRequestRetries: 3,

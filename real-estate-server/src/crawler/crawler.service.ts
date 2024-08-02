@@ -1,12 +1,17 @@
-import { Injectable } from "@nestjs/common";
-import { Queue } from 'bull';
+import { Injectable, Logger } from "@nestjs/common";
+import { Job, Queue } from 'bull';
 import { InjectQueue } from '@nestjs/bull';
-import { crawler_healthCheck_negative, crawler_healthCheck_positive } from "./utils/crawler.type";
+import { CrawlerSession } from "src/models/crawlerSession.schema";
+import { InjectModel } from "@nestjs/mongoose";
+import { Model } from "mongoose";
+import { SchedulerRegistry } from "@nestjs/schedule";
 
 @Injectable()
 export class CrawlerService {
 
-    constructor(@InjectQueue('crawler') private crawlerQueue: Queue) { }
+    private readonly logger = new Logger(CrawlerService.name);
+
+    constructor(@InjectQueue('crawler') private crawlerQueue: Queue, @InjectModel(CrawlerSession.name) private crawlerSession: Model<CrawlerSession>, private schedulerRegistry: SchedulerRegistry) { }
 
     async populate_database() {
         await this.crawlerQueue.add('boncoin-crawler', {}, { attempts: 1, });
@@ -15,12 +20,59 @@ export class CrawlerService {
         await this.crawlerQueue.add('logicimmo-crawler', {}, { attempts: 1, });
     }
 
-
-
-    async heathCheck(): Promise<{ crawler_success: crawler_healthCheck_positive[], crawler_failure: crawler_healthCheck_negative[] }> {
-        return {
-            crawler_success: (await this.crawlerQueue.getCompleted()).map((job) => job.data),
-            crawler_failure: (await this.crawlerQueue.getFailed()).map((job) => job.data),
+    async heathCheck() {
+        if ((await this.crawlerQueue.getActiveCount()) > 0) return;
+        this.logger.log('Crawler Queues is Empty now...');
+        const failedJobsToRetry = (await this.crawlerQueue.getFailed()).filter(job => job.data['attempts_count'] <= 3);
+        if (failedJobsToRetry.length > 0) {
+            this.logger.log(`FAILED JOBS TO RETRY: ${failedJobsToRetry.length}`);
+            // RETRYING FAILED JOBS
+            for (const job of failedJobsToRetry) {
+                await job.retry()
+            }
+            return;
         }
+        this.logger.log('NO FAILED JOBS TO RETRY...');
+        const failedJobs = (await this.crawlerQueue.getFailed()).map(job => this.mapJobToSchema(job, 'failed'));
+        const completedJobs = (await this.crawlerQueue.getCompleted()).map(job => this.mapJobToSchema(job, 'success'));
+        await this.saveCrawlerSession([...failedJobs, ...completedJobs]);
+        this.logger.log('Crawler Session Saved');
+        this.schedulerRegistry.deleteCronJob('crawler_heath_check');
+    }
+    private mapJobToSchema(job: Job, status: 'success' | 'failed') {
+        const jobData = job.data;
+        if (status === 'success') {
+            return {
+                success_date: jobData.success_date,
+                crawler_origin: jobData.crawler_origin,
+                status: 'success',
+                total_data_grabbed: jobData.total_data_grabbed,
+                total_request: jobData.total_request,
+                success_requests: jobData.success_requests,
+                failed_requests: jobData.failed_requests,
+                attempts_count: jobData.attempts_count,
+            };
+        } else {
+            return {
+                error_date: jobData.error_date,
+                crawler_origin: jobData.crawler_origin,
+                status: 'failed',
+                total_data_grabbed: jobData.total_data_grabbed,
+                failedReason: jobData.failedReason,
+                failed_request_url: jobData.failed_request_url,
+                proxy_used: jobData.proxy_used,
+                attempts_count: jobData.attempts_count,
+            };
+        }
+    }
+    private async saveCrawlerSession(jobsData: any[]) {
+        const sessionData: Partial<CrawlerSession> = {
+            boncoin: jobsData.find(job => job.crawler_origin === 'boncoin') || {},
+            bienici: jobsData.find(job => job.crawler_origin === 'bienici') || {},
+            logicimmo: jobsData.find(job => job.crawler_origin === 'logic-immo') || {},
+            // seloger: jobsData.find(job => job.crawler_origin === 'seloger') || {},
+        };
+        let session = new this.crawlerSession(sessionData);
+        await session.save()
     }
 }

@@ -11,26 +11,25 @@ import { BieniciCrawler } from './bienici/bienici.crawler';
 import { LogicImmoCrawler } from './logic-immo/logicimmo.crawler';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Ad, AdSchema } from 'src/models/ad.schema';
+import { CrawlerSession, CrawlerSessionSchema } from 'src/models/crawlerSession.schema';
+import { SchedulerRegistry } from '@nestjs/schedule';
 
 
 @Module({
     imports: [
         BullModule.registerQueue({
             name: 'crawler',
-            settings: {
-                lockDuration: 300000,
-                maxStalledCount: 10
-            }
         }),
         BullBoardModule.forFeature({
             name: 'crawler',
             adapter: BullAdapter,
         }),
-        MongooseModule.forFeature([{ name: Ad.name, schema: AdSchema }]),
+        MongooseModule.forFeature([{ name: Ad.name, schema: AdSchema }, { name: CrawlerSession.name, schema: CrawlerSessionSchema }]),
+
         DataProcessingModule,
     ],
     controllers: [],
-    providers: [CrawlerService, ProxyService, BoncoinCrawler, SelogerCrawler, BieniciCrawler, LogicImmoCrawler],
+    providers: [CrawlerService, ProxyService, BoncoinCrawler, SelogerCrawler, BieniciCrawler, LogicImmoCrawler, SchedulerRegistry],
     exports: [CrawlerService]
 })
 export class CrawlerModule { }

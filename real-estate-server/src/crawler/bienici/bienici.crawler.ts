@@ -11,12 +11,16 @@ import { Page } from "playwright";
 @Processor({ name: 'crawler', scope: Scope.DEFAULT })
 export class BieniciCrawler {
     private readonly logger = new Logger(BieniciCrawler.name);
-    private readonly target_url: string[] = ["https://www.bienici.com/recherche/achat/france/maisonvilla,appartement,parking,terrain,loft,commerce,batiment,chateau,local,bureau,hotel,autres?mode=liste&tri=publication-desc"]
+    private readonly target_url: string = "https://www.bienici.com/recherche/achat/france/maisonvilla,appartement,parking,terrain,loft,commerce,batiment,chateau,local,bureau,hotel,autres?mode=liste&tri=publication-desc";
     constructor(private dataProcessingService: DataProcessingService, private proxyService: ProxyService) { }
 
     @Process('bienici-crawler')
     async start(job: Job) {
         let check_date = new Date();
+        let total_data_grabbed: number = job.data['total_data_grabbed'] || 0;
+        let attempts_count: number = job.data['attempts_count'] || 0;
+        let retrying_failed_request = job.data['failed_request_url'] || null;
+
         let crawler = new PlaywrightCrawler({
             ...bieniciCrawlerOption,
             preNavigationHooks: [
@@ -51,10 +55,12 @@ export class BieniciCrawler {
                 if (ads.length > date_filter_content.length) {
                     const formated_ads = await this.format_ads(date_filter_content, page);
                     await this.dataProcessingService.process(formated_ads, 'bienici-crawler');
+                    total_data_grabbed += date_filter_content.length;
                     return;
                 };
                 const format_ads = await this.format_ads(date_filter_content, page);
                 await this.dataProcessingService.process(format_ads, 'bienici-crawler');
+                total_data_grabbed += format_ads.length;
                 await waitForSelector("#searchResultsContainer > div.vue-pagination.pagination > div.pagination__nav-buttons > a.pagination__go-forward-button");
                 const next_page_html = await page.$("#searchResultsContainer > div.vue-pagination.pagination > div.pagination__nav-buttons > a.pagination__go-forward-button");
                 const next_page = await next_page_html?.getAttribute('href');
@@ -71,13 +77,15 @@ export class BieniciCrawler {
                     error_date: new Date(),
                     crawler_origin: 'bienici',
                     status: 'failed',
+                    total_data_grabbed: total_data_grabbed,
+                    attempts_count: attempts_count + 1,
                     failedReason: request.errorMessages[-1] || error.message || 'Unknown error',
                     failed_request_url: request.url,
                     proxy_used: proxyInfo.url
                 });
             }
         }, bieniciConfig);
-        let stat: FinalStatistics = await crawler.run(this.target_url);
+        let stat: FinalStatistics = await crawler.run([retrying_failed_request || this.target_url]);
         await crawler.teardown();
         if (stat.requestsFailed > 0) {
             await job.moveToFailed(new Error(`Failed requests: ${stat.requestsFailed}`), false);
@@ -88,6 +96,8 @@ export class BieniciCrawler {
             crawler_origin: 'bienici',
             status: 'success',
             total_request: stat.requestsTotal,
+            total_data_grabbed: total_data_grabbed,
+            attempts_count: attempts_count + 1,
             success_requests: stat.requestsFinished,
             failed_requests: stat.requestsFailed,
         });

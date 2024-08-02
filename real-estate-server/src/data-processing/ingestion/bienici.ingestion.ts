@@ -56,7 +56,7 @@ export class BienIciIngestion {
             pictureUrl: data.photos.length ? data.photos[0].url : '',
             pictureUrls: data.photos.map((photo: any) => photo.url),
             location: {
-                city: data.city,
+                city: data.city || 'NO CITY',
                 postalCode: data.postalCode,
                 departmentCode: data.departmentCode,
                 regionCode: '', // No regionCode provided in the data

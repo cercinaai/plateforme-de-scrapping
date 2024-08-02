@@ -1,8 +1,8 @@
 import { Process, Processor } from "@nestjs/bull";
-import { Scope } from "@nestjs/common";
+import { Logger, Scope } from "@nestjs/common";
 import { DataProcessingService } from "src/data-processing/data-processing.service";
 import { Job } from "bull";
-import { PlaywrightCrawler, ProxyConfiguration } from "crawlee";
+import { FinalStatistics, PlaywrightCrawler, ProxyConfiguration } from "crawlee";
 import { selogerConfig, selogerCrawlerOptions } from "./seloger.config";
 import { ProxyService } from "../proxy.service";
 import { Page } from "playwright";
@@ -11,6 +11,8 @@ import { Page } from "playwright";
 @Processor({ name: 'crawler', scope: Scope.DEFAULT })
 export class SelogerCrawler {
 
+    private readonly logger = new Logger(SelogerCrawler.name)
+    private readonly target_url: string[] = ['https://www.seloger.com/list.htm?projects=2,5&types=2,4,1,3,9,11,12,14,13,10&natures=1,2,4&sort=d_dt_crea&mandatorycommodities=0&enterprise=0&houseboat=1&qsVersion=1.0&m=search_refine-redirection-search_results']
 
     constructor(private dataProcessingService: DataProcessingService, private proxyService: ProxyService) { }
 
@@ -23,7 +25,6 @@ export class SelogerCrawler {
             }),
             requestHandler: async ({ request, waitForSelector, page, enqueueLinks, log, crawler, closeCookieModals }) => {
                 await closeCookieModals()
-                await this.go_to_buy_page(page, waitForSelector);
                 // const data = await page.evaluate(() => {
                 //     return Array.from(window['initialData']['cards']['list']).filter((card) => card['cardType'] === 'classified');
                 // });
@@ -34,57 +35,32 @@ export class SelogerCrawler {
                 // await page.waitForURL('https://www.seloger.com/**', { waitUntil: 'domcontentloaded' });
                 // await enqueueLinks({ urls: [page.url()] });
             },
-            errorHandler: async ({ request, proxyInfo, crawler, log }, error) => {
-                log.info(`Failed request: ${request.url}`);
-            },
-            failedRequestHandler: async ({ request, proxyInfo, crawler, log }, error) => {
-                await job.moveToFailed(error, false);
-                let crawler_stat = crawler.stats.state;
+            failedRequestHandler: async ({ request, proxyInfo, }, error) => {
                 await job.update({
                     job_id: job.id.toLocaleString(),
                     error_date: new Date(),
                     crawler_origin: 'seloger',
                     status: 'failed',
-                    failedReason: error.message,
+                    failedReason: request.errorMessages[-1] || error.message || 'Unknown error',
                     failed_request_url: request.url,
-                    success_requests: crawler_stat.requestsFinished,
-                    failed_requests: crawler_stat.requestsFailed,
                     proxy_used: proxyInfo.url
                 });
             }
         }, selogerConfig)
 
-        await crawler.run(['https://www.seloger.com']);
-        if (!crawler.requestQueue.isEmpty()) {
-            await crawler.requestQueue.drop();
-        }
+        let stat: FinalStatistics = await crawler.run(this.target_url);
         await crawler.teardown();
-        if (job.isFailed()) return;
+        if (stat.requestsFailed > 0) {
+            await job.moveToFailed(new Error(`Failed requests: ${stat.requestsFailed}`), false);
+            return;
+        }
         await job.update({
             success_date: new Date(),
             crawler_origin: 'seloger',
             status: 'success',
-            success_requests: crawler.stats.state.requestsFinished,
-            failed_requests: crawler.stats.state.requestsFailed
+            total_request: stat.requestsTotal,
+            success_requests: stat.requestsFinished,
+            failed_requests: stat.requestsFailed,
         });
-        await job.moveToCompleted("success", false);
-    }
-
-    async go_to_buy_page(page: Page, waitForSelector: Function) {
-        await waitForSelector('#i-head > div.c-header-list-container > ul > li:nth-child(1) > div > a');
-        let sell_button = await page.$('#i-head > div.c-header-list-container > ul > li:nth-child(1) > div > a');
-        await sell_button.click();
-        await page.waitForURL('https://www.seloger.com/**', { waitUntil: 'domcontentloaded' });
-        let localite_button = await page.$("div[data-testid='gsl.agatha.location.localities']");
-        let add_filter_button = await page.$("div[data-testid='gsl.uilib.Button']");
-        await localite_button.click();
-        await add_filter_button.click();
-        await page.waitForTimeout(2000);
-        await page.evaluate(() => {
-            Array.from(document.querySelectorAll("div[id^='natures-']")).slice(2, 0).map((d) => d.querySelector('input').click());
-        })
-        let applyButton = await page.$("button[data-testid='gsl.agatha.apply_btn']");
-        await applyButton.click();
-        await page.waitForURL('https://www.seloger.com/**', { waitUntil: 'domcontentloaded' });
     }
 }

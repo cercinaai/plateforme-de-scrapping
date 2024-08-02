@@ -1,5 +1,7 @@
-import { BrowserName, Configuration, DeviceCategory, LogLevel, OperatingSystemsName, } from "crawlee";
-
+import { BrowserName, Configuration, DeviceCategory, LogLevel, OperatingSystemsName, PlaywrightCrawlerOptions, } from "crawlee";
+import { chromium } from "playwright-extra";
+import stealthPlugin from 'puppeteer-extra-plugin-stealth';
+import RecaptchaPlugin from 'puppeteer-extra-plugin-recaptcha';
 
 export const bieniciConfig = new Configuration({
     logLevel: LogLevel.ERROR,
@@ -10,7 +12,10 @@ export const bieniciConfig = new Configuration({
     },
     headless: true
 })
-export const bieniciCrawlerOption = {
+export const bieniciCrawlerOption: PlaywrightCrawlerOptions = {
+    launchContext: {
+        launcher: chromium.use(stealthPlugin())
+    },
     useSessionPool: true,
     persistCookiesPerSession: true,
     maxRequestRetries: 3,
