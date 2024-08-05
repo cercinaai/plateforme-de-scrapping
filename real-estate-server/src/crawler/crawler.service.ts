@@ -14,7 +14,7 @@ export class CrawlerService {
     constructor(@InjectQueue('crawler') private crawlerQueue: Queue, @InjectModel(CrawlerSession.name) private crawlerSession: Model<CrawlerSession>, private schedulerRegistry: SchedulerRegistry) { }
 
     async populate_database() {
-        await this.crawlerQueue.add('boncoin-crawler', {}, { attempts: 1, });
+        // await this.crawlerQueue.add('boncoin-crawler', {}, { attempts: 1 });
         // await this.crawlerQueue.add('seloger-crawler', {}, { attempts: 1, });
         await this.crawlerQueue.add('bienici-crawler', {}, { attempts: 1, });
         await this.crawlerQueue.add('logicimmo-crawler', {}, { attempts: 1, });
@@ -23,16 +23,6 @@ export class CrawlerService {
     async heathCheck() {
         if ((await this.crawlerQueue.getActiveCount()) > 0) return;
         this.logger.log('Crawler Queues is Empty now...');
-        const failedJobsToRetry = (await this.crawlerQueue.getFailed()).filter(job => job.data['attempts_count'] <= 3);
-        if (failedJobsToRetry.length > 0) {
-            this.logger.log(`FAILED JOBS TO RETRY: ${failedJobsToRetry.length}`);
-            // RETRYING FAILED JOBS
-            for (const job of failedJobsToRetry) {
-                await job.retry()
-            }
-            return;
-        }
-        this.logger.log('NO FAILED JOBS TO RETRY...');
         const failedJobs = (await this.crawlerQueue.getFailed()).map(job => this.mapJobToSchema(job, 'failed'));
         const completedJobs = (await this.crawlerQueue.getCompleted()).map(job => this.mapJobToSchema(job, 'success'));
         await this.saveCrawlerSession([...failedJobs, ...completedJobs]);

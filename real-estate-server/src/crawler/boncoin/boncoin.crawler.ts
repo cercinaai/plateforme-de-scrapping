@@ -24,11 +24,12 @@ export class BoncoinCrawler {
         let retrying_failed_request = job.data['failed_request_url'] || null;
         let crawler = new PlaywrightCrawler({
             ...boncoinCrawlerOption,
-            proxyConfiguration: new ProxyConfiguration({
-                // proxyUrls: initial_proxy_list,
-                newUrlFunction: async () => this.proxyService.new_proxy()
-            }),
+            // proxyConfiguration: new ProxyConfiguration({
+            //     // proxyUrls: initial_proxy_list,
+            //     newUrlFunction: async () => this.proxyService.new_proxy()
+            // }),
             requestHandler: async ({ waitForSelector, page, enqueueLinks, closeCookieModals }) => {
+                await closeCookieModals();
                 const base_url = 'https://www.leboncoin.fr';
                 let data = await page.$("script[id='__NEXT_DATA__']");
                 let ads = JSON.parse(await data?.textContent() as string)["props"]["pageProps"]["searchData"]["ads"];
@@ -76,7 +77,7 @@ export class BoncoinCrawler {
 
         let stat: FinalStatistics = await crawler.run([retrying_failed_request || this.target_url]);
         await crawler.teardown();
-        if (stat.requestsFailed > 0) {
+        if (stat.requestsFailed > 0 || stat.requestsTotal === 0 || stat.requestsFinished === 0) {
             await job.moveToFailed(new Error(`Failed requests: ${stat.requestsFailed}`), false);
             return;
         }
