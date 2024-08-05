@@ -11,10 +11,10 @@ export class ScheduleTasksService implements OnModuleInit {
     }
 
     async onModuleInit() {
-        await this.crawlerService.populate_database();
-        const heath_check_job = new CronJob(CronExpression.EVERY_10_MINUTES, async () => await this.crawlerService.heathCheck());
-        this.schedulerRegistry.addCronJob('crawler_heath_check', heath_check_job);
-        heath_check_job.start();
+        // await this.crawlerService.populate_database();
+        // const heath_check_job = new CronJob(CronExpression.EVERY_10_MINUTES, async () => await this.crawlerService.heathCheck());
+        // this.schedulerRegistry.addCronJob('crawler_heath_check', heath_check_job);
+        // heath_check_job.start();
     }
 
     @Cron(CronExpression.EVERY_12_HOURS, { disabled: true })

@@ -46,8 +46,8 @@ export const CrawlerStatsSchema = SchemaFactory.createForClass(CrawlerStats);
 
 @Schema()
 export class CrawlerSession {
-    @Prop({ type: CrawlerStatsSchema, required: true })
-    boncoin: CrawlerStats;
+    // @Prop({ type: CrawlerStatsSchema, required: true })
+    // boncoin: CrawlerStats;
 
     @Prop({ type: CrawlerStatsSchema, required: true })
     bienici: CrawlerStats;

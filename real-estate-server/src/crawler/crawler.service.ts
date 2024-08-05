@@ -57,7 +57,7 @@ export class CrawlerService {
     }
     private async saveCrawlerSession(jobsData: any[]) {
         const sessionData: Partial<CrawlerSession> = {
-            boncoin: jobsData.find(job => job.crawler_origin === 'boncoin') || {},
+            // boncoin: jobsData.find(job => job.crawler_origin === 'boncoin') || {},
             bienici: jobsData.find(job => job.crawler_origin === 'bienici') || {},
             logicimmo: jobsData.find(job => job.crawler_origin === 'logic-immo') || {},
             // seloger: jobsData.find(job => job.crawler_origin === 'seloger') || {},

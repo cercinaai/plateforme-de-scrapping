@@ -15,6 +15,9 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { DataProcessingModule } from './data-processing/data-processing.module';
 import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-yet';
+import { AuthModule } from './auth/auth.module';
+import { DataProviderModule } from './data-provider/data-provider.module';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 const PATH = APP_CONFIG.PRODUCTION ? 'prod.env' : 'dev.env';
 
@@ -61,8 +64,14 @@ const PATH = APP_CONFIG.PRODUCTION ? 'prod.env' : 'dev.env';
       }),
       inject: [ConfigService]
     }),
+    ThrottlerModule.forRoot([{
+      ttl: 60000,
+      limit: 10,
+    }]),
     CrawlerModule,
     DataProcessingModule,
+    AuthModule,
+    DataProviderModule,
   ],
   controllers: [AppController],
   providers: [AppService, ScheduleTasksService],
