@@ -1,0 +1,26 @@
+<p-toast />
+<div class="login-container">
+    <div class="login-left">
+        <img src="assets/images/login-background.webp" alt="Building Background" class="background-image">
+    </div>
+    <div class="login-right">
+        <div class="login-form-container">
+            <h2>Log in</h2>
+            <p>Enter your credentials</p>
+            <form #loginForm="ngForm" (ngSubmit)="login(loginForm)">
+                <div class="input-group">
+                    <mat-icon>account_circle</mat-icon>
+                    <input id="username" type="text" ngModel name="username" #username="ngModel" autocomplete="username"
+                        placeholder="Your Username" required />
+
+                </div>
+                <div class="input-group">
+                    <mat-icon>lock</mat-icon>
+                    <input id="password" type="password" ngModel name="password" #password="ngModel"
+                        autocomplete="current-password" placeholder="Your Password" required />
+                </div>
+                <button type="submit" [disabled]="!loginForm.valid">Log in</button>
+            </form>
+        </div>
+    </div>
+</div>
