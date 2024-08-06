@@ -9,8 +9,8 @@ import { MessageService } from 'primeng/api';
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [MatIconModule,FormsModule,ToastModule],
-  providers:[MessageService],
+  imports: [MatIconModule, FormsModule, ToastModule],
+  providers: [MessageService],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss'
 })
@@ -19,14 +19,15 @@ export class LoginComponent {
   private authService = inject(AuthService);
   private messageService = inject(MessageService);
 
-  login(form:NgForm) {
-      this.authService.login(form.value.username, form.value.password).pipe(first()).subscribe({
-          next: () => this.router.navigate(['/home']),
-          error: () => {
-            this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Invalid username or password' });
-            form.reset()
-          }
-      })
+  login(form: NgForm) {
+    this.authService.login(form.value.username, form.value.password).pipe(first()).subscribe({
+      next: () => this.router.navigate(['/home']),
+      error: (err) => {
+        console.log(err);
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Invalid username or password' });
+        form.reset()
+      }
+    })
   }
 
 }

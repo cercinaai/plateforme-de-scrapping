@@ -11,13 +11,13 @@ import { Router } from '@angular/router';
 export class AuthService {
 
   private http = inject(HttpClient);
-  private jwtHelper =  inject(JwtHelperService);
+  private jwtHelper = inject(JwtHelperService);
   private router = inject(Router);
 
   constructor() { }
 
-  login(username: string, password: string): Observable<any> {
-    return this.http.post<any>(`${environment.api_url}/auth/login`, { username, password }).pipe(
+  login(username: string, password: string): Observable<{ access_token: string, refresh_token: string }> {
+    return this.http.post<{ access_token: string, refresh_token: string }>(`${environment.api_url}/auth/login`, { username, password }).pipe(
       tap(res => {
         localStorage.setItem('access_token', res.access_token);
         localStorage.setItem('refresh_token', res.refresh_token);
@@ -44,5 +44,9 @@ export class AuthService {
   isLoggedIn(): boolean {
     const token = localStorage.getItem('access_token');
     return token !== null && token?.length > 0 && !this.jwtHelper.isTokenExpired(token);
+  }
+
+  getToken(): string | null {
+    return localStorage.getItem('access_token');
   }
 }
