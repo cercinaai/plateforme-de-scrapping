@@ -1,0 +1,82 @@
+<div class="session-list">
+    @for(session of crawlerSessions; track $index) {
+    <div class="my-wallet">
+
+        <div class="my-wallet-sidebar">
+            <div class="session-title">
+                <div class="title-text">
+                    <h1>Session</h1>
+                    <p class="session-end-date">terminée à {{session.session_date|date:'short'}}</p>
+                </div>
+            </div>
+            <!-- <h1 class="my-wallet-title">Session terminée à {{session.session_date|date:'short'}}</h1> -->
+            <div class="accounts-container">
+                <div class="account" [ngClass]="{'active': selectedCrawlerOrigin === 'bienici'}"
+                    (click)="selectCrawlerOrigin('bienici')">
+                    <div class="account-card-type is-bienici"></div>
+                    <div class="account-number">BienIci Crawler</div>
+                    @if (session.bienici.status == "success") {
+                    <div class="account-expiration">success at {{session.bienici.success_date|date:'short'}}</div>
+                    <div class="status-icon success">
+                        <i class="material-icons">check_circle</i>
+                    </div>
+                    } @else {
+                    <div class="account-expiration">failed at {{session.bienici.error_date|date:'short'}}</div>
+                    <div class="status-icon failure">
+                        <i class="material-icons">cancel</i>
+                    </div>
+                    }
+                </div>
+
+                <div class="account" [ngClass]="{'active': selectedCrawlerOrigin === 'logicimmo'}"
+                    (click)="selectCrawlerOrigin('logicimmo')">
+                    <div class="account-card-type is-logic-immo"></div>
+                    <div class="account-number">LogicImmo Crawler</div>
+                    @if (session.logicimmo.status == "success") {
+                    <div class="account-expiration">success at {{session.bienici.success_date|date:'short'}}</div>
+                    <div class="status-icon success">
+                        <i class="material-icons">check_circle</i>
+                    </div>
+                    }@else {
+                    <div class="account-expiration">failed at {{session.logicimmo.error_date|date:'short'}}</div>
+                    <div class="status-icon failure">
+                        <i class="material-icons">cancel</i>
+                    </div>
+                    }
+                </div>
+
+                <div class="account">
+                    <div class="account-card-type is-boncoin"></div>
+                    <div class="account-number">BonCoin Crawler</div>
+                    <div class="account-expiration">Valid Thru: 01/19</div>
+                    <div class="status-icon failure">
+                        <i class="material-icons">cancel</i>
+                    </div>
+                </div>
+                <div class="account">
+                    <div class="account-card-type is-seloger"></div>
+                    <div class="account-number">Seloger Crawler</div>
+                    <div class="account-expiration">Valid Thru: 01/19</div>
+                    <div class="status-icon failure">
+                        <i class="material-icons">cancel</i>
+                    </div>
+                </div>
+            </div>
+        </div><!-- /.my-wallet__sidebar -->
+        <div class="account-details-container">
+            @if(selectedCrawlerOrigin){
+            <div class="account-details">
+                @switch (selectedCrawlerOrigin) {
+                @case ("bienici") {}
+                @case ("logicimmo") {}
+                @case ("boncoin") {}
+                @case ("seloger") {}
+                }
+            </div>
+            } @else {
+            <div class="transaction-history-placeholder">Choose an Crawler</div>
+            }
+        </div>
+    </div>
+    }
+</div>
