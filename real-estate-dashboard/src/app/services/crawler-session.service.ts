@@ -14,4 +14,8 @@ export class CrawlerSessionService {
   public crawlerSession(page: number, limit: number): Observable<CrawlerSession[]> {
     return this.http.get<CrawlerSession[]>(`${environment.api_url}/data-provider/crawler-session?page=${page}&limit=${limit}`);
   }
+
+  public dateRangeCrawlerSession(from: Date, to: Date): Observable<CrawlerSession[]> {
+    return this.http.get<CrawlerSession[]>(`${environment.api_url}/data-provider/date-range-crawler?startDate=${from}&endDate=${to}`);
+  }
 }

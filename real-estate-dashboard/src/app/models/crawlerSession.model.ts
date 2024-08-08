@@ -14,6 +14,7 @@ export type CrawlerStats = {
 };
 
 export type CrawlerSession = {
+    _id: string;
     session_date: Date;
     bienici: CrawlerStats;
     logicimmo: CrawlerStats;

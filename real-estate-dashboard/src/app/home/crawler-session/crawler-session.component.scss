@@ -8,8 +8,329 @@ $credit-color: #4caf50;
 $border-color: #444;
 
 .session-list {
-    padding-top: 20px;
+    display: flex;
+
+    .sidebar {
+        width: 25%;
+        display: flex;
+        flex-direction: column;
+        padding: 10px;
+        background-color: $dark-bg;
+        height: 100vh;
+        overflow: hidden;
+
+        .filter-section {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 20px;
+            background-color: $dark-bg;
+            color: $light-text;
+            padding: 10px;
+            border-bottom: 1px solid $border-color;
+
+            label {
+                margin-bottom: 5px;
+            }
+
+            input[type="date"] {
+                background-color: $darker-bg;
+                border: 1px solid $border-color;
+                color: $light-text;
+                padding: 5px;
+                border-radius: 4px;
+                margin-bottom: 10px;
+                width: 100%;
+                font-size: 14px;
+            }
+
+            .clear-button {
+                background-color: $highlight-color;
+                color: $light-text;
+                border: none;
+                padding: 10px;
+                border-radius: 4px;
+                font-size: 14px;
+                cursor: pointer;
+                transition: background-color 0.3s ease;
+                margin-top: 10px;
+                text-align: center;
+
+                &:hover {
+                    background-color: darken($highlight-color, 10%);
+                }
+
+                &:focus {
+                    outline: none;
+                }
+            }
+        }
+
+        .small-cards-container {
+            overflow-y: auto;
+            flex: 1;
+
+            &::-webkit-scrollbar {
+                width: 6px;
+            }
+
+            &::-webkit-scrollbar-thumb {
+                background: $highlight-color;
+                border-radius: 3px;
+            }
+
+            .small-card {
+                background-color: $darker-bg;
+                color: $light-text;
+                border-radius: 8px;
+                margin-bottom: 10px;
+                padding: 15px;
+                display: flex;
+                flex-direction: column;
+                cursor: pointer;
+                transition: background-color 0.3s ease;
+                border-left: 4px solid transparent;
+
+                &.active {
+                    border-left: 4px solid $highlight-color;
+                }
+
+                &:hover {
+                    background-color: lighten($darker-bg, 5%);
+                }
+
+                .card-header {
+                    display: flex;
+                    align-items: center;
+                    margin-bottom: 10px;
+
+                    .card-icon {
+                        width: 40px;
+                        height: 40px;
+                        margin-right: 10px;
+                    }
+
+                    .session-title {
+                        margin-left: 10px;
+
+                        h4 {
+                            margin: 0;
+                            font-size: 16px;
+                        }
+
+                        p {
+                            margin: 0;
+                            color: $lighter-text;
+                            font-size: 12px;
+                        }
+                    }
+                }
+
+                .card-body {
+                    .circle-container {
+                        display: flex;
+                        justify-content: space-around;
+                        align-items: center;
+                        margin-top: 10px;
+
+                        .circle-wrapper {
+                            display: flex;
+                            flex-direction: column;
+                            align-items: center;
+
+                            .circle {
+                                position: relative;
+                                width: 80px;
+                                height: 80px;
+                                display: flex;
+                                justify-content: center;
+                                align-items: center;
+
+                                &-inner {
+                                    position: absolute;
+                                    display: flex;
+                                    justify-content: center;
+                                    align-items: center;
+                                    font-size: 16px;
+                                    font-weight: bold;
+                                    color: $light-text;
+                                }
+
+                                svg {
+                                    width: 100%;
+                                    height: 100%;
+                                }
+                            }
+
+                            .circle-label {
+                                margin-top: 10px;
+                                font-size: 14px;
+                                color: $light-text;
+                            }
+                        }
+
+                        .circular-chart {
+                            display: block;
+                            margin: 10px auto;
+                            max-width: 80px;
+                            max-height: 80px;
+
+                            &.blue .circle-bar {
+                                fill: #1e8fff8c;
+                                stroke: #1e90ff;
+                            }
+
+                            &.yellow .circle-bar {
+                                fill: #ffcc0077;
+                                stroke: #ffcc00;
+                            }
+
+                            &.green .circle-bar {
+                                fill: #4caf4f6e;
+                                stroke: #4caf50;
+                            }
+
+                            &.red .circle-bar {
+                                fill: #ff6b6b77;
+                                stroke: #ff6b6b;
+                            }
+                        }
+
+                        .circle-bg {
+                            fill: none;
+                            stroke-width: 3.8;
+                        }
+
+                        .circle-bar {
+                            fill: none;
+                            stroke-width: 2.8;
+                            stroke-linecap: round;
+                            animation: progress 1s ease-out forwards;
+                        }
+
+                        @keyframes progress {
+                            0% {
+                                stroke-dasharray: 0 100;
+                            }
+                        }
+                    }
+
+
+                }
+            }
+        }
+
+    }
+
+    .content {
+        width: 75%;
+        padding: 20px;
+
+        .account-details-container {
+            font-family: "Open Sans", sans-serif;
+            height: 100%;
+            overflow: hidden;
+            padding: 20px;
+            width: 60%;
+            background-color: $darker-bg;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+
+            .account-details {
+                width: 100%;
+                display: flex;
+                flex-direction: column;
+                height: 100%; // Ensure it takes full height of the container
+
+                &.is-selected {
+                    transition: transform 500ms ease, opacity 200ms 200ms ease;
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+
+                .account-details-card {
+                    background-color: $dark-bg;
+                    border-radius: 10px;
+                    padding: 20px;
+                    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+                    width: 100%;
+                    height: 100%; // Make sure it takes the full height of the container
+                    display: flex;
+                    flex-direction: column;
+
+                    .details-header {
+                        text-align: center;
+                        margin-bottom: 20px;
+
+                        h2 {
+                            color: $light-text;
+                            margin: 0;
+                        }
+                    }
+
+                    .details-content {
+                        flex: 1; // Ensure it takes the remaining space
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: center;
+
+                        .details-item {
+                            display: flex;
+                            justify-content: space-between;
+                            padding: 10px 0;
+                            border-bottom: 1px solid $border-color;
+
+                            &:last-child {
+                                border-bottom: none;
+                            }
+
+                            .details-title {
+                                color: $lighter-text;
+                                font-weight: bold;
+                            }
+
+                            .details-value {
+                                color: $light-text;
+                                white-space: pre-wrap; // Ensure logs are readable
+                            }
+                        }
+
+                        .log-section {
+                            margin-top: 10px;
+                            display: flex;
+                            flex-direction: column;
+                            gap: 10px;
+
+                            .log-bubble {
+                                background-color: rgba(255, 0, 0, 0.1);
+                                border-radius: 10px; // Increased radius
+                                padding: 15px; // Increased padding
+                                display: flex;
+                                flex-direction: column;
+
+                                .log-title {
+                                    color: #fff;
+                                    font-weight: bold;
+                                    text-align: center;
+                                    margin-bottom: 5px;
+                                }
+
+                                .log-content {
+                                    color: rgba(255, 255, 255, 0.7);
+                                    white-space: pre-wrap;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
 }
+
+
 
 .my-wallet {
     background-color: $dark-bg;
@@ -35,11 +356,6 @@ $border-color: #444;
 }
 
 .session-title {
-    display: flex;
-    align-items: center;
-    margin-bottom: 20px;
-    padding: 10px;
-    /* Added padding to give space around the title section */
 
     .bot-image {
         width: 60px;
@@ -68,11 +384,6 @@ $border-color: #444;
         }
     }
 }
-
-
-
-
-
 
 .accounts-container {
     margin-top: 20px;
@@ -183,270 +494,9 @@ $border-color: #444;
     align-items: center;
 }
 
-.account-details {
-    transition: transform 500ms ease, opacity 200ms ease;
-    transform: translateX(110%);
-    opacity: 0;
-    position: absolute;
-    top: 20px;
-    width: 100%;
 
-    &.is-selected {
-        transition: transform 500ms ease, opacity 200ms 200ms ease;
-        transform: translateX(0);
-        opacity: 1;
-    }
-}
 
-.transaction-history-placeholder {
-    transform: translate3d(-50%, -50%, 0);
-    transition: opacity 200ms ease;
-    color: $lighter-text;
-    font-size: 24px;
-    font-style: italic;
-    font-weight: normal;
-    left: 60%;
-    opacity: 1;
-    position: absolute;
-    top: 50%;
 
-    &.is-hidden {
-        opacity: 0;
-    }
-}
-
-.value-unit {
-    color: $light-text;
-    font-size: 36px;
-    font-weight: bold;
-    position: relative;
-
-    .value-subunit {
-        font-size: 0.6em;
-        left: -0.5em;
-        position: relative;
-        top: 0.1em;
-    }
-}
-
-.account-balance {
-    letter-spacing: 0.025em;
-    border-bottom: 1px solid $border-color;
-    color: $light-text;
-    font-size: 24px;
-    padding-bottom: 20px;
-
-    .value-unit {
-        float: right;
-        right: -0.25em;
-        top: -0.2em;
-    }
-}
-
-.transaction-history {
-    height: 300px;
-    overflow: hidden;
-    overflow-y: scroll;
-    padding-right: 20px;
-    width: 100%;
-}
-
-.transaction {
-    display: table;
-    padding: 20px 0 0 20px;
-    position: relative;
-    width: 100%;
-
-    &-details {
-        display: table-cell;
-        width: 80%;
-    }
-
-    &-amount {
-        display: table-cell;
-        vertical-align: middle;
-        text-align: right;
-
-        .value-unit {
-            font-size: 18px;
-            font-weight: normal;
-        }
-    }
-
-    &-merchant {
-        font-size: 18px;
-        font-weight: 600;
-        margin-bottom: 5px;
-    }
-
-    &-date {
-        color: $lighter-text;
-        font-size: 14px;
-    }
-
-    &:before {
-        border-radius: 100%;
-        border: 2px solid $border-color;
-        content: " ";
-        display: block;
-        font-size: 14px;
-        font-weight: bold;
-        left: 0;
-        line-height: 16px;
-        height: 20px;
-        position: absolute;
-        text-align: center;
-        top: 65px;
-        width: 20px;
-    }
-
-    &[data-transaction-type=debit]:before {
-        content: "–";
-        line-height: 14px;
-    }
-
-    &[data-transaction-type=debit] .value-unit {
-        color: $debit-color;
-    }
-
-    &[data-transaction-type=credit]:before {
-        content: "+";
-    }
-
-    &[data-transaction-type=credit] .value-unit {
-        color: $credit-color;
-    }
-}
-
-.add-account-modal {
-    visibility: hidden;
-
-    .overlay {
-        transition: opacity 200ms ease;
-        background: #ffcc66;
-        height: 100%;
-        opacity: 0;
-        position: absolute;
-        width: 100%;
-        z-index: 9000;
-    }
-
-    .account {
-        transform: translate3d(-50%, -30%, 0);
-        transition: all 300ms ease;
-        border-color: #ffa61b;
-        left: 50%;
-        opacity: 0;
-        position: absolute;
-        top: 50%;
-        will-change: transform, opacity;
-        z-index: 9001;
-
-        &-card-type {
-            border-radius: 5px;
-            float: left;
-            margin-left: 12px;
-
-            &.is-visa {
-                margin-left: 0;
-            }
-
-            &:hover {
-                border: 3px solid #ffcc66;
-                cursor: pointer;
-            }
-
-            &.is-selected {
-                border: 3px solid #ffcc66;
-            }
-        }
-
-        &-number {
-            letter-spacing: 0.03em;
-        }
-
-        &-expiration {
-            color: $light-text;
-        }
-
-        &.has-error {
-            animation: error 300ms ease forwards;
-        }
-    }
-
-    button {
-        background-color: #ffa61b;
-        border-radius: 4px;
-        border: none;
-        color: #fff;
-        float: right;
-        font-size: 14px;
-        padding: 5px 10px;
-        position: relative;
-        top: 20px;
-        right: -20px;
-
-        &:hover {
-            background-color: #ffb31a;
-            cursor: pointer;
-        }
-
-        &:focus {
-            outline: none;
-        }
-    }
-
-    &.is-visible {
-        visibility: visible;
-
-        .account {
-            transform: translate3d(-50%, -50%, 0);
-            opacity: 1;
-        }
-
-        .overlay {
-            opacity: 0.8;
-        }
-    }
-}
-
-.temp-account {
-    color: $lighter-text;
-    font-size: 24px;
-    font-style: italic;
-    padding: 20px 0;
-    text-align: center;
-}
-
-@keyframes load {
-    from {
-        visibility: visible;
-        opacity: 1;
-    }
-
-    to {
-        visibility: hidden;
-        opacity: 0;
-    }
-}
-
-@keyframes error {
-    0% {
-        margin-left: 0;
-    }
-
-    33% {
-        margin-left: 30px;
-    }
-
-    66% {
-        margin-left: -30px;
-    }
-
-    100% {
-        margin-left: 0;
-    }
-}
 
 // Responsive Styles
 @media (max-width: 768px) {
