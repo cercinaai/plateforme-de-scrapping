@@ -3,6 +3,7 @@ import { HomeComponent } from './home/home.component';
 import { authGuard } from './guards/auth.guard';
 import { LoginComponent } from './login/login.component';
 import { CrawlerSessionComponent } from './home/crawler-session/crawler-session.component';
+import { DataListComponent } from './home/data-list/data-list.component';
 
 export const routes: Routes = [
     {
@@ -17,12 +18,16 @@ export const routes: Routes = [
         children: [
             {
                 path: '',
-                redirectTo: 'crawler-session',
+                redirectTo: 'data-list',
                 pathMatch: 'full'
             },
             {
                 path: 'crawler-session',
                 component : CrawlerSessionComponent
+            },
+            {
+                path:'data-list',
+                component : DataListComponent
             }
         ]
     },
