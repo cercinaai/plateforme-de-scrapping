@@ -37,6 +37,11 @@ export class BieniciCrawler {
                     });
                 }
             ],
+            postNavigationHooks: [
+                async ({ page }) => {
+                    await page.unrouteAll({ behavior: 'ignoreErrors' })
+                }
+            ],
             requestHandler: async ({ waitForSelector, page, enqueueLinks, log, closeCookieModals }) => {
                 const base_url = 'https://www.bienici.com';
                 await closeCookieModals();
@@ -80,14 +85,20 @@ export class BieniciCrawler {
                     total_data_grabbed: total_data_grabbed,
                     attempts_count: attempts_count + 1,
                     failedReason: request.errorMessages[-1] || error.message || 'Unknown error',
-                    failed_request_url: request.url,
-                    proxy_used: proxyInfo.url
+                    failed_request_url: request.url || 'N/A',
+                    proxy_used: proxyInfo ? proxyInfo.url : 'N/A',
                 });
             }
         }, bieniciConfig);
         let stat: FinalStatistics = await crawler.run([retrying_failed_request || this.target_url]);
         await crawler.teardown();
-        if (stat.requestsFailed > 0) {
+        if (stat.requestsFailed > 0 || stat.requestsTotal === 0 || stat.requestsFinished === 0) {
+            await job.update({
+                ...job.data,
+                total_request: stat.requestsTotal,
+                success_requests: stat.requestsFinished,
+                failed_requests: stat.requestsFailed,
+            });
             await job.moveToFailed(new Error(`Failed requests: ${stat.requestsFailed}`), false);
             return;
         }

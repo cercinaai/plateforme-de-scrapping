@@ -46,8 +46,10 @@ export const CrawlerStatsSchema = SchemaFactory.createForClass(CrawlerStats);
 
 @Schema()
 export class CrawlerSession {
-    // @Prop({ type: CrawlerStatsSchema, required: true })
-    // boncoin: CrawlerStats;
+    @Prop({ isRequired: true })
+    session_date: Date;
+    @Prop({ type: CrawlerStatsSchema, required: true })
+    boncoin: CrawlerStats;
 
     @Prop({ type: CrawlerStatsSchema, required: true })
     bienici: CrawlerStats;
@@ -55,8 +57,8 @@ export class CrawlerSession {
     @Prop({ type: CrawlerStatsSchema, required: true })
     logicimmo: CrawlerStats;
 
-    // @Prop({ type: CrawlerStatsSchema, required: true })
-    // seloger: CrawlerStats;
+    @Prop({ type: CrawlerStatsSchema, required: true })
+    seloger: CrawlerStats;
 }
 
 export const CrawlerSessionSchema = SchemaFactory.createForClass(CrawlerSession);

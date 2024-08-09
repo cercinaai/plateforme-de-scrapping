@@ -91,15 +91,21 @@ export class LogicImmoCrawler {
                     total_data_grabbed: total_data_grabbed,
                     attempts_count: attempts_count + 1,
                     failedReason: request.errorMessages[-1] || error.message || 'Unknown error',
-                    failed_request_url: request.url || '',
-                    proxy_used: proxyInfo.url
+                    failed_request_url: request.url || 'N/A',
+                    proxy_used: proxyInfo ? proxyInfo.url : 'N/A',
                 });
             }
         }, logicimmoConfig);
 
         let stat: FinalStatistics = await crawler.run([`https://www.logic-immo.com/vente-immobilier-${france_localities[localite_index]}/options/groupprptypesids=1,2,6,7,12,3,18,4,5,14,13,11,10,9,8/searchoptions=0,1,3/page=${list_page}/order=update_date_desc`]);
         await crawler.teardown();
-        if (stat.requestsFailed > 0) {
+        if (stat.requestsFailed > 0 || stat.requestsTotal === 0 || stat.requestsFinished === 0) {
+            await job.update({
+                ...job.data,
+                total_request: stat.requestsTotal,
+                success_requests: stat.requestsFinished,
+                failed_requests: stat.requestsFailed,
+            });
             await job.moveToFailed(new Error(`Failed requests: ${stat.requestsFailed}`), false);
             return;
         }

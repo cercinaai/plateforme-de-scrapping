@@ -4,13 +4,13 @@ import stealthPlugin from 'puppeteer-extra-plugin-stealth';
 import RecaptchaPlugin from 'puppeteer-extra-plugin-recaptcha';
 
 export const selogerConfig = new Configuration({
-    logLevel: LogLevel.INFO,
+    logLevel: LogLevel.ERROR,
     persistStorage: false,
     storageClientOptions: {
         persistStorage: false,
         writeMetadata: false,
     },
-    headless: false
+    headless: true
 })
 
 export const selogerCrawlerOptions: PlaywrightCrawlerOptions = {

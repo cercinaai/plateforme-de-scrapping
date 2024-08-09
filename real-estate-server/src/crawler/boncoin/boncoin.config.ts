@@ -1,7 +1,5 @@
 import { BrowserName, Configuration, DeviceCategory, LogLevel, OperatingSystemsName, PlaywrightCrawlerOptions, } from "crawlee";
-import { chromium } from 'playwright-extra';
-import stealthPlugin from 'puppeteer-extra-plugin-stealth';
-import RecaptchaPlugin from 'puppeteer-extra-plugin-recaptcha';
+
 
 export const boncoinConfig = new Configuration({
     logLevel: LogLevel.ERROR,
@@ -10,18 +8,14 @@ export const boncoinConfig = new Configuration({
         persistStorage: false,
         writeMetadata: false,
     },
-    headless: true,
+    headless: false,
 })
 
 export const boncoinCrawlerOption: PlaywrightCrawlerOptions = {
-    launchContext: {
-        launcher: chromium.use(stealthPlugin())
-    },
     useSessionPool: true,
     persistCookiesPerSession: true,
-    maxRequestRetries: 10,
-    maxSessionRotations: 10,
-    retryOnBlocked: true,
+    maxSessionRotations: 3,
+    maxRequestRetries: 3,
     sameDomainDelaySecs: 2,
     browserPoolOptions: {
         useFingerprints: true,
