@@ -13,8 +13,8 @@ export class CrawlerService {
     constructor(@InjectQueue('crawler') private crawlerQueue: Queue, @InjectModel(CrawlerSession.name) private crawlerSession: Model<CrawlerSession>) { }
 
     async populate_database() {
-        await this.crawlerQueue.add('boncoin-crawler', {}, { attempts: 1 });
-        // await this.crawlerQueue.add('seloger-crawler', {}, { attempts: 1 });
+        // await this.crawlerQueue.add('boncoin-crawler', {}, { attempts: 1 });
+        await this.crawlerQueue.add('seloger-crawler', {}, { attempts: 1 });
         // await this.crawlerQueue.add('bienici-crawler', {}, { attempts: 1 });
         // await this.crawlerQueue.add('logicimmo-crawler', {}, { attempts: 1 });
     }

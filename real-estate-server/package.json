@@ -20,7 +20,6 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
-    "@2captcha/captcha-solver": "^1.1.0",
     "@bull-board/api": "^5.21.1",
     "@bull-board/express": "^5.21.1",
     "@bull-board/nestjs": "^5.21.1",

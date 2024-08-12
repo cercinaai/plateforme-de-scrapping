@@ -8,6 +8,7 @@ import { ConfigService } from "@nestjs/config";
 import * as fs from 'fs';
 import { HttpService } from "@nestjs/axios";
 import { first } from "rxjs";
+import { boncoinCategoryMapping } from "../models/Category.type";
 
 @Processor({ name: 'data-processing', scope: Scope.DEFAULT })
 export class BoncoinIngestion {
@@ -41,15 +42,16 @@ export class BoncoinIngestion {
             return attribute ? attribute.value_label : null;
         };
 
+
         return {
-            origin: data.brand,
+            origin: 'boncoin',
             adId: data.list_id.toString(),
             reference: getValue(data.attributes, 'custom_ref') || '',
             creationDate: new Date(data.first_publication_date),
             lastCheckDate: new Date(),
             title: data.subject,
             type: data.ad_type,
-            category: data.category_name,
+            category: boncoinCategoryMapping[getValueLabel(data.attributes, 'real_estate_type')] || 'Autre',
             publisher: {
                 name: data.owner.name,
                 storeUrl: data.owner.store_id ? `https://www.leboncoin.fr/boutique/${data.owner.store_id}` : '',
@@ -84,6 +86,7 @@ export class BoncoinIngestion {
             duplicates: [],
         };
     }
+
 
     private async process_data(data: Partial<AdDocument>) {
         const existingAd = await this.adModel.findOne({ origin: data.origin, adId: data.adId });

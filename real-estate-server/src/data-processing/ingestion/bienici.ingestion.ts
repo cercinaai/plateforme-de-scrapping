@@ -6,6 +6,7 @@ import { InjectModel } from "@nestjs/mongoose";
 import { Job } from "bull";
 import { Model } from "mongoose";
 import { Ad, AdDocument } from "src/models/ad.schema";
+import { BienIciCategoryMapping } from "../models/Category.type";
 
 
 
@@ -37,6 +38,7 @@ export class BienIciIngestion {
             }
             return typeof value === 'number' && !isNaN(value) ? value : 0;
         };
+
         return {
             origin: 'bienici',
             adId: data.id.toString(),
@@ -45,7 +47,7 @@ export class BienIciIngestion {
             lastCheckDate: new Date(data.modificationDate),
             title: data.title,
             type: data.adType,
-            category: data.propertyType,
+            category: BienIciCategoryMapping[data.propertyType] || 'Autre',
             publisher: {
                 name: data.userRelativeData.accountIds[0], // Assuming first accountId as the publisher name
                 storeUrl: data.agencyFeeUrl,
@@ -59,7 +61,7 @@ export class BienIciIngestion {
                 city: data.city || 'NO CITY',
                 postalCode: data.postalCode,
                 departmentCode: data.departmentCode,
-                regionCode: '', // No regionCode provided in the data
+                regionCode: '',
                 coordinates: {
                     lat: data.blurInfo?.position?.lat || 0,
                     lon: data.blurInfo?.position?.lon || 0,
@@ -71,15 +73,32 @@ export class BienIciIngestion {
             rooms: getFirstValidNumber(data.roomsQuantity) || 0,
             bedrooms: data.bedroomsQuantity || 0,
             surface: getFirstValidNumber(data.surfaceArea) || 0,
-            landSurface: 0,
+            landSurface: data.landSurfaceArea || 0,
             floor: data.floor || null,
             buildingFloors: data.floorQuantity || null,
             energyGrade: data.energyClassification || '',
             gasGrade: data.greenhouseGazClassification || '',
-            options: [],
+            options: this.extractOptions(data),
             history: [],
             duplicates: [],
         };
+    }
+
+    private extractOptions(data: any): string[] {
+        const options: string[] = [];
+
+        if (data.hasElevator) options.push("Elevator");
+        if (data.hasDoorCode) options.push("Door Code");
+        if (data.hasIntercom) options.push("Intercom");
+        if (data.hasVideophone) options.push("Videophone");
+        if (data.hasAirConditioning) options.push("Air Conditioning");
+        if (data.hasFirePlace) options.push("Fireplace");
+        if (data.hasAlarm) options.push("Alarm");
+        if (data.needHomeStaging) options.push("Home Staging");
+
+        // Add more as needed based on the data's properties
+
+        return options;
     }
 
     private async process_data(data: Partial<AdDocument>) {
@@ -115,6 +134,5 @@ export class BienIciIngestion {
             }
         }).exec();
     }
-
 
 }

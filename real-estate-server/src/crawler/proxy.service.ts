@@ -1,15 +1,20 @@
 import { Injectable } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 
 
 @Injectable()
 export class ProxyService {
-
+    private readonly proxy_list: string[] = [
+        "http://hephaestus.p.shifter.io:11740",
+        "http://hephaestus.p.shifter.io:11741",
+        "http://hephaestus.p.shifter.io:11742",
+        "http://hephaestus.p.shifter.io:11743",
+        "http://hephaestus.p.shifter.io:11744"
+    ]
 
     constructor() { }
 
-    public async new_proxy(): Promise<string> {
-        return "http://letgdgcm-rotate:mp3em7tkk83t@p.webshare.io:80";
+    public get_proxy_list(): string[] {
+        return this.proxy_list
     }
 
 }

@@ -13,17 +13,17 @@ export class DataProcessingService {
             await this.dataQueues.add('boncoin-ingestion', { data_ingestion: data_to_process }, { removeOnComplete: true, removeOnFail: false });
             return;
         }
-        if (_from == 'seloger-crawler') {
+        if (_from === 'seloger-crawler') {
             await this.dataQueues.add('seloger-ingestion', { data_ingestion: data_to_process }, { removeOnComplete: true, removeOnFail: false });
-            return
+            return;
         }
-        if (_from == 'bienici-crawler') {
+        if (_from === 'bienici-crawler') {
             await this.dataQueues.add('bienici-ingestion', { data_ingestion: data_to_process }, { removeOnComplete: true, removeOnFail: false });
-            return
+            return;
         }
-        if (_from == 'logicimmo-crawler') {
+        if (_from === 'logicimmo-crawler') {
             await this.dataQueues.add('logicimmo-ingestion', { data_ingestion: data_to_process }, { removeOnComplete: true, removeOnFail: false });
-            return
+            return;
         }
     }
 

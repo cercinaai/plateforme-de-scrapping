@@ -8,7 +8,7 @@ export const boncoinConfig = new Configuration({
         persistStorage: false,
         writeMetadata: false,
     },
-    headless: false,
+    headless: true,
 })
 
 export const boncoinCrawlerOption: PlaywrightCrawlerOptions = {

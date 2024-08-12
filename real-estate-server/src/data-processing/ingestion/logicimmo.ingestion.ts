@@ -6,10 +6,7 @@ import { InjectModel } from "@nestjs/mongoose";
 import { Job } from "bull";
 import { Model } from "mongoose";
 import { Ad, AdDocument } from "src/models/ad.schema";
-
-
-
-
+import { logicImmoCategoryMapping } from "../models/Category.type";
 
 @Processor({ name: 'data-processing', scope: Scope.DEFAULT })
 export class LogicImmoIngestion {
@@ -34,11 +31,6 @@ export class LogicImmoIngestion {
     }
 
     private async clean_data(data: any): Promise<Partial<AdDocument>> {
-        let data_types = ['Appartement', 'Maison', 'Loft / Atelier', 'Villa', 'Terrain', 'Propriété', 'Bureau', 'Local commercial', 'Immeuble', 'Chalet', 'Château', 'Parking', 'Ferme', 'Hôtel particulier', 'Autre']
-        const extractNumber = (str: string) => {
-            const match = str.match(/\d+/);
-            return match ? parseInt(match[0]) : null;
-        };
         return {
             origin: 'logic-immo',
             adId: data.id.toString(),
@@ -47,29 +39,29 @@ export class LogicImmoIngestion {
             lastCheckDate: new Date(),
             title: data.title || data.name || '',
             type: data.type_use || '',
-            category: data_types.at(extractNumber(data.estate_type)) || '',
+            category: logicImmoCategoryMapping[data.estate_type] || "Autre",
             publisher: {
                 name: data.agencyName,
                 storeUrl: data.agencyUrl,
                 phoneNumber: ''
             },
-            description: data.description || '', // No description provided in the data
+            description: data.description || '',
             url: `https://www.logic-immo.com/detail-vente-${data.id}.htm`,
-            pictureUrl: data.pictureUrl || '', // No main picture URL provided in the data
-            pictureUrls: [], // Assuming empty array as no URLs provided
+            pictureUrl: data.pictureUrl || '',
+            pictureUrls: [],
             location: {
                 city: data.city || '',
                 postalCode: data.zip_code,
                 departmentCode: data.province,
-                regionCode: '', // No region code provided in the data
+                regionCode: '',
                 coordinates: {
                     lat: parseFloat(data.geolocation.split(',')[0]),
                     lon: parseFloat(data.geolocation.split(',')[1]),
                 },
             },
             price: data.price,
-            originalPrice: 0, // No original price provided in the data
-            pricePerSquareMeter: 0, // No price per square meter provided in the data
+            originalPrice: 0,
+            pricePerSquareMeter: 0,
             rooms: parseInt(data.nb_rooms) || 0,
             bedrooms: parseInt(data.nb_bedrooms) || 0,
             surface: parseFloat(data.indoor_surface) || 0,

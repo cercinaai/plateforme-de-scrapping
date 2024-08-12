@@ -13,6 +13,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { Ad, AdSchema } from 'src/models/ad.schema';
 import { CrawlerSession, CrawlerSessionSchema } from 'src/models/crawlerSession.schema';
 import { SchedulerRegistry } from '@nestjs/schedule';
+import { HttpModule } from '@nestjs/axios';
 
 
 @Module({
@@ -25,7 +26,9 @@ import { SchedulerRegistry } from '@nestjs/schedule';
             adapter: BullAdapter,
         }),
         MongooseModule.forFeature([{ name: Ad.name, schema: AdSchema }, { name: CrawlerSession.name, schema: CrawlerSessionSchema }]),
-
+        HttpModule.register({
+            timeout: 60000
+        }),
         DataProcessingModule,
     ],
     controllers: [],
