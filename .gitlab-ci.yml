@@ -4,13 +4,12 @@ stages:
 
 variables:
   DOCKER_DRIVER: overlay2
-  CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/real-estate-server
+  SERVER_IMAGE: $CI_REGISTRY_IMAGE/real-estate-server
   DASHBOARD_IMAGE: $CI_REGISTRY_IMAGE/real-estate-dashboard
 
 workflow:
   rules:
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
-
 build_server:
   stage: build
   image: docker:latest
@@ -20,10 +19,10 @@ build_server:
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
   script:
     - cd real-estate-server
-    - docker build -t $CONTAINER_IMAGE:$CI_COMMIT_SHORT_SHA .
-    - docker tag $CONTAINER_IMAGE:$CI_COMMIT_SHORT_SHA $CONTAINER_IMAGE:latest
-    - docker push $CONTAINER_IMAGE:$CI_COMMIT_SHORT_SHA
-    - docker push $CONTAINER_IMAGE:latest
+    - docker build -t $SERVER_IMAGE:$CI_COMMIT_SHORT_SHA .
+    - docker tag $SERVER_IMAGE:$CI_COMMIT_SHORT_SHA $SERVER_IMAGE:latest
+    - docker push $SERVER_IMAGE:$CI_COMMIT_SHORT_SHA
+    - docker push $SERVER_IMAGE:latest
 
 build_dashboard:
   stage: build
@@ -40,14 +39,16 @@ build_dashboard:
     - docker push $DASHBOARD_IMAGE:latest
 
 deploy:
+  image: alpine:latest
   stage: deploy
-  image: bitnami/kubectl:latest
-  before_script:
-    - echo "$KUBE_CONFIG" | base64 -d > $KUBECONFIG
+  tags:
+    - deploy
   script:
-    - kubectl --kubeconfig=$KUBECONFIG apply -f kubernetes/backend-deployment.yaml
-    - kubectl --kubeconfig=$KUBECONFIG apply -f kubernetes/frontend-deployment.yaml
-    - kubectl --kubeconfig=$KUBECONFIG apply -f kubernetes/mongo-deployment.yaml
-    - kubectl --kubeconfig=$KUBECONFIG apply -f kubernetes/redis-deployment.yaml
+    - chmod og= $ID_RSA
+    - apk update && apk add openssh-client
+    - ssh -i $ID_RSA -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY"
+    - ssh -i $ID_RSA -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker pull $SERVER_IMAGE:latest"
+    - ssh -i $ID_RSA -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker pull $DASHBOARD_IMAGE:latest"
+    - ssh -i $ID_RSA -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker-compose down && docker-compose up -d"
   only:
     - main

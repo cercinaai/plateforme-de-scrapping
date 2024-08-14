@@ -11,7 +11,7 @@ export class ScheduleTasksService implements OnModuleInit {
     }
 
     async onModuleInit() {
-        await this.crawlerService.populate_database();
+        // await this.crawlerService.populate_database();
         // const heath_check_job = new CronJob(CronExpression.EVERY_10_MINUTES, async () => {
         //     const session_saved = await this.crawlerService.heathCheck();
         //     if (!session_saved) return;

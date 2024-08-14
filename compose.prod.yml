@@ -1,0 +1,46 @@
+version: '3'
+services:
+  redis:
+    image: redis:7.2.5
+    container_name: redis-container
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./prod-data/redis_data:/data
+
+  mongodb:
+    image: mongo:5.0.28
+    container_name: mongodb-container
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./prod-data/mongo_data:/data/db
+
+  backend:
+    image: $SERVER_IMAGE:latest
+    container_name: backend-container
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - ADMIN_USERNAME=${ADMIN_USERNAME}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - REDIS_HOST=redis
+      - REDIS_PORT=${REDIS_PORT}
+      - MONGODB_URI=mongodb://mongodb:27017/real-estate
+      - PROXY_API_KEY=${PROXY_API_KEY}
+      - 2CAPTCHA_API_KEY=${2CAPTCHA_API_KEY}
+      - CAPSOLVER_API_KEY=${CAPSOLVER_API_KEY}
+      - SHIFTER_API_KEY=${SHIFTER_API_KEY}
+    depends_on:
+      - redis
+      - mongodb
+
+  frontend:
+    image: $DASHBOARD_IMAGE:latest
+    container_name: frontend-container
+    ports:
+      - "80:80"
+    depends_on:
+      - backend

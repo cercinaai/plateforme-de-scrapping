@@ -4,11 +4,9 @@ import { AppService } from './app.service';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ScheduleTasksService } from './schedule-tasks/schedule-tasks.service';
 import { CrawlerModule } from './crawler/crawler.module';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { APP_CONFIG } from './config/app.config';
+import { ConfigModule, ConfigModuleOptions, ConfigService } from '@nestjs/config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { BullModule } from '@nestjs/bull';
-import { PrometheusModule } from '@willsoto/nestjs-prometheus';
 import { ExpressAdapter } from "@bull-board/express";
 import { BullBoardModule } from '@bull-board/nestjs';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -19,12 +17,17 @@ import { AuthModule } from './auth/auth.module';
 import { DataProviderModule } from './data-provider/data-provider.module';
 import { ThrottlerModule } from '@nestjs/throttler';
 
-const PATH = APP_CONFIG.PRODUCTION ? 'prod.env' : 'dev.env';
+const configEnv = () : ConfigModuleOptions => {
+  if (!process.env.NODE_ENV || process.env.NODE_ENV !== 'production') {
+      return { envFilePath: 'real-estate.env', isGlobal: true, cache: true }
+  }
+    return { ignoreEnvFile: true, isGlobal: true, cache: true }
+} 
 
 @Module({
   imports: [
     ScheduleModule.forRoot(),
-    ConfigModule.forRoot({ envFilePath: `real-estate-env/${PATH}`, isGlobal: true, cache: true }),
+    ConfigModule.forRoot(configEnv()),
     EventEmitterModule.forRoot(),
     BullModule.forRootAsync({
       imports: [ConfigModule],
@@ -51,7 +54,6 @@ const PATH = APP_CONFIG.PRODUCTION ? 'prod.env' : 'dev.env';
       }),
       inject: [ConfigService]
     }),
-    PrometheusModule.register(),
     CacheModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
