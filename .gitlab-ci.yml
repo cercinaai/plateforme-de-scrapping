@@ -1,6 +1,5 @@
 stages:
   - build
-  - test
   - deploy
 
 variables:
@@ -38,12 +37,13 @@ build_dashboard:
 
 deploy:
   stage: deploy
-  image: alpine:latest
+  image: bitnami/kubectl:latest
   before_script:
-    - apk add --no-cache bash curl jq
     - echo "$KUBE_CONFIG" | base64 -d > $KUBECONFIG
   script:
-    - kubectl --kubeconfig=$KUBECONFIG apply -f kubernetes/deployment.yaml
-    - kubectl --kubeconfig=$KUBECONFIG apply -f kubernetes/service.yaml
+    - kubectl --kubeconfig=$KUBECONFIG apply -f kubernetes/backend-deployment.yaml
+    - kubectl --kubeconfig=$KUBECONFIG apply -f kubernetes/frontend-deployment.yaml
+    - kubectl --kubeconfig=$KUBECONFIG apply -f kubernetes/mongo-deployment.yaml
+    - kubectl --kubeconfig=$KUBECONFIG apply -f kubernetes/redis-deployment.yaml
   only:
     - main

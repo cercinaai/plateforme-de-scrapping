@@ -1,0 +1,69 @@
+{
+  "uniqueId": "123456789",
+  "origin": "LeBonCoin",
+  "adId": "1234567890",
+  "reference": "REF123456",
+  "creationDate": "2023-05-15T10:30:00Z",
+  "lastCheckDate": "2023-05-20T14:45:00Z",
+  "title": "Maison 4 pièces avec jardin",
+  "type": "sale",
+  "category": "house",
+  "publisher": {
+    "name": "Agence Immobilière XYZ",
+    "Store_Url":
+  },
+  "description": "Belle maison de 4 pièces avec jardin...",
+  "url": "https://www.leboncoin.fr/ventes_immobilieres/1234567890.htm",
+  "pictureUrl": "https://img.leboncoin.fr/api/v1/lbcpb1/images/2c/2c0a1234.jpg",
+  "pictureUrls": [
+    "https://img.leboncoin.fr/api/v1/lbcpb1/images/2c/2c0a1234.jpg",
+    "https://img.leboncoin.fr/api/v1/lbcpb1/images/3d/3d0b5678.jpg"
+  ],
+  "location": {
+    "city": "Paris",
+    "postalCode": "75001",
+    "departmentCode": "75",
+    "regionCode": "11",
+    "coordinates": {
+      "lat": 48.8566,
+      "lon": 2.3522
+    }
+  },
+  "price": 750000,
+  "originalPrice": 800000,
+  "pricePerSquareMeter": 10000,
+  "rent": null,
+  "propertyCharges": 200,
+  "propertyTax": 2000,
+  "rooms": 4,
+  "bedrooms": 3,
+  "surface": 75,
+  "landSurface": 150,
+  "constructionYear": 1990,
+  "floor": 0,
+  "buildingFloors": 2,
+  "energyValue": 150,
+  "energyGrade": "C",
+  "gasValue": 30,
+  "gasGrade": "B",
+  "options": [
+    "Jardin",
+    "Garage",
+    "Cheminée"
+  ],
+  "history": [
+    {
+      "action": "update",
+      "differences": {
+        "price": 800000
+      },
+      "date": "2023-05-18T09:15:00Z"
+    }
+  ],
+  "duplicates": [
+    {
+      "uniqueId": "987654321",
+      "origin": "SeLoger"
+    }
+  ]
+}

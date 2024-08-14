@@ -1,0 +1,285 @@
+<p-toast></p-toast>
+<div class="session-list">
+    <div class="sidebar">
+        <div class="filter-section">
+            <label for="start-date">Date de début :</label>
+            <input type="date" id="start-date" [(ngModel)]="startDate" (change)="filterSessions()" />
+
+            <label for="end-date">Date de fin :</label>
+            <input type="date" id="end-date" [(ngModel)]="endDate" (change)="filterSessions()" />
+            <button class="clear-button" (click)="clearDates()">Effacer</button>
+        </div>
+        <div class="small-cards-container" (scroll)="onScroll($event)">
+            @for (session of crawlerSessions; track $index) {
+            <div class="small-card" [ngClass]="{'active': selectedSession === session}" (click)="selectSession($index)">
+                <div class="card-header">
+                    <img src="assets/images/crawler-bot.png" alt="Crawler Icon" class="card-icon">
+                    <div class="session-title">
+                        <h4>Session {{$index + 1}}</h4>
+                        <p>{{session.session_date | date: 'medium'}}</p>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="circle-container">
+                        <div class="circle-wrapper data">
+                            <div class="circle">
+                                <div class="circle-inner">
+                                    <span>{{session.bienici.total_data_grabbed + session.logicimmo.total_data_grabbed +
+                                        session.boncoin.total_data_grabbed + session.seloger.total_data_grabbed}}</span>
+                                </div>
+                                <svg viewBox="0 0 36 36" class="circular-chart blue">
+                                    <path class="circle-bg" d="M18 2.0845
+                                                     a 15.9155 15.9155 0 0 1 0 31.831
+                                                     a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                    <path class="circle-bar" stroke-dasharray="100, 100" d="M18 2.0845
+                                                     a 15.9155 15.9155 0 0 1 0 31.831
+                                                     a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                </svg>
+                            </div>
+                            <div class="circle-label">Annonces</div>
+                        </div>
+
+                        <div class="circle-wrapper request">
+                            <div class="circle">
+                                <div class="circle-inner">
+                                    <span>{{(session.bienici.total_request || 0) + (session.logicimmo.total_request ||
+                                        0) + (session.boncoin.total_request || 0) + (session.seloger.total_request || 0)
+                                        }}</span>
+                                </div>
+                                <svg viewBox="0 0 36 36" class="circular-chart yellow">
+                                    <path class="circle-bg" d="M18 2.0845
+                                                     a 15.9155 15.9155 0 0 1 0 31.831
+                                                     a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                    <path class="circle-bar" stroke-dasharray="100, 100" d="M18 2.0845
+                                                     a 15.9155 15.9155 0 0 1 0 31.831
+                                                     a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                </svg>
+                            </div>
+                            <div class="circle-label">Requêtes Totales</div>
+                        </div>
+
+                        <div class="circle-wrapper success">
+                            <div class="circle">
+                                <div class="circle-inner">
+                                    <span>{{(session.bienici.success_requests || 0) +
+                                        (session.logicimmo.success_requests || 0) + (session.boncoin.success_requests ||
+                                        0) + (session.seloger.success_requests || 0)}}</span>
+                                </div>
+                                <svg viewBox="0 0 36 36" class="circular-chart green">
+                                    <path class="circle-bg" d="M18 2.0845
+                                                     a 15.9155 15.9155 0 0 1 0 31.831
+                                                     a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                    <path class="circle-bar"
+                                        [attr.stroke-dasharray]="getTotalSuccessPercentage($index)+ ',100'" d="M18 2.0845
+                                                     a 15.9155 15.9155 0 0 1 0 31.831
+                                                     a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                </svg>
+                            </div>
+                            <div class="circle-label">Succès</div>
+                        </div>
+
+                        <div class="circle-wrapper failure">
+                            <div class="circle">
+                                <div class="circle-inner">
+                                    <span>{{(session.bienici.failed_requests || 0) + (session.logicimmo.failed_requests
+                                        || 0) + (session.boncoin.failed_requests || 0) +
+                                        (session.seloger.failed_requests || 0)}}</span>
+                                </div>
+                                <svg viewBox="0 0 36 36" class="circular-chart red">
+                                    <path class="circle-bg" d="M18 2.0845
+                                                     a 15.9155 15.9155 0 0 1 0 31.831
+                                                     a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                    <path class="circle-bar"
+                                        [attr.stroke-dasharray]="getTotalFailurePercentage($index)+ ',100'" d="M18 2.0845
+                                                     a 15.9155 15.9155 0 0 1 0 31.831
+                                                     a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                </svg>
+                            </div>
+                            <div class="circle-label">Échecs</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            }
+        </div>
+    </div>
+    <div class="content">
+        @if (selectedSession) {
+        <div class="my-wallet">
+            <div class="my-wallet-sidebar">
+
+                <div class="accounts-container">
+                    <div class="account" [ngClass]="{'active': selectedCrawlerOrigin === 'bienici'}"
+                        (click)="selectCrawlerOrigin('bienici')">
+                        <div class="account-card-type is-bienici"></div>
+                        <div class="account-number">BienIci Crawler</div>
+                        @if (selectedSession.bienici.status == "success") {
+                        <div class="account-expiration">{{selectedSession.bienici.success_date|date:
+                            'short'}}
+                        </div>
+                        <div class="status-icon success">
+                            <i class="material-icons">check_circle</i>
+                        </div>
+                        } @else {
+                        <div class="account-expiration">{{selectedSession.bienici.error_date|date: 'short'}}
+                        </div>
+                        <div class="status-icon failure">
+                            <i class="material-icons">cancel</i>
+                        </div>
+                        }
+                    </div>
+
+                    <div class="account" [ngClass]="{'active': selectedCrawlerOrigin === 'logicimmo'}"
+                        (click)="selectCrawlerOrigin('logicimmo')">
+                        <div class="account-card-type is-logic-immo"></div>
+                        <div class="account-number">LogicImmo Crawler</div>
+                        @if (selectedSession.logicimmo.status == "success") {
+                        <div class="account-expiration">
+                            {{selectedSession.logicimmo.success_date|date: 'short'}}
+                        </div>
+                        <div class="status-icon success">
+                            <i class="material-icons">check_circle</i>
+                        </div>
+                        }@else {
+                        <div class="account-expiration"> {{selectedSession.logicimmo.error_date|date:
+                            'short'}}
+                        </div>
+                        <div class="status-icon failure">
+                            <i class="material-icons">cancel</i>
+                        </div>
+                        }
+                    </div>
+
+                    <div class="account" [ngClass]="{'active': selectedCrawlerOrigin === 'boncoin'}"
+                        (click)="selectCrawlerOrigin('boncoin')">
+                        <div class="account-card-type is-boncoin"></div>
+                        <div class="account-number">BonCoin Crawler</div>
+                        @if (selectedSession.boncoin.status == "success") {
+                        <div class="account-expiration"> {{selectedSession.boncoin.success_date|date:
+                            'short'}}
+                        </div>
+                        <div class="status-icon success">
+                            <i class="material-icons">check_circle</i>
+                        </div>
+                        }@else {
+                        <div class="account-expiration"> {{selectedSession.boncoin.error_date|date: 'short'}}
+                        </div>
+                        <div class="status-icon failure">
+                            <i class="material-icons">cancel</i>
+                        </div>
+                        }
+                    </div>
+                    <div class="account" [ngClass]="{'active': selectedCrawlerOrigin === 'seloger'}"
+                        (click)="selectCrawlerOrigin('seloger')">
+                        <div class="account-card-type is-seloger"></div>
+                        <div class="account-number">Seloger Crawler</div>
+                        @if (selectedSession.seloger.status == "success") {
+                        <div class="account-expiration"> {{selectedSession.seloger.success_date|date:
+                            'short'}}
+                        </div>
+                        <div class="status-icon success">
+                            <i class="material-icons">check_circle</i>
+                        </div>
+                        }@else {
+                        <div class="account-expiration"> {{selectedSession.seloger.error_date|date: 'short'}}
+                        </div>
+                        <div class="status-icon failure">
+                            <i class="material-icons">cancel</i>
+                        </div>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="account-details-container">
+                @if(selectedCrawlerOrigin){
+                <div class="account-details is-selected">
+                    <div class="account-details-card">
+                        <div class="details-header">
+                            <h2>{{ selectedCrawlerOrigin | titlecase }} Crawler Détails</h2>
+                        </div>
+                        <div class="details-content">
+                            @if($any(selectedSession)[selectedCrawlerOrigin].status == "success") {
+                            <div class="details-item">
+                                <span class="details-title">Date de réussite :</span>
+                                <span class="details-value">{{
+                                    $any(selectedSession)[selectedCrawlerOrigin].success_date| date: 'medium' }}</span>
+                            </div>
+                            <div class="details-item">
+                                <span class="details-title">Total des annonces récupérées :</span>
+                                <span class="details-value">{{
+                                    $any(selectedSession)[selectedCrawlerOrigin].total_data_grabbed
+                                    }}</span>
+                            </div>
+                            <div class="details-item">
+                                <span class="details-title">Requêtes totales :</span>
+                                <span class="details-value">{{
+                                    $any(selectedSession)[selectedCrawlerOrigin].total_request
+                                    }}</span>
+                            </div>
+                            <div class="details-item">
+                                <span class="details-title">Requêtes réussies :</span>
+                                <span class="details-value">{{
+                                    $any(selectedSession)[selectedCrawlerOrigin].success_requests
+                                    }}</span>
+                            </div>
+                            <div class="details-item">
+                                <span class="details-title">Requêtes échouées :</span>
+                                <span class="details-value">{{
+                                    $any(selectedSession)[selectedCrawlerOrigin].failed_requests
+                                    }}</span>
+                            </div>
+                            } @else {
+                            <div class="details-item">
+                                <span class="details-title">Date d'erreur :</span>
+                                <span class="details-value">{{ $any(selectedSession)[selectedCrawlerOrigin].error_date |
+                                    date:'medium' }}</span>
+                            </div>
+                            <div class="details-item">
+                                <span class="details-title">Total des données récupérées :</span>
+                                <span class="details-value">{{
+                                    $any(selectedSession)[selectedCrawlerOrigin].total_data_grabbed
+                                    }}</span>
+                            </div>
+                            <div class="details-item">
+                                <span class="details-title">Requêtes totales :</span>
+                                <span class="details-value">{{
+                                    $any(selectedSession)[selectedCrawlerOrigin].total_request
+                                    }}</span>
+                            </div>
+                            <div class="details-item">
+                                <span class="details-title">Requêtes réussies :</span>
+                                <span class="details-value">{{
+                                    $any(selectedSession)[selectedCrawlerOrigin].success_requests
+                                    }}</span>
+                            </div>
+                            <div class="details-item">
+                                <span class="details-title">Requêtes échouées :</span>
+                                <span class="details-value">{{
+                                    $any(selectedSession)[selectedCrawlerOrigin].failed_requests
+                                    }}</span>
+                            </div>
+                            <div class="log-section">
+                                <div class="log-bubble">
+                                    <span class="log-title">Raison de l'échec</span>
+                                    <span class="log-content">{{
+                                        $any(selectedSession)[selectedCrawlerOrigin].failedReason}}</span>
+                                </div>
+
+                                <div class="log-bubble">
+                                    <span class="log-title">URL de la requête échouée</span>
+                                    <span class="log-content">{{
+                                        $any(selectedSession)[selectedCrawlerOrigin].failed_request_url
+                                        }}</span>
+                                </div>
+                            </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+                }
+
+            </div>
+        </div>
+        }
+    </div>
+</div>

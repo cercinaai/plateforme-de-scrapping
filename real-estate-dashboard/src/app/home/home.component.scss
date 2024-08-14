@@ -1,0 +1,102 @@
+$dark-bg: #1e1e1e;
+$darker-bg: #2e2e2e;
+$light-text: #ccc;
+$lighter-text: #888;
+$highlight-color: #1b76ff;
+$debit-color: #ff6b6b;
+$credit-color: #4caf50;
+$border-color: #444;
+$primary_color: #ea3700;
+
+.container {
+    background-color: #100e17;
+    min-height: 100vh;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+
+    .home-sidebar {
+        padding: 20px;
+        width: 25%;
+        display: flex;
+        justify-content: center;
+        background-color: $dark-bg;
+    }
+
+    .switch-button {
+        width: 100%;
+
+        input[type="checkbox"] {
+            display: none;
+
+            &:checked {
+                &~label .toggle {
+                    .toggle-content {
+                        .left {
+                            color: $highlight-color;
+                            font-weight: 400;
+                        }
+
+                        .right {
+                            color: #ffffff;
+                            font-weight: 700;
+                        }
+                    }
+
+                    .bar {
+                        left: calc(50% + 0.25rem);
+                    }
+                }
+            }
+        }
+
+        .toggle {
+            transform: scale(1.4);
+            /* Adjusted scale to fit your design */
+            user-select: none;
+            max-width: 12rem;
+            /* Adjusted width */
+            margin-left: auto;
+            margin-right: auto;
+            position: relative;
+
+            .toggle-content {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                border-radius: 3rem;
+                transition: 0.2s all cubic-bezier(0.39, 0.575, 0.565, 1);
+                background-color: rgba(27, 118, 255, 0.3);
+
+                >div {
+                    padding-top: 0.5rem;
+                    /* Adjusted padding to fit */
+                    padding-bottom: 0.5rem;
+                    /* Adjusted padding to fit */
+                    text-align: center;
+                    color: $highlight-color;
+                    /* Update to your primary color */
+                    font-weight: 400;
+
+                    &.left {
+                        color: #ffffff;
+                        font-weight: 700;
+                    }
+                }
+            }
+
+            .bar {
+                z-index: -1;
+                top: 0.15rem;
+                left: 0.15rem;
+                position: absolute;
+                height: calc(100% - 0.3rem);
+                width: calc(50% - 0.3rem);
+                border-radius: 3rem;
+                background-color: $highlight-color;
+                transition: 0.2s all cubic-bezier(0.39, 0.575, 0.565, 1);
+            }
+        }
+    }
+
+
+}
