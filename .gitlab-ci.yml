@@ -7,6 +7,10 @@ variables:
   CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/real-estate-server
   DASHBOARD_IMAGE: $CI_REGISTRY_IMAGE/real-estate-dashboard
 
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+
 build_server:
   stage: build
   image: docker:latest
