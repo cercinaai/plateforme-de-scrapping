@@ -339,7 +339,8 @@ $border-radius: 4px;
             }
 
             &-card-type {
-                @include circle-size(44px, 64px);
+                @include circle-size(44px);
+                width: 64px;
                 background: center no-repeat;
 
                 &.is-bienici {
