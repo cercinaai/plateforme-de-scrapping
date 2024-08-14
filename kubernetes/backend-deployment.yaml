@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: backend
-        image: my-nestjs-app:latest
+        image: $CI_REGISTRY_IMAGE/real-estate-server:latest
         ports:
         - containerPort: 3000
         env:
@@ -24,6 +24,8 @@ spec:
           value: "6379"
         - name: MONGO_URI
           value: "mongodb://mongodb:27017/mydb"
+
+---
 
 apiVersion: v1
 kind: Service

@@ -1,6 +1,5 @@
 stages:
   - build
-  - test
   - deploy
 
 variables:
@@ -36,14 +35,15 @@ build_dashboard:
     - docker push $DASHBOARD_IMAGE:$CI_COMMIT_SHORT_SHA
     - docker push $DASHBOARD_IMAGE:latest
 
-# deploy:
-#   stage: deploy
-#   image: alpine:latest
-#   before_script:
-#     - apk add --no-cache bash curl jq
-#     - echo "$KUBE_CONFIG" | base64 -d > $KUBECONFIG
-#   script:
-#     - kubectl --kubeconfig=$KUBECONFIG apply -f kubernetes/deployment.yaml
-#     - kubectl --kubeconfig=$KUBECONFIG apply -f kubernetes/service.yaml
-#   only:
-#     - main
+deploy:
+  stage: deploy
+  image: bitnami/kubectl:latest
+  before_script:
+    - echo "$KUBE_CONFIG" | base64 -d > $KUBECONFIG
+  script:
+    - kubectl --kubeconfig=$KUBECONFIG apply -f kubernetes/backend-deployment.yaml
+    - kubectl --kubeconfig=$KUBECONFIG apply -f kubernetes/frontend-deployment.yaml
+    - kubectl --kubeconfig=$KUBECONFIG apply -f kubernetes/mongo-deployment.yaml
+    - kubectl --kubeconfig=$KUBECONFIG apply -f kubernetes/redis-deployment.yaml
+  only:
+    - main

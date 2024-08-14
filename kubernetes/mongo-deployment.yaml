@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: mongodb
-        image: mongo:latest
+        image: mongo:5.0.28
         ports:
         - containerPort: 27017
         volumeMounts:
@@ -23,7 +23,7 @@ spec:
       volumes:
       - name: mongo-storage
         emptyDir: {}
-
+---
 apiVersion: v1
 kind: Service
 metadata:

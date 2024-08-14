@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: redis
-        image: redis:latest
+        image: redis:7.2.5  
         ports:
         - containerPort: 6379
         volumeMounts:
@@ -23,7 +23,7 @@ spec:
       volumes:
       - name: redis-storage
         emptyDir: {}
-
+---
 apiVersion: v1
 kind: Service
 metadata:
