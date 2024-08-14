@@ -6,61 +6,74 @@ $highlight-color: #1b76ff;
 $debit-color: #ff6b6b;
 $credit-color: #4caf50;
 $border-color: #444;
+$padding-sm: 10px;
+$padding-md: 15px;
+$border-radius: 4px;
+
+@mixin transition($properties, $duration: 0.3s, $ease: ease) {
+    transition: $properties $duration $ease;
+}
+
+@mixin border-box($color, $width: 1px) {
+    border: $width solid $color;
+}
+
+@mixin circle-size($size) {
+    width: $size;
+    height: $size;
+}
+
+@mixin flex-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+@mixin font-style($color, $size: 14px, $weight: normal) {
+    color: $color;
+    font-size: $size;
+    font-weight: $weight;
+}
+
+@mixin box-shadow($x: 0, $y: 6px, $blur: 20px, $color: rgba(0, 0, 0, 0.3)) {
+    box-shadow: $x $y $blur $color;
+}
 
 .session-list {
     display: flex;
 
     .sidebar {
         width: 25%;
-        display: flex;
-        flex-direction: column;
-        padding: 10px;
+        padding: $padding-sm;
         background-color: $dark-bg;
         height: 100vh;
         overflow: hidden;
 
         .filter-section {
-            display: flex;
-            flex-direction: column;
+            @include font-style($light-text);
+            @include border-box($border-color, 1px);
             margin-bottom: 20px;
-            background-color: $dark-bg;
-            color: $light-text;
-            padding: 10px;
-            border-bottom: 1px solid $border-color;
-
-            label {
-                margin-bottom: 5px;
-            }
+            padding: $padding-sm;
 
             input[type="date"] {
                 background-color: $darker-bg;
-                border: 1px solid $border-color;
-                color: $light-text;
+                @include border-box($border-color);
                 padding: 5px;
-                border-radius: 4px;
-                margin-bottom: 10px;
+                border-radius: $border-radius;
                 width: 100%;
                 font-size: 14px;
+                margin-bottom: 10px;
             }
 
             .clear-button {
                 background-color: $highlight-color;
-                color: $light-text;
-                border: none;
-                padding: 10px;
-                border-radius: 4px;
-                font-size: 14px;
+                padding: $padding-sm;
+                border-radius: $border-radius;
                 cursor: pointer;
-                transition: background-color 0.3s ease;
-                margin-top: 10px;
-                text-align: center;
+                @include transition(background-color);
 
                 &:hover {
                     background-color: darken($highlight-color, 10%);
-                }
-
-                &:focus {
-                    outline: none;
                 }
             }
         }
@@ -80,18 +93,15 @@ $border-color: #444;
 
             .small-card {
                 background-color: $darker-bg;
-                color: $light-text;
                 border-radius: 8px;
-                margin-bottom: 10px;
-                padding: 15px;
-                display: flex;
-                flex-direction: column;
-                cursor: pointer;
-                transition: background-color 0.3s ease;
+                margin-bottom: $padding-sm;
+                padding: $padding-md;
+                @include transition(background-color);
                 border-left: 4px solid transparent;
+                cursor: pointer;
 
                 &.active {
-                    border-left: 4px solid $highlight-color;
+                    border-left-color: $highlight-color;
                 }
 
                 &:hover {
@@ -99,13 +109,11 @@ $border-color: #444;
                 }
 
                 .card-header {
-                    display: flex;
-                    align-items: center;
-                    margin-bottom: 10px;
+                    @include flex-center;
+                    margin-bottom: $padding-sm;
 
                     .card-icon {
-                        width: 40px;
-                        height: 40px;
+                        @include circle-size(40px);
                         margin-right: 10px;
                     }
 
@@ -113,138 +121,113 @@ $border-color: #444;
                         margin-left: 10px;
 
                         h4 {
+                            @include font-style($light-text, 16px);
                             margin: 0;
-                            font-size: 16px;
                         }
 
                         p {
+                            @include font-style($lighter-text, 12px);
                             margin: 0;
-                            color: $lighter-text;
-                            font-size: 12px;
                         }
                     }
                 }
 
-                .card-body {
-                    .circle-container {
+                .circle-container {
+                    @include flex-center;
+                    margin-top: $padding-sm;
+
+                    .circle-wrapper {
                         display: flex;
-                        justify-content: space-around;
+                        flex-direction: column;
                         align-items: center;
-                        margin-top: 10px;
 
-                        .circle-wrapper {
-                            display: flex;
-                            flex-direction: column;
-                            align-items: center;
+                        .circle {
+                            @include circle-size(80px);
+                            position: relative;
 
-                            .circle {
-                                position: relative;
-                                width: 80px;
-                                height: 80px;
-                                display: flex;
-                                justify-content: center;
-                                align-items: center;
-
-                                &-inner {
-                                    position: absolute;
-                                    display: flex;
-                                    justify-content: center;
-                                    align-items: center;
-                                    font-size: 16px;
-                                    font-weight: bold;
-                                    color: $light-text;
-                                }
-
-                                svg {
-                                    width: 100%;
-                                    height: 100%;
-                                }
+                            &-inner {
+                                @include flex-center;
+                                position: absolute;
+                                font-size: 16px;
+                                font-weight: bold;
                             }
 
-                            .circle-label {
-                                margin-top: 10px;
-                                font-size: 14px;
-                                color: $light-text;
+                            svg {
+                                width: 100%;
+                                height: 100%;
                             }
                         }
 
-                        .circular-chart {
-                            display: block;
-                            margin: 10px auto;
-                            max-width: 80px;
-                            max-height: 80px;
-
-                            &.blue .circle-bar {
-                                fill: #1e8fff8c;
-                                stroke: #1e90ff;
-                            }
-
-                            &.yellow .circle-bar {
-                                fill: #ffcc0077;
-                                stroke: #ffcc00;
-                            }
-
-                            &.green .circle-bar {
-                                fill: #4caf4f6e;
-                                stroke: #4caf50;
-                            }
-
-                            &.red .circle-bar {
-                                fill: #ff6b6b77;
-                                stroke: #ff6b6b;
-                            }
-                        }
-
-                        .circle-bg {
-                            fill: none;
-                            stroke-width: 3.8;
-                        }
-
-                        .circle-bar {
-                            fill: none;
-                            stroke-width: 2.8;
-                            stroke-linecap: round;
-                            animation: progress 1s ease-out forwards;
-                        }
-
-                        @keyframes progress {
-                            0% {
-                                stroke-dasharray: 0 100;
-                            }
+                        .circle-label {
+                            margin-top: 10px;
+                            font-size: 14px;
+                            color: $light-text;
                         }
                     }
 
+                    .circular-chart {
+                        @include circle-size(80px);
+                        margin: $padding-sm auto;
 
+                        &.blue .circle-bar {
+                            fill: #1e8fff8c;
+                            stroke: #1e90ff;
+                        }
+
+                        &.yellow .circle-bar {
+                            fill: #ffcc0077;
+                            stroke: #ffcc00;
+                        }
+
+                        &.green .circle-bar {
+                            fill: #4caf4f6e;
+                            stroke: #4caf50;
+                        }
+
+                        &.red .circle-bar {
+                            fill: #ff6b6b77;
+                            stroke: #ff6b6b;
+                        }
+                    }
+
+                    .circle-bg {
+                        fill: none;
+                        stroke-width: 3.8;
+                    }
+
+                    .circle-bar {
+                        fill: none;
+                        stroke-width: 2.8;
+                        stroke-linecap: round;
+                        animation: progress 1s ease-out forwards;
+                    }
                 }
             }
         }
-
     }
 
     .content {
         width: 75%;
-        padding: 20px;
+        padding: $padding-md;
 
         .account-details-container {
             font-family: "Open Sans", sans-serif;
             height: 100%;
             overflow: hidden;
-            padding: 20px;
+            padding: $padding-md;
             width: 60%;
             background-color: $darker-bg;
-            display: flex;
+            @include flex-center;
             flex-direction: column;
-            justify-content: center;
-            align-items: center;
 
             .account-details {
                 width: 100%;
+                flex: 1;
                 display: flex;
                 flex-direction: column;
-                height: 100%; // Ensure it takes full height of the container
 
                 &.is-selected {
-                    transition: transform 500ms ease, opacity 200ms 200ms ease;
+                    @include transition(transform 500ms, opacity 200ms);
                     transform: translateX(0);
                     opacity: 1;
                 }
@@ -252,25 +235,22 @@ $border-color: #444;
                 .account-details-card {
                     background-color: $dark-bg;
                     border-radius: 10px;
-                    padding: 20px;
-                    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-                    width: 100%;
-                    height: 100%; // Make sure it takes the full height of the container
-                    display: flex;
-                    flex-direction: column;
+                    padding: $padding-md;
+                    @include box-shadow;
+                    flex: 1;
 
                     .details-header {
                         text-align: center;
-                        margin-bottom: 20px;
+                        margin-bottom: $padding-md;
 
                         h2 {
-                            color: $light-text;
+                            @include font-style($light-text);
                             margin: 0;
                         }
                     }
 
                     .details-content {
-                        flex: 1; // Ensure it takes the remaining space
+                        flex: 1;
                         display: flex;
                         flex-direction: column;
                         justify-content: center;
@@ -278,7 +258,7 @@ $border-color: #444;
                         .details-item {
                             display: flex;
                             justify-content: space-between;
-                            padding: 10px 0;
+                            padding: $padding-sm 0;
                             border-bottom: 1px solid $border-color;
 
                             &:last-child {
@@ -286,38 +266,36 @@ $border-color: #444;
                             }
 
                             .details-title {
-                                color: $lighter-text;
-                                font-weight: bold;
+                                @include font-style($lighter-text, 14px, bold);
                             }
 
                             .details-value {
-                                color: $light-text;
-                                white-space: pre-wrap; // Ensure logs are readable
+                                @include font-style($light-text);
+                                white-space: pre-wrap;
                             }
                         }
 
                         .log-section {
-                            margin-top: 10px;
+                            margin-top: $padding-sm;
                             display: flex;
                             flex-direction: column;
-                            gap: 10px;
+                            gap: $padding-sm;
 
                             .log-bubble {
                                 background-color: rgba(255, 0, 0, 0.1);
-                                border-radius: 10px; // Increased radius
-                                padding: 15px; // Increased padding
+                                border-radius: 10px;
+                                padding: 15px;
                                 display: flex;
                                 flex-direction: column;
 
                                 .log-title {
-                                    color: #fff;
-                                    font-weight: bold;
+                                    @include font-style(#fff, 16px, bold);
                                     text-align: center;
                                     margin-bottom: 5px;
                                 }
 
                                 .log-content {
-                                    color: rgba(255, 255, 255, 0.7);
+                                    @include font-style(rgba(255, 255, 255, 0.7));
                                     white-space: pre-wrap;
                                 }
                             }
@@ -327,211 +305,105 @@ $border-color: #444;
             }
         }
     }
-
 }
 
-
-
 .my-wallet {
-    background-color: $dark-bg;
-    border-radius: 10px;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-    font-family: "Open Sans", sans-serif;
-    overflow: hidden;
+    @include box-shadow;
     width: 100%;
     max-width: 800px;
     margin: auto;
     display: flex;
     flex-direction: row;
     transition: transform 0.5s ease;
-}
 
-.my-wallet-sidebar {
-    background-color: $darker-bg;
-    color: $light-text;
-    padding: 20px;
-    width: 40%;
-    display: flex;
-    flex-direction: column;
-}
-
-.session-title {
-
-    .bot-image {
-        width: 60px;
-        /* Increased width */
-        height: 60px;
-        /* Increased height */
-        margin-right: 15px;
-        /* Added more space between the image and the text */
-    }
-
-    .title-text {
-        h1 {
-            font-size: 28px;
-            /* Increased font size */
-            font-weight: bold;
-            /* Made the title bold */
-            margin: 0;
-            color: $light-text;
-            /* Ensured consistent text color */
-        }
-
-        .session-end-date {
-            font-size: 16px;
-            /* Adjusted font size for better visibility */
-            color: $lighter-text;
-        }
-    }
-}
-
-.accounts-container {
-    margin-top: 20px;
-}
-
-.active-account {
-    border: 4px solid $highlight-color;
-    border-radius: 4px;
-    height: 150px;
-    position: relative;
-    width: 100%;
-    margin-bottom: 20px;
-}
-
-.account {
-    background-color: darken($darker-bg, 10%);
-    border: 2px solid lighten($border-color, 10%);
-    border-radius: 4px;
-    font-family: "Roboto", sans-serif;
-    height: 150px;
-    margin-bottom: 20px;
-    padding: 15px;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-
-    &.active {
-        border: 4px solid $highlight-color;
-    }
-
-    &-card-type {
-        height: 44px;
-        width: 64px;
-
-        &.is-bienici {
-            background: url("/assets/images/icon_bienici.svg") center no-repeat;
-        }
-
-        &.is-logic-immo {
-            background: url("/assets/images/logo_licom.svg") center no-repeat;
-        }
-
-        &.is-boncoin {
-            background: url("/assets/images/leboncoin.svg") center no-repeat;
-        }
-
-        &.is-seloger {
-            background: url("/assets/images/seloger-logo.svg") center no-repeat;
-        }
-
-    }
-
-    &-number {
-        letter-spacing: 0.09em;
-        font-family: "Roboto", sans-serif;
-        font-size: 20px;
+    &-sidebar {
+        background-color: $darker-bg;
         color: $light-text;
-    }
+        padding: $padding-md;
+        width: 40%;
+        display: flex;
+        flex-direction: column;
 
-    &-expiration {
-        color: $lighter-text;
-        font-size: 16px;
-    }
+        .account {
+            background-color: darken($darker-bg, 10%);
+            @include border-box(lighten($border-color, 10%), 2px);
+            border-radius: $border-radius;
+            padding: $padding-md;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
 
-    .status-icon {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        font-size: 24px;
+            &.active {
+                border: 4px solid $highlight-color;
+            }
 
-        &.success {
-            color: $credit-color;
+            &-card-type {
+                @include circle-size(44px);
+                width: 64px;
+                background: center no-repeat;
+
+                &.is-bienici {
+                    background-image: url("/assets/images/icon_bienici.svg");
+                }
+
+                &.is-logic-immo {
+                    background-image: url("/assets/images/logo_licom.svg");
+                }
+
+                &.is-boncoin {
+                    background-image: url("/assets/images/leboncoin.svg");
+                }
+
+                &.is-seloger {
+                    background-image: url("/assets/images/seloger-logo.svg");
+                }
+            }
+
+            &-number {
+                letter-spacing: 0.09em;
+                font-size: 20px;
+                color: $light-text;
+            }
+
+            &-expiration {
+                @include font-style($lighter-text, 16px);
+            }
+
+            .status-icon {
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                font-size: 24px;
+
+                &.success {
+                    color: $credit-color;
+                }
+
+                &.failure {
+                    color: $debit-color;
+                }
+            }
         }
-
-        &.failure {
-            color: $debit-color;
-        }
     }
 }
-
-.my-wallet-sidebar .account {
-    transition: top 500ms ease, transform 200ms ease;
-    position: relative;
-    top: 0;
-
-    &.is-selected {
-        top: -186px !important;
-    }
-
-    &:hover:not(.is-selected) {
-        transform: translateY(-30px);
-        cursor: pointer;
-    }
-}
-
-.account-details-container {
-    font-family: "Open Sans", sans-serif;
-    height: 100%;
-    overflow: hidden;
-    padding: 20px;
-    width: 60%;
-    background-color: $darker-bg;
-    /* Darker background */
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-}
-
-
-
-
 
 // Responsive Styles
 @media (max-width: 768px) {
     .my-wallet {
         width: 90%;
-        min-width: 90%;
         flex-direction: column;
     }
 
     .my-wallet-sidebar,
     .account-details-container {
         width: 100%;
-        padding: 10px;
-    }
-
-    .my-wallet-title {
-        font-size: 20px;
-        margin-bottom: 10px;
+        padding: $padding-sm;
     }
 
     .account {
         height: auto;
-        padding: 10px;
+        padding: $padding-sm;
         width: 100%;
-    }
-
-    .transaction-history {
-        height: 200px;
-    }
-
-    .value-unit {
-        font-size: 24px;
-    }
-
-    .transaction {
-        padding: 20px 0 0 10px;
     }
 }
