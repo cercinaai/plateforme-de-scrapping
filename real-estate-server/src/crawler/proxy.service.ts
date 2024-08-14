@@ -9,6 +9,7 @@ export class ProxyService {
         "http://hephaestus.p.shifter.io:11742",
         "http://hephaestus.p.shifter.io:11743",
         "http://hephaestus.p.shifter.io:11744"
+
     ]
 
     constructor() { }

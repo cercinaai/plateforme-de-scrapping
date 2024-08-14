@@ -20,6 +20,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@avilabs/ghost-cursor-playwright": "^2.1.5",
     "@bull-board/api": "^5.21.1",
     "@bull-board/express": "^5.21.1",
     "@bull-board/nestjs": "^5.21.1",

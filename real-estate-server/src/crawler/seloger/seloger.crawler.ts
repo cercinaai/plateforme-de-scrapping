@@ -2,7 +2,7 @@ import { Process, Processor } from "@nestjs/bull";
 import { Logger, Scope } from "@nestjs/common";
 import { DataProcessingService } from "src/data-processing/data-processing.service";
 import { Job } from "bull";
-import { Cookie, Dictionary, FinalStatistics, PlaywrightCrawler, ProxyConfiguration, ProxyInfo, Request, RequestQueue } from "crawlee";
+import { Cookie, CrawlingContext, Dictionary, FinalStatistics, PlaywrightCrawler, PlaywrightCrawlingContext, ProxyConfiguration, ProxyInfo, Request, RequestQueue, Session } from "crawlee";
 import { Page } from "playwright";
 import { selogerConfig, selogerCrawlerOptions } from "./seloger.config";
 import { ProxyService } from "../proxy.service";
@@ -11,11 +11,12 @@ import { InjectModel } from "@nestjs/mongoose";
 import { Ad } from "src/models/ad.schema";
 import { Model } from "mongoose";
 import { HttpService } from "@nestjs/axios";
+import { createCursor } from '@avilabs/ghost-cursor-playwright';
 
 @Processor({ name: 'crawler', scope: Scope.DEFAULT })
 export class SelogerCrawler {
     private readonly logger = new Logger(SelogerCrawler.name);
-    private readonly targetUrl = 'https://www.seloger.com/list.htm?projects=2,5&types=2,4,1,3,9,11,14,10,13&natures=1,2,4&sort=d_dt_crea&mandatorycommodities=0&privateseller=0&enterprise=0&houseboat=1&qsVersion=1.0&m=search_refine-redirection-search_results';
+    private readonly targetUrl = 'https://www.seloger.com';
     private readonly LIMIT_PER_PAGE = 20;
     constructor(
         private readonly dataProcessingService: DataProcessingService,
@@ -46,19 +47,45 @@ export class SelogerCrawler {
             ...selogerCrawlerOptions,
             requestQueue: selogerQueue,
             proxyConfiguration: new ProxyConfiguration({ proxyUrls: this.proxyService.get_proxy_list() }),
-            postNavigationHooks: [async ({ closeCookieModals, page, enqueueLinks, request, proxyInfo, crawler }) => await this.handleCapSolver(page, request, proxyInfo, crawler, job, closeCookieModals, enqueueLinks)],
+            preNavigationHooks: [async ({ page }) => await this.extract_data_from_dom(page)],
+            postNavigationHooks: [async (context) => {
+                if (job.data['PAGE_REACHED'] === 1) {
+                    await this.navigate_listing_page(context);
+                    return;
+                }
+                await this.handleCapSolver(context);
+            }],
+            // requestHandler: async ({ page, enqueueLinks, closeCookieModals, waitForSelector }) => await this.selogerRequestHandler(job, page, closeCookieModals, enqueueLinks, waitForSelector),
             failedRequestHandler: ({ request, proxyInfo }, error) => this.handleRequestFailure(job, request, proxyInfo, error),
         }, selogerConfig);
     }
 
-    private async handleCapSolver(page: Page, request: Request<Dictionary>, proxyInfo: ProxyInfo, crawler: PlaywrightCrawler, job: Job, closeCookieModals: Function, enqueueLinks: Function,): Promise<void> {
+
+    private async navigate_listing_page(context: PlaywrightCrawlingContext): Promise<void> {
+        const { page, closeCookieModals, enqueueLinksByClickingElements } = context;
         await page.waitForLoadState('domcontentloaded');
-        const captchaFrame = await page.$("body > iframe[src*='https://geo.captcha-delivery.com/captcha']");
-        if (!captchaFrame) {
-            await this.selogerRequestHandler(job, page, closeCookieModals, enqueueLinks);
-            return;
-        };
-        const captchaUrl = await captchaFrame.getAttribute('src');
+        await this.handleCapSolver(context);
+        await closeCookieModals();
+        const cursor = await createCursor(page);
+        await cursor.performRandomMove();
+        const salesPagelink = await page.$('#agatha_actionbuttons > div > div:nth-child(3) > label > a');
+        await cursor.actions.move('#agatha_actionbuttons > div > div:nth-child(3) > label > a');
+        await salesPagelink.click();
+        await page.waitForURL('https://www.seloger.com/**', { waitUntil: 'domcontentloaded' });
+        await cursor.performRandomMove();
+        await page.waitForTimeout(2000);
+        await cursor.actions.click({ target: '#search-section > div > div.Agathav2Bar__WrapperRefiner-sc-1qakpqy-2.dUYXnB > form > div.LocationPanel__LocationSection-sc-r69d19-0.jupNmu.Section__SectionContainer-sc-d7seoh-0.YgRPE' }, { waitForSelector: 1000 });
+        await cursor.actions.click({ target: '#search-section > div > div.Agathav2Bar__WrapperRefiner-sc-1qakpqy-2.dUYXnB > form > div.LocationPanel__LocationSection-sc-r69d19-0.jupNmu.Section__SectionContainer-sc-d7seoh-0.YgRPE > div.Section__SectionPanel-sc-d7seoh-1.OwWIr.Panel__PanelContainer-sc-v47afd-0.ehpIKZ > div.Panel__PanelContentWrapper-sc-v47afd-3.ebnVIU > div.LocationPanel__LocationContent-sc-r69d19-3.bIWlby > div.LocationPanel__LocationPlacesTab-sc-r69d19-1.goYWdD.places__PlacesTabContainer-sc-1vkjt2k-0.bhETso > div.places__LocationChips-sc-1vkjt2k-1.ghHwem.Chips__ChipContainer-sc-u5fwzj-0.NEGYs > div > span' }, { waitForSelector: 1000 });
+        await cursor.performRandomMove();
+    }
+
+    private async handleCapSolver(context: PlaywrightCrawlingContext): Promise<void> {
+        const { page, request, proxyInfo, crawler, session } = context;
+        const captchaUrl = await this._detect_captcha(page, session);
+        if (typeof captchaUrl === 'boolean' && captchaUrl === false) return;
+        if (typeof captchaUrl === 'boolean' && captchaUrl === true) throw new Error('Session flagged. Switching to new session');
+        const cursor = await createCursor(page);
+        await cursor.performRandomMove();
         this.logger.log('Attempting to solve dataDome CAPTCHA using CapSolver.');
         const playload = {
             clientKey: this.configService.get<string>('CAPSOLVER_API_KEY'),
@@ -70,54 +97,87 @@ export class SelogerCrawler {
                 userAgent: crawler.launchContext.userAgent
             }
         }
-        try {
-            const createTaskRes = await this.httpClient.axiosRef.post('https://api.capsolver.com/createTask', playload, { headers: { "Content-Type": "application/json" } });
-            const task_id = createTaskRes.data.taskId;
-            if (!task_id) throw new Error('Failed to create CapSolver task');
-            while (true) {
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                const getResultPayload = { clientKey: this.configService.get<string>('CAPSOLVER_API_KEY'), taskId: task_id };
-                const taskRes = await this.httpClient.axiosRef.post("https://api.capsolver.com/getTaskResult", getResultPayload, { headers: { "Content-Type": "application/json" } });
-                const status = taskRes.data.status;
-                if (status === "ready") {
-                    this.logger.log(`Solved dataDome CAPTCHA using CapSolver GENERATED COOKIE => ${taskRes.data.solution.cookie}`);
-                    const cookie = this.parseCookieString(taskRes.data.solution.cookie);
-                    await page.context().addCookies([cookie]);
-                    await page.reload({ waitUntil: 'domcontentloaded' });
-                    await new Promise(resolve => setTimeout(resolve, 500));
-                    await this.selogerRequestHandler(job, page, closeCookieModals, enqueueLinks);
-                    return;
-                }
-                if (status === "failed" || taskRes.data.errorId) throw new Error(taskRes.data.errorMessage);
+        await cursor.performRandomMove();
+        const createTaskRes = await this.httpClient.axiosRef.post('https://api.capsolver.com/createTask', playload, { headers: { "Content-Type": "application/json" } });
+        const task_id = createTaskRes.data.taskId;
+        if (!task_id) throw new Error('Failed to create CapSolver task');
+        while (true) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            const getResultPayload = { clientKey: this.configService.get<string>('CAPSOLVER_API_KEY'), taskId: task_id };
+            const taskRes = await this.httpClient.axiosRef.post("https://api.capsolver.com/getTaskResult", getResultPayload, { headers: { "Content-Type": "application/json" } });
+            const status = taskRes.data.status;
+            if (status === "ready") {
+                this.logger.log(`Solved dataDome CAPTCHA using CapSolver`);
+                const cookie = this.parseCookieString(taskRes.data.solution.cookie);
+                await page.context().addCookies([cookie]);
+                await page.reload({ waitUntil: 'domcontentloaded' });
+                await cursor.performRandomMove();
+                return;
             }
-        } catch (error) {
-            throw new Error(error);
+            if (status === "failed" || taskRes.data.errorId) throw new Error(taskRes.data.errorMessage);
         }
     }
 
-    private async selogerRequestHandler(job: Job, page: Page, closeCookieModals: Function, enqueueLinks: Function) {
+    private async selogerRequestHandler(job: Job, page: Page, closeCookieModals: Function, enqueueLinks: Function, waitForSelector: Function) {
         await closeCookieModals();
-        const ads = await page.evaluate(() => Array.from(window['initialData']['cards']['list']).filter(card => card['cardType'] === 'classified'));
-        if (await this.shouldStopCrawler(ads) === true || job.data['PAGE_REACHED'] < this.LIMIT_PER_PAGE) {
+        let ads = [];
+        if (job.data['PAGE_REACHED'] === 1) {
+            ads = await page.evaluate(() => Array.from(window['initialData']['cards']['list']).filter(card => card['cardType'] === 'classified'));
+        } else {
+            ads = await page.evaluate(() => window['crawled_ads']);
+        }
+        if ((await this.shouldStopCrawler(ads) === true) || job.data['PAGE_REACHED'] >= this.LIMIT_PER_PAGE) {
             this.logger.log("Found ads older than check_date. Stopping the crawler.");
             return;
         }
         await this.dataProcessingService.process(ads, 'seloger-crawler');
-        job.update({
+        await job.update({
             ...job.data,
             totalDataGrabbed: job.data['total_data_grabbed'] + ads.length
         })
+        await waitForSelector('a[data-testid="gsl.uilib.Paging.nextButton"]');
         const nextButton = await page.$('a[data-testid="gsl.uilib.Paging.nextButton"]');
         if (nextButton) {
             await nextButton.click();
             await page.waitForURL('https://www.seloger.com/**', { waitUntil: 'domcontentloaded' });
-            await job.update({ PAGE_REACHED: job.data['PAGE_REACHED'] + 1 });
+            await job.update({ ...job.data, PAGE_REACHED: job.data['PAGE_REACHED'] + 1 });
             await enqueueLinks({ urls: [page.url()] });
         }
     }
 
+    private async extract_data_from_dom(page: Page) {
+        await page.route('https://www.seloger.com/search-bff/api/externaldata/**', async (route) => {
+            let res = await route.fetch();
+            let body = await res.json();
+            if (!body['listingData']['cards'] || body['listingData']['cards'].length === 0) return;
+            let ads = body['listingData']['cards'];
+            await route.continue();
+            await page.evaluate((ads) => {
+                window['crawled_ads'] = ads.filter((card: any) => card['type'] === 0);
+            }, ads);
+        })
+    }
+
+    private async _detect_captcha(page: Page, session: Session): Promise<string | boolean> {
+        const captchaElement = await page.$("body > iframe[src*='https://geo.captcha-delivery.com/captcha']");
+        if (!captchaElement) return false;
+        const captchaUrl = await captchaElement.getAttribute('src');
+        const captchaFrame = await captchaElement.contentFrame();
+        if (!captchaFrame) throw new Error('Failed to get captcha frame');
+        const isFlagged = await captchaFrame.$('#captcha-container > div.captcha__human > div > p');
+        if (isFlagged) {
+            const textContent = await isFlagged.textContent();
+            if (textContent && textContent.match(/blocked/i)) {
+                session.retire();
+                this.logger.log(`Session flagged. Switching to new session`);
+                return true;
+            }
+        }
+        return captchaUrl;
+    }
     private async handleRequestFailure(job: Job, request: Request<Dictionary>, proxyInfo: ProxyInfo, error: Error) {
         await job.update({
+            ...job.data,
             job_id: job.id.toLocaleString(),
             error_date: new Date(),
             crawler_origin: 'seloger',
@@ -190,13 +250,19 @@ export class SelogerCrawler {
 
     private async shouldStopCrawler(ads: any[]): Promise<boolean> {
         const ids = ads.map(ad => ad.id.toString());
+
         const existingAds = await this.adModel.find({ adId: { $in: ids }, origin: 'seloger' });
+
+        console.log(existingAds.length, ids.length);
+
         if (!existingAds || existingAds.length === 0) return false;
+
         if (existingAds.length < ids.length) {
             const newAds = ads.filter(ad => !existingAds.find(existingAd => existingAd.adId === ad.id.toString()));
             await this.dataProcessingService.process(newAds, 'seloger-crawler');
             return true;
         }
+
         if (existingAds.length === ids.length) return true;
     }
 }

@@ -1,15 +1,14 @@
-import { Cookie, Dictionary, FinalStatistics, PlaywrightCrawler, ProxyConfiguration, ProxyInfo, Request, RequestQueue } from 'crawlee';
+import { Cookie, Dictionary, FinalStatistics, PlaywrightCrawler, ProxyConfiguration, ProxyInfo, Request, RequestQueue, Session } from 'crawlee';
 import { Processor, Process } from '@nestjs/bull';
 import { Job } from 'bull';
 import { Inject, Logger, Scope } from '@nestjs/common';
 import { DataProcessingService } from 'src/data-processing/data-processing.service';
 import { boncoinConfig, boncoinCrawlerOption } from './boncoin.config';
 import { ProxyService } from '../proxy.service';
-import { chromium } from 'playwright-extra';
-import stealthPlugin from 'puppeteer-extra-plugin-stealth';
 import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { Page } from 'playwright';
+import { createCursor } from '@avilabs/ghost-cursor-playwright';
 
 @Processor({ name: 'crawler', scope: Scope.DEFAULT })
 export class BoncoinCrawler {
@@ -25,15 +24,15 @@ export class BoncoinCrawler {
             total_data_grabbed: 0,
             attempts_count: 0
         });
-        const captcha_stat = await this.runCrawler(job, this._configure_crawler_captcha, this.target_url);
+        const captcha_stat = await this.runCrawler(job, this.target_url);
         if (!this.isJobFailed(job)) {
             await this.updateJobSuccess(job, captcha_stat);
             return;
         }
         await this.updateJobFailure(job, captcha_stat)
     }
-    private async runCrawler(job: Job, configureCrawlerFn: (job: Job) => Promise<PlaywrightCrawler>, url: string = this.target_url): Promise<FinalStatistics> {
-        const crawler = await configureCrawlerFn.call(this, job);
+    private async runCrawler(job: Job, url: string = this.target_url): Promise<FinalStatistics> {
+        const crawler = await this._configure_crawler_captcha(job);
         const stat: FinalStatistics = await crawler.run([url]);
         await crawler.requestQueue.drop();
         await crawler.teardown();
@@ -44,44 +43,24 @@ export class BoncoinCrawler {
         const request_queue = await RequestQueue.open('boncoin-crawler-queue');
         return new PlaywrightCrawler({
             ...boncoinCrawlerOption,
-            launchContext: {
-                launcher: chromium.use(stealthPlugin()),
-                userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-            },
-            retryOnBlocked: true,
             requestQueue: request_queue,
             proxyConfiguration: new ProxyConfiguration({
                 proxyUrls: this.proxyService.get_proxy_list()
             }),
             postNavigationHooks: [
-                async ({ page, request, proxyInfo, crawler, closeCookieModals, enqueueLinks, waitForSelector }) => {
-                    await this.handleCapSolver(page, request, proxyInfo, crawler, job, closeCookieModals, enqueueLinks, waitForSelector);
-                }
+                async ({ page, request, proxyInfo, crawler, session }) => await this.handleCapSolver(page, request, proxyInfo, crawler, session)
             ],
-            failedRequestHandler: async ({ request, proxyInfo }, error) => {
-                await job.update({
-                    ...job.data,
-                    job_id: job.id.toLocaleString(),
-                    error_date: new Date(),
-                    crawler_origin: 'boncoin',
-                    status: 'failed',
-                    attempts_count: job.data['attempts_count'] + 1,
-                    failedReason: request.errorMessages[-1] || error.message || 'Unknown error',
-                    failed_request_url: request.url || 'N/A',
-                    proxy_used: proxyInfo ? proxyInfo.url : 'N/A',
-                });
-            }
+            requestHandler: async ({ page, enqueueLinks, closeCookieModals, waitForSelector }) => await this.boncoinRequestHandler(job, page, closeCookieModals, enqueueLinks, waitForSelector),
+            failedRequestHandler: async ({ request, proxyInfo }, error) => await this.boncoinFailedRequestHandler(job, request, proxyInfo, error),
         }, boncoinConfig);
     }
 
-    private async handleCapSolver(page: Page, request: Request<Dictionary>, proxyInfo: ProxyInfo, crawler: PlaywrightCrawler, job: Job, closeCookieModals: Function, enqueueLinks: Function, waitForSelector: Function): Promise<void> {
+    private async handleCapSolver(page: Page, request: Request<Dictionary>, proxyInfo: ProxyInfo, crawler: PlaywrightCrawler, session: Session) {
         await page.waitForLoadState('domcontentloaded');
-        const captchaFrame = await page.$("body > iframe[src*='https://geo.captcha-delivery.com/captcha']");
-        if (!captchaFrame) {
-            await this.boncoinRequestHandler(job, page, closeCookieModals, enqueueLinks, waitForSelector);
-            return;
-        };
-        const captchaUrl = await captchaFrame.getAttribute('src');
+        const captchaUrl = await this._detect_captcha(page, session);
+        const cursor = await createCursor(page);
+        await cursor.performRandomMove();
+        if (!captchaUrl) return;
         this.logger.log('Attempting to solve dataDome CAPTCHA using CapSolver.');
         const playload = {
             clientKey: this.configService.get<string>('CAPSOLVER_API_KEY'),
@@ -93,34 +72,36 @@ export class BoncoinCrawler {
                 userAgent: crawler.launchContext.userAgent
             }
         }
+        await cursor.performRandomMove();
+        const createTaskRes = await this.httpClient.axiosRef.post('https://api.capsolver.com/createTask', playload, { headers: { "Content-Type": "application/json" } });
+        const task_id = createTaskRes.data.taskId;
+        if (!task_id) throw new Error('Failed to create CapSolver task');
         try {
-            const createTaskRes = await this.httpClient.axiosRef.post('https://api.capsolver.com/createTask', playload, { headers: { "Content-Type": "application/json" } });
-            const task_id = createTaskRes.data.taskId;
-            if (!task_id) throw new Error('Failed to create CapSolver task');
             while (true) {
                 await new Promise(resolve => setTimeout(resolve, 1000));
                 const getResultPayload = { clientKey: this.configService.get<string>('CAPSOLVER_API_KEY'), taskId: task_id };
                 const taskRes = await this.httpClient.axiosRef.post("https://api.capsolver.com/getTaskResult", getResultPayload, { headers: { "Content-Type": "application/json" } });
                 const status = taskRes.data.status;
                 if (status === "ready") {
-                    this.logger.log(`Solved dataDome CAPTCHA using CapSolver GENERATED COOKIE => ${taskRes.data.solution.cookie}`);
-                    const cookie = this.parseCookieString(taskRes.data.solution.cookie);
+                    await cursor.performRandomMove();
+                    this.logger.log(`Solved dataDome CAPTCHA using CapSolver Cookie Generated: ${taskRes.data.solution.cookie}`);
+                    let cookie = this.parseCookieString(taskRes.data.solution.cookie);
                     await page.context().addCookies([cookie]);
                     await page.reload({ waitUntil: 'domcontentloaded' });
-                    await new Promise(resolve => setTimeout(resolve, 500));
-                    await this.boncoinRequestHandler(job, page, closeCookieModals, enqueueLinks, waitForSelector);
+                    await page.waitForTimeout(5000);
                     return;
                 }
                 if (status === "failed" || taskRes.data.errorId) throw new Error(taskRes.data.errorMessage);
             }
         } catch (error) {
-            throw new Error(error);
+            throw new Error(error.message);
         }
+
     }
 
     private async boncoinRequestHandler(job: Job, page: Page, closeCookieModals: Function, enqueueLinks: Function, waitForSelector: Function) {
-        let check_date = new Date();
         await closeCookieModals();
+        let check_date = new Date();
         const base_url = 'https://www.leboncoin.fr';
         let data = await page.$("script[id='__NEXT_DATA__']");
         let ads = JSON.parse(await data?.textContent() as string)["props"]["pageProps"]["searchData"]["ads"];
@@ -157,7 +138,37 @@ export class BoncoinCrawler {
             label: 'next_page'
         });
     }
-
+    private async boncoinFailedRequestHandler(job: Job, request: Request<Dictionary>, proxyInfo: ProxyInfo, error: Error) {
+        await job.update({
+            ...job.data,
+            job_id: job.id.toLocaleString(),
+            error_date: new Date(),
+            crawler_origin: 'boncoin',
+            status: 'failed',
+            attempts_count: job.data['attempts_count'] + 1,
+            failedReason: request.errorMessages[-1] || error.message || 'Unknown error',
+            failed_request_url: request.url || 'N/A',
+            proxy_used: proxyInfo ? proxyInfo.url : 'N/A',
+        });
+    }
+    private async _detect_captcha(page: Page, session: Session): Promise<string | null> {
+        const captchaElement = await page.$("body > iframe[src*='https://geo.captcha-delivery.com/captcha']");
+        if (!captchaElement) return null;
+        const captchaUrl = await captchaElement.getAttribute('src');
+        const captchaFrame = await captchaElement.contentFrame();
+        if (!captchaFrame) throw new Error('Failed to get captcha frame');
+        const isFlagged = await captchaFrame.$('#captcha-container > div.captcha__human > div > p');
+        if (isFlagged) {
+            const textContent = await isFlagged.textContent();
+            if (textContent && textContent.match(/blocked/i)) {
+                session.retire();
+                this.logger.log(`Session flagged. Switching to new session After 2 minute.`);
+                await new Promise(resolve => setTimeout(resolve, 2 * 60 * 1000));
+                return;
+            }
+        }
+        return captchaUrl;
+    }
     private isJobFailed(job: Job): boolean {
         return job.data['status'] && job.data['status'] === 'failed';
     }
