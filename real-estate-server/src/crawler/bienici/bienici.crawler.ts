@@ -49,9 +49,17 @@ export class BieniciCrawler {
                 let ads = await page.evaluate(() => window['crawled_ads']);
                 let date_filter_content = Array.from(ads).filter((ad: any) => {
                     let ad_date = new Date(ad['publicationDate']);
-                    return ad_date.getUTCFullYear() === check_date.getUTCFullYear() &&
+                    // Create a date object for the previous day
+                    let previous_day = new Date(check_date);
+                    previous_day.setDate(check_date.getDate() - 1);
+
+                    // Check if the ad_date matches either the check_date or the previous day
+                    return (ad_date.getUTCFullYear() === check_date.getUTCFullYear() &&
                         ad_date.getUTCMonth() === check_date.getUTCMonth() &&
-                        ad_date.getUTCDate() === check_date.getUTCDate();
+                        ad_date.getUTCDate() === check_date.getUTCDate()) ||
+                        (ad_date.getUTCFullYear() === previous_day.getUTCFullYear() &&
+                            ad_date.getUTCMonth() === previous_day.getUTCMonth() &&
+                            ad_date.getUTCDate() === previous_day.getUTCDate());
                 });
                 if (date_filter_content.length === 0) {
                     this.logger.log("Found ads older than check_date. Stopping the crawler.");
