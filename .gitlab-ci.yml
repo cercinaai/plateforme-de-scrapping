@@ -42,17 +42,40 @@ build_dashboard:
     - docker push $DASHBOARD_IMAGE:latest
 
 deploy:
-  image: alpine:latest
   stage: deploy
-  tags:
-    - deploy
   rules:
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
     - if: $CI_COMMIT_REF_NAME == "main"
+  environment:
+    name: production
+    url: https://93.127.203.195
+  before_script:
+    - 'command -v ssh-agent >/dev/null || ( apt-get update -y && apt-get install openssh-client -y )'
+    - eval $(ssh-agent -s)
+    - chmod 400 "$SSH_PRIVATE_KEY"
+    - ssh-add "$SSH_PRIVATE_KEY"
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - cp "$SSH_KNOWN_HOSTS" ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
   script:
-    - chmod og= $ID_RSA
-    - apk update && apk add openssh-client
-    - ssh -i $ID_RSA -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY"
-    - ssh -i $ID_RSA -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker pull $SERVER_IMAGE:latest"
-    - ssh -i $ID_RSA -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker pull $DASHBOARD_IMAGE:latest"
-    - ssh -i $ID_RSA -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker-compose down && docker-compose up -d"
+    - ssh haythem@93.127.203.195 "docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY"
+    - ssh haythem@93.127.203.195 "docker pull $SERVER_IMAGE:latest"
+    - ssh haythem@93.127.203.195 "docker pull $DASHBOARD_IMAGE:latest"
+    - scp compose.prod.yml haythem@93.127.203.195:/home/haythem/
+    - ssh haythem@93.127.203.195 "
+            export SERVER_IMAGE=\"$SERVER_IMAGE\" &&
+            export DASHBOARD_IMAGE=\"$DASHBOARD_IMAGE\" &&
+            export ADMIN_USERNAME=\"$ADMIN_USERNAME\" &&
+            export ADMIN_PASSWORD=\"$ADMIN_PASSWORD\" &&
+            export JWT_SECRET=\"$JWT_SECRET\" &&
+            export REDIS_HOST=\"$REDIS_HOST\" &&
+            export MONGODB_URI=\"$MONGODB_URI\" &&
+            export PROXY_API_KEY=\"$PROXY_API_KEY\" &&
+            export TWO_CAPTCHA_API_KEY=\"$TWO_CAPTCHA_API_KEY\" &&
+            export CAPSOLVER_API_KEY=\"$CAPSOLVER_API_KEY\" &&
+            export SHIFTER_API_KEY=\"$SHIFTER_API_KEY\" &&
+            docker compose -f /home/haythem/compose.prod.yml down &&
+            docker image prune -f &&
+            docker compose -f /home/haythem/compose.prod.yml up -d"
+    
