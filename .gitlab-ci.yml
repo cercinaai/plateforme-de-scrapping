@@ -62,6 +62,6 @@ deploy:
     - ssh haythem@93.127.203.195 "docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY"
     - ssh haythem@93.127.203.195 "docker pull $SERVER_IMAGE:latest"
     - ssh haythem@93.127.203.195 "docker pull $DASHBOARD_IMAGE:latest"
-    - ssh haythem@93.127.203.195 "docker compose down"
+    - ssh haythem@93.127.203.195 "docker compose -f compose.prod.yml down"
     - ssh haythem@93.127.203.195 "docker image prune -f"
-    - ssh haythem@93.127.203.195 "docker compose up -d"
+    - ssh haythem@93.127.203.195 "docker compose -f compose.prod.yml up -d"
