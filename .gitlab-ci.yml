@@ -42,7 +42,6 @@ build_dashboard:
     - docker push $DASHBOARD_IMAGE:latest
 
 deploy:
-  image: kroniak/ssh-client:3.19
   stage: deploy
   rules:
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
@@ -51,13 +50,15 @@ deploy:
     name: production
     url: https://$SERVER_IP
   before_script:
+    - which ssh-agent || ( apt-get update -y && apt-get install openssh-client git -y )
+    - eval $(ssh-agent -s)
+    - echo "$PRIVATE_KEY_STAGING" | tr -d '\r' | ssh-add -
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
-    - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
-    - echo "$PRIVATE_KEY_STAGING" > ~/.ssh/id_rsa
-    - chmod 600 ~/.ssh/id_rsa
+    - echo "$SERVER_IP" > ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+
   script:
-    - chmod 600 $ID_RSA
     - ssh haythem@$SERVER_IP "docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY"
     - ssh haythem@$SERVER_IP "docker pull $SERVER_IMAGE:latest"
     - ssh haythem@$SERVER_IP "docker pull $DASHBOARD_IMAGE:latest"
