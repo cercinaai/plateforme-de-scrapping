@@ -50,9 +50,14 @@ deploy:
   environment:
     name: production
     url: https://$SERVER_IP
+  before_script:
+    - mkdir -p ~/.ssh
+    - echo -e "$ID_RSA" > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - echo "Before logging in via ssh to SERVER"
   script:
     - chmod 600 $ID_RSA
-    - ssh -i $ID_RSA -o StrictHostKeyChecking=no haythem@$SERVER_IP "docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY"
-    - ssh -i $ID_RSA -o StrictHostKeyChecking=no haythem@$SERVER_IP "docker pull $SERVER_IMAGE:latest"
-    - ssh -i $ID_RSA -o StrictHostKeyChecking=no haythem@$SERVER_IP "docker pull $DASHBOARD_IMAGE:latest"
-    - ssh -i $ID_RSA -o StrictHostKeyChecking=no haythem@$SERVER_IP "docker-compose down && docker-compose up -d"
+    - ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no haythem@$SERVER_IP "docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY"
+    - ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no haythem@$SERVER_IP "docker pull $SERVER_IMAGE:latest"
+    - ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no haythem@$SERVER_IP "docker pull $DASHBOARD_IMAGE:latest"
+    - ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no haythem@$SERVER_IP "docker-compose down && docker-compose up -d"
