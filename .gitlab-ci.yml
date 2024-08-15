@@ -56,8 +56,6 @@ deploy:
     - ssh-add "$SSH_PRIVATE_KEY"
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
-    - ssh-keyscan "$SERVER_IP" >> ~/.ssh/known_hosts
-    - chmod 644 ~/.ssh/known_hosts
   script:
     - ssh haythem@"$SERVER_IP" "docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY"
     - ssh haythem@"$SERVER_IP" "docker pull $SERVER_IMAGE:latest"
