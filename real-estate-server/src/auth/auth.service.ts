@@ -23,6 +23,7 @@ export class AuthService implements OnModuleInit {
     }
     public async login(admin: Partial<AdminDocument>): Promise<any> {
         const payload = { username: admin.username, sub: admin._id };
+        this.logger.log(`PAYLOAD => ${JSON.stringify(payload)}`);
         return {
             access_token: this.jwtService.sign(payload),
             refresh_token: this.jwtService.sign(payload, { expiresIn: '60m' }),
@@ -44,8 +45,7 @@ export class AuthService implements OnModuleInit {
 
     public async validateAdmin(username: string, pass: string): Promise<Partial<AdminDocument> | null> {
         const admin = await this.adminModel.findOne({ username });
-        this.logger.log(`ADMIN USERNAME FINDONE RESULT : ${admin.username}`);
-        if (admin && (await compare(pass, admin.password) === true)) {
+        if (admin && await compare(pass, admin.password)) {
             const { password, ...result } = admin.toObject();
             return result;
         }
