@@ -44,18 +44,9 @@ export class AuthService implements OnModuleInit {
 
     public async validateAdmin(username: string, pass: string): Promise<Partial<AdminDocument> | null> {
         const admin = await this.adminModel.findOne({ username });
-        if (!admin) {
-            this.logger.log('Admin not found');
-            return null;
-        }
-
-        const isMatch = await compare(pass, admin.password);
-        if (isMatch) {
-            this.logger.log('Password matched');
+        if (admin && await compare(pass, admin.password)) {
             const { password, ...result } = admin.toObject();
             return result;
-        } else {
-            this.logger.log('Password did not match');
         }
         return null;
     }
@@ -64,7 +55,6 @@ export class AuthService implements OnModuleInit {
         const username = this.configService.get<string>('ADMIN_USERNAME');
         const plain_password = this.configService.get<string>('ADMIN_PASSWORD');
         const password = await hash(plain_password, 10);
-        this.logger.log(`PLAIN PASSWORD: ${plain_password}, HASHED PASSWORD: ${password}`);
         await this.adminModel.create({ username, password });
         this.logger.log('ADMIN CREATED');
     }
