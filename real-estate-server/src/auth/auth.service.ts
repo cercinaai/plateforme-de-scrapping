@@ -23,7 +23,6 @@ export class AuthService implements OnModuleInit {
     }
     public async login(admin: Partial<AdminDocument>): Promise<any> {
         const payload = { username: admin.username, sub: admin._id };
-        this.logger.log(`PAYLOAD => ${JSON.stringify(payload)}`);
         return {
             access_token: this.jwtService.sign(payload),
             refresh_token: this.jwtService.sign(payload, { expiresIn: '60m' }),
@@ -45,16 +44,27 @@ export class AuthService implements OnModuleInit {
 
     public async validateAdmin(username: string, pass: string): Promise<Partial<AdminDocument> | null> {
         const admin = await this.adminModel.findOne({ username });
-        if (admin && await compare(pass, admin.password)) {
+        if (!admin) {
+            this.logger.log('Admin not found');
+            return null;
+        }
+
+        const isMatch = await compare(pass, admin.password);
+        if (isMatch) {
+            this.logger.log('Password matched');
             const { password, ...result } = admin.toObject();
             return result;
+        } else {
+            this.logger.log('Password did not match');
         }
         return null;
     }
 
     private async _create_admin(): Promise<void> {
         const username = this.configService.get<string>('ADMIN_USERNAME');
-        const password = await hash(this.configService.get<string>('ADMIN_PASSWORD'), 10);
+        const plain_password = this.configService.get<string>('ADMIN_PASSWORD');
+        const password = await hash(plain_password, 10);
+        this.logger.log(`PLAIN PASSWORD: ${plain_password}, HASHED PASSWORD: ${password}`);
         await this.adminModel.create({ username, password });
         this.logger.log('ADMIN CREATED');
     }
