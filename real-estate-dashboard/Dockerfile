@@ -16,9 +16,6 @@ COPY . .
 # Build the Angular app in production mode
 RUN npm run build
 
-# Rename the index.csr.html to index.html
-RUN mv /usr/src/app/dist/real-estate-dashboard/browser/index.csr.html /usr/src/app/dist/real-estate-dashboard/browser/index.html
-
 # Step 2: Serve the Angular application with Nginx
 FROM nginx:alpine
 
