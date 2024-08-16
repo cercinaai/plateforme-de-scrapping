@@ -2,6 +2,7 @@ services:
   redis:
     image: redis:7.2.5
     container_name: redis-container
+    restart: on-failure
     ports:
       - "6379:6379"
     volumes:
@@ -10,6 +11,7 @@ services:
   mongodb:
     image: mongo:5.0.28
     container_name: mongodb-container
+    restart: on-failure
     ports:
       - "27017:27017"
     volumes:
@@ -18,6 +20,10 @@ services:
   backend:
     image: $SERVER_IMAGE:latest
     container_name: backend-container
+    entrypoint: ["npm","run","start:prod"]
+    restart: on-failure
+    expose:
+      - 3000
     ports:
       - "3000:3000"
     environment:
@@ -39,6 +45,7 @@ services:
   frontend:
     image: $DASHBOARD_IMAGE:latest
     container_name: frontend-container
+    restart: on-failure
     ports:
       - "80:80"
     depends_on:

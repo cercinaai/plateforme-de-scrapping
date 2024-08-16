@@ -11,6 +11,16 @@ export class AuthService implements OnModuleInit {
 
     constructor(private configService: ConfigService, @InjectModel(Admin.name) private adminModel: Model<AdminDocument>, private jwtService: JwtService) { }
 
+    async onModuleInit() {
+        this.logger.log('CHECKING ADMIN EXISTS....');
+        const exits = await this._admin_exits();
+        if (exits) {
+            this.logger.log('ADMIN EXISTS');
+            return
+        };
+        this.logger.log('ADMIN DOES NOT EXISTS');
+        await this._create_admin();
+    }
     public async login(admin: Partial<AdminDocument>): Promise<any> {
         const payload = { username: admin.username, sub: admin._id };
         return {
@@ -39,16 +49,6 @@ export class AuthService implements OnModuleInit {
             return result;
         }
         return null;
-    }
-    async onModuleInit() {
-        this.logger.log('CHECKING ADMIN EXISTS....');
-        const exits = await this._admin_exits();
-        if (exits) {
-            this.logger.log('ADMIN EXISTS');
-            return
-        };
-        this.logger.log('ADMIN DOES NOT EXISTS');
-        await this._create_admin();
     }
 
     private async _create_admin(): Promise<void> {
