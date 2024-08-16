@@ -44,7 +44,8 @@ export class AuthService implements OnModuleInit {
 
     public async validateAdmin(username: string, pass: string): Promise<Partial<AdminDocument> | null> {
         const admin = await this.adminModel.findOne({ username });
-        if (admin && await compare(pass, admin.password)) {
+        this.logger.log(`ADMIN USERNAME FINDONE RESULT : ${admin.username}`);
+        if (admin && (await compare(pass, admin.password) === true)) {
             const { password, ...result } = admin.toObject();
             return result;
         }
