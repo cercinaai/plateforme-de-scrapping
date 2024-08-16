@@ -1,7 +1,6 @@
 import { BrowserName, Configuration, DeviceCategory, LogLevel, OperatingSystemsName, PlaywrightCrawlerOptions } from "crawlee"
 import { chromium } from "playwright-extra";
 import stealthPlugin from 'puppeteer-extra-plugin-stealth';
-import RecaptchaPlugin from 'puppeteer-extra-plugin-recaptcha';
 
 export const logicimmoConfig = new Configuration({
     logLevel: LogLevel.ERROR,

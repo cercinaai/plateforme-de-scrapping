@@ -10,7 +10,7 @@ export const selogerConfig = new Configuration({
         writeMetadata: false,
         writeContent: false,
     },
-    headless: false,
+    headless: true,
 })
 
 export const selogerCrawlerOptions: PlaywrightCrawlerOptions = {
