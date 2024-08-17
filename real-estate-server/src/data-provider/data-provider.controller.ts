@@ -88,7 +88,7 @@ export class DataProviderController {
                 }
             };
         }
-        return this.adModel.find().sort({ created_at: -1 }).skip(skip).limit(limit);
+        return this.adModel.find(filters).sort({ created_at: -1 }).skip(skip).limit(limit);
     }
 
 }
