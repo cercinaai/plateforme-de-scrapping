@@ -48,14 +48,17 @@ export class SelogerCrawler {
             requestQueue: selogerQueue,
             proxyConfiguration: new ProxyConfiguration({ proxyUrls: this.proxyService.get_proxy_list() }),
             preNavigationHooks: [async ({ page }) => await this.extract_data_from_dom(page)],
-            postNavigationHooks: [async (context) => {
-                if (job.data['PAGE_REACHED'] === 1) {
-                    await this.navigate_listing_page(context);
-                    return;
-                }
-                await this.handleCapSolver(context);
-            }],
-            // requestHandler: async ({ page, enqueueLinks, closeCookieModals, waitForSelector }) => await this.selogerRequestHandler(job, page, closeCookieModals, enqueueLinks, waitForSelector),
+            // postNavigationHooks: [async (context) => {
+            //     if (job.data['PAGE_REACHED'] === 1) {
+            //         await this.navigate_listing_page(context);
+            //         return;
+            //     }
+            //     await this.handleCapSolver(context);
+            // }],
+            requestHandler: async ({ page, enqueueLinks, closeCookieModals, waitForSelector }) => await this.selogerRequestHandler(job, page, closeCookieModals, enqueueLinks, waitForSelector),
+            errorHandler: async ({ request, proxyInfo }, error) => {
+                this.logger.error(error);
+            },
             failedRequestHandler: ({ request, proxyInfo }, error) => this.handleRequestFailure(job, request, proxyInfo, error),
         }, selogerConfig);
     }
