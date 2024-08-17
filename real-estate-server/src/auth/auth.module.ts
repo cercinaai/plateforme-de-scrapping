@@ -3,10 +3,12 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Admin, AdminSchema } from 'src/models/admin.schema';
-import { JwtModule, JwtService } from '@nestjs/jwt';
+import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './strategys/jwt.strategy';
+import { ApiKeyStrategy } from './strategys/apiKey.strategy';
+import { RealEstateAuthGuard } from './guard/RealEstate.guard';
 
 @Module({
   imports: [
@@ -22,6 +24,7 @@ import { JwtStrategy } from './strategys/jwt.strategy';
     PassportModule.register({ defaultStrategy: 'jwt' }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy]
+  providers: [AuthService, JwtStrategy, ApiKeyStrategy, RealEstateAuthGuard],
+  exports: [RealEstateAuthGuard, AuthService, JwtStrategy, ApiKeyStrategy],
 })
 export class AuthModule { }
