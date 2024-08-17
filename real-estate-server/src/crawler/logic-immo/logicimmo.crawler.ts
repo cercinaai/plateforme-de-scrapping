@@ -82,6 +82,9 @@ export class LogicImmoCrawler {
                     })
                 }
             },
+            errorHandler: async ({ request, proxyInfo }, error) => {
+                this.logger.error(error);
+            },
             failedRequestHandler: async ({ request, proxyInfo }, error) => {
                 await job.update({
                     job_id: job.id.toLocaleString(),
@@ -95,6 +98,7 @@ export class LogicImmoCrawler {
                     proxy_used: proxyInfo ? proxyInfo.url : 'N/A',
                 });
             }
+
         }, logicimmoConfig);
 
         let stat: FinalStatistics = await crawler.run([`https://www.logic-immo.com/vente-immobilier-${france_localities[localite_index]}/options/groupprptypesids=1,2,6,7,12,3,18,4,5,14,13,11,10,9,8/searchoptions=0,1,3/page=${list_page}/order=update_date_desc`]);

@@ -51,6 +51,9 @@ export class BoncoinCrawler {
                 async ({ page, request, proxyInfo, crawler, session }) => await this.handleCapSolver(page, request, proxyInfo, crawler, session)
             ],
             requestHandler: async ({ page, enqueueLinks, closeCookieModals, waitForSelector }) => await this.boncoinRequestHandler(job, page, closeCookieModals, enqueueLinks, waitForSelector),
+            errorHandler: async ({ request, proxyInfo }, error) => {
+                this.logger.error(error);
+            },
             failedRequestHandler: async ({ request, proxyInfo }, error) => await this.boncoinFailedRequestHandler(job, request, proxyInfo, error),
         }, boncoinConfig);
     }

@@ -55,7 +55,10 @@ export class SelogerCrawler {
                 }
                 await this.handleCapSolver(context);
             }],
-            // requestHandler: async ({ page, enqueueLinks, closeCookieModals, waitForSelector }) => await this.selogerRequestHandler(job, page, closeCookieModals, enqueueLinks, waitForSelector),
+            requestHandler: async ({ page, enqueueLinks, closeCookieModals, waitForSelector }) => await this.selogerRequestHandler(job, page, closeCookieModals, enqueueLinks, waitForSelector),
+            errorHandler: async ({ request, proxyInfo }, error) => {
+                this.logger.error(error);
+            },
             failedRequestHandler: ({ request, proxyInfo }, error) => this.handleRequestFailure(job, request, proxyInfo, error),
         }, selogerConfig);
     }
