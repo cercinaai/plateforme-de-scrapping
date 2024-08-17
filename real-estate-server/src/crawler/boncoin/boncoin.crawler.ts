@@ -109,7 +109,7 @@ export class BoncoinCrawler {
         let data = await page.$("script[id='__NEXT_DATA__']");
         let ads = JSON.parse(await data?.textContent() as string)["props"]["pageProps"]["searchData"]["ads"];
         let date_filter_content = Array.from(ads).filter((ad: any) => {
-            let ad_date = new Date(ad['publicationDate']);
+            let ad_date = new Date(ad['index_date']);
             // Create a date object for the previous day
             let previous_day = new Date(check_date);
             previous_day.setDate(check_date.getDate() - 1);
