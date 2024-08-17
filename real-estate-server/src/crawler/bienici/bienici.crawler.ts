@@ -12,7 +12,7 @@ import { Page } from "playwright";
 export class BieniciCrawler {
     private readonly logger = new Logger(BieniciCrawler.name);
     private readonly target_url: string = "https://www.bienici.com/recherche/achat/france/maisonvilla,appartement,parking,terrain,loft,commerce,batiment,chateau,local,bureau,hotel,autres?mode=liste&tri=publication-desc";
-    constructor(private dataProcessingService: DataProcessingService, private proxyService: ProxyService) { }
+    constructor(private dataProcessingService: DataProcessingService) { }
 
     @Process('bienici-crawler')
     async start(job: Job) {
