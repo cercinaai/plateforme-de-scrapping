@@ -20,7 +20,7 @@ export class ScheduleTasksService implements OnModuleInit {
         // heath_check_job.start();
     }
 
-    @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT, { disabled: true })
+    @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
     async startPeriodicCrawlers() {
         await this.crawlerService.populate_database();
         const heath_check_job = new CronJob(CronExpression.EVERY_10_MINUTES, async () => {
