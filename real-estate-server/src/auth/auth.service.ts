@@ -23,7 +23,6 @@ export class AuthService implements OnModuleInit {
     }
     public async login(admin: Partial<AdminDocument>): Promise<any> {
         const payload = { username: admin.username, sub: admin._id };
-        this.logger.log(`PAYLOAD => ${JSON.stringify(payload)}`);
         return {
             access_token: this.jwtService.sign(payload),
             refresh_token: this.jwtService.sign(payload, { expiresIn: '60m' }),
@@ -54,7 +53,8 @@ export class AuthService implements OnModuleInit {
 
     private async _create_admin(): Promise<void> {
         const username = this.configService.get<string>('ADMIN_USERNAME');
-        const password = await hash(this.configService.get<string>('ADMIN_PASSWORD'), 10);
+        const plain_password = this.configService.get<string>('ADMIN_PASSWORD');
+        const password = await hash(plain_password, 10);
         await this.adminModel.create({ username, password });
         this.logger.log('ADMIN CREATED');
     }

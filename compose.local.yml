@@ -14,3 +14,17 @@ services:
       - "27017:27017"
     volumes:
       - ./local-data/mongd_data:/data/db
+  
+  backend:
+    build: ./real-estate-server
+    container_name: real-estate-server-container
+    entrypoint: ["npm","run","start:prod"]
+    env_file:
+      - ./real-estate-server/real-estate.env
+    expose:
+      - 3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - redis
+      - mongodb
