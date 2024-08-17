@@ -6,9 +6,7 @@ import { CronJob } from 'cron';
 export class ScheduleTasksService implements OnModuleInit {
 
 
-    constructor(private crawlerService: CrawlerService, private schedulerRegistry: SchedulerRegistry) {
-
-    }
+    constructor(private crawlerService: CrawlerService, private schedulerRegistry: SchedulerRegistry) { }
 
     async onModuleInit() {
         await this.crawlerService.populate_database();
