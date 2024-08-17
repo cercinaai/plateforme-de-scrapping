@@ -30,6 +30,7 @@ services:
       - NODE_ENV=production
       - ADMIN_USERNAME=${ADMIN_USERNAME}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - REAL_ESTATE_API_KEY=${REAL_ESTATE_API_KEY}
       - JWT_SECRET=${JWT_SECRET}
       - REDIS_HOST=redis
       - REDIS_PORT=6379
