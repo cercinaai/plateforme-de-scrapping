@@ -20,11 +20,10 @@ export class BieniciCrawler {
         const crawler = this.createCrawler(job, checkDate, total_data_grabbed, attempts_count);
         const stats = await crawler.run([failed_request_url || this.targetUrl]);
         await crawler.teardown();
-
         if (job.data['status'] && job.data['status'] === 'failed') {
-            await this.handleFailure(job, stats, total_data_grabbed, attempts_count);
+            await this.handleFailure(job, stats);
         } else {
-            await this.handleSuccess(job, stats, total_data_grabbed, attempts_count);
+            await this.handleSuccess(job, stats);
         }
     }
 
@@ -33,7 +32,7 @@ export class BieniciCrawler {
             ...bieniciCrawlerOption,
             preNavigationHooks: [this.preNavigationHook.bind(this)],
             postNavigationHooks: [this.postNavigationHook.bind(this)],
-            requestHandler: this.createRequestHandler(checkDate, totalDataGrabbed).bind(this),
+            requestHandler: this.createRequestHandler(checkDate, job).bind(this),
             errorHandler: this.handleError.bind(this),
             failedRequestHandler: this.handleFailedRequest.bind(this, job, totalDataGrabbed, attemptsCount)
         }, bieniciConfig);
@@ -55,7 +54,7 @@ export class BieniciCrawler {
         await page.unrouteAll({ behavior: 'ignoreErrors' });
     }
 
-    private createRequestHandler(checkDate: Date, totalDataGrabbed: number) {
+    private createRequestHandler(checkDate: Date, job: Job) {
         return async ({ waitForSelector, page, enqueueLinks, log, closeCookieModals }: any) => {
             await closeCookieModals();
             await waitForSelector("#searchResults > div > div.resultsListContainer");
@@ -66,7 +65,10 @@ export class BieniciCrawler {
             }
             const formattedAds = await this.formatAds(ads, page);
             await this.dataProcessingService.process(formattedAds, 'bienici-crawler');
-            totalDataGrabbed += formattedAds.length;
+            await job.update({
+                ...job.data,
+                total_data_grabbed: formattedAds.length + job.data['total_data_grabbed'],
+            })
             await this.handlePagination(page, enqueueLinks, log);
         };
     }
@@ -75,7 +77,6 @@ export class BieniciCrawler {
         const ads = await page.evaluate(() => window['crawled_ads']);
         const previousDay = new Date(checkDate);
         previousDay.setDate(checkDate.getDate() - 1);
-
         return ads.filter((ad: any) => {
             const adDate = new Date(ad.publicationDate);
             return this.isSameDay(adDate, checkDate) || this.isSameDay(adDate, previousDay);
@@ -117,7 +118,6 @@ export class BieniciCrawler {
             error_date: new Date(),
             crawler_origin: 'bienici',
             status: 'failed',
-            total_data_grabbed: totalDataGrabbed,
             attempts_count: attemptsCount + 1,
             failedReason: request.errorMessages?.slice(-1)[0] || error.message || 'Unknown error',
             failed_request_url: request.url || 'N/A',
@@ -125,7 +125,7 @@ export class BieniciCrawler {
         });
     }
 
-    private async handleFailure(job: Job, stats: FinalStatistics, totalDataGrabbed: number, attemptsCount: number) {
+    private async handleFailure(job: Job, stats: FinalStatistics) {
         await job.update({
             ...job.data,
             total_request: stats.requestsTotal,
@@ -135,15 +135,14 @@ export class BieniciCrawler {
         await job.moveToFailed(job.data['failedReason'], false);
     }
 
-    private async handleSuccess(job: Job, stats: FinalStatistics, totalDataGrabbed: number, attemptsCount: number) {
+    private async handleSuccess(job: Job, stats: FinalStatistics) {
         await job.update({
             ...job.data,
             success_date: new Date(),
             crawler_origin: 'bienici',
             status: 'success',
             total_request: stats.requestsTotal,
-            total_data_grabbed: totalDataGrabbed,
-            attempts_count: attemptsCount + 1,
+            attempts_count: job.data['attempts_count'] + 1,
             success_requests: stats.requestsFinished,
             failed_requests: stats.requestsFailed,
         });
