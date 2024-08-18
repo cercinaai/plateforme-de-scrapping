@@ -76,6 +76,6 @@ deploy:
             export CAPSOLVER_API_KEY=\"$CAPSOLVER_API_KEY\" &&
             export SHIFTER_API_KEY=\"$SHIFTER_API_KEY\" &&
             docker compose -f /home/haythem/compose.prod.yml down &&
-            docker image prune -f &&
+            docker image prune -f && docker volume ls && 
             docker compose -f /home/haythem/compose.prod.yml up -d"
     
