@@ -38,5 +38,4 @@ export const selogerCrawlerOptions: PlaywrightCrawlerOptions = {
     maxSessionRotations: 10,
     maxRequestRetries: 10,
     retryOnBlocked: true,
-
 } 

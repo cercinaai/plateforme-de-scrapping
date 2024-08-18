@@ -1,6 +1,6 @@
 import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Cron, CronExpression, SchedulerRegistry } from '@nestjs/schedule';
-import { CrawlerService } from 'src/crawler/crawler.service';
+import { CrawlerService } from '../crawler/crawler.service';
 import { CronJob } from 'cron';
 @Injectable()
 export class ScheduleTasksService implements OnModuleInit {
