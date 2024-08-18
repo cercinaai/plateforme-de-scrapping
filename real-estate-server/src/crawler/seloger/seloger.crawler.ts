@@ -1,6 +1,6 @@
 import { Process, Processor } from "@nestjs/bull";
 import { Logger, Scope } from "@nestjs/common";
-import { DataProcessingService } from "src/data-processing/data-processing.service";
+import { DataProcessingService } from "../../data-processing/data-processing.service";
 import { Job } from "bull";
 import { Cookie, CrawlingContext, Dictionary, FinalStatistics, PlaywrightCrawler, PlaywrightCrawlingContext, ProxyConfiguration, ProxyInfo, Request, RequestQueue, Session } from "crawlee";
 import { Page } from "playwright";
@@ -8,7 +8,7 @@ import { selogerConfig, selogerCrawlerOptions } from "./seloger.config";
 import { ProxyService } from "../proxy.service";
 import { ConfigService } from "@nestjs/config";
 import { InjectModel } from "@nestjs/mongoose";
-import { Ad } from "src/models/ad.schema";
+import { Ad } from "../../models/ad.schema";
 import { Model } from "mongoose";
 import { HttpService } from "@nestjs/axios";
 import { createCursor } from '@avilabs/ghost-cursor-playwright';
