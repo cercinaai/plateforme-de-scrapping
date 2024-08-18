@@ -1,21 +1,20 @@
 import { Process, Processor } from "@nestjs/bull";
 import { Logger, Scope } from "@nestjs/common";
-import { ProxyService } from "../proxy.service";
-import { DataProcessingService } from "src/data-processing/data-processing.service";
 import { Job } from "bull";
-import { FinalStatistics, PlaywrightCrawler } from "crawlee";
+import { PlaywrightCrawler, FinalStatistics } from "crawlee";
+import { InjectModel } from "@nestjs/mongoose";
+import { Model } from "mongoose";
+import { Ad } from "../../models/ad.schema";
+import { DataProcessingService } from "../../data-processing/data-processing.service";
 import { logicimmoConfig, logicimmoCrawlerOption } from "./logicimmo.config";
 import { Page } from "playwright";
-import { InjectModel } from "@nestjs/mongoose";
-import { Ad } from "src/models/ad.schema";
-import { Model } from "mongoose";
-
 
 @Processor({ name: 'crawler', scope: Scope.DEFAULT })
 export class LogicImmoCrawler {
 
     private readonly logger = new Logger(LogicImmoCrawler.name);
-    private readonly LIMIT_PAGE = 20;
+    private readonly LIMIT_PAGE = 3;
+
     constructor(private dataProcessingService: DataProcessingService, @InjectModel(Ad.name) private adModel: Model<Ad>) { }
 
     @Process('logicimmo-crawler')
@@ -25,7 +24,6 @@ export class LogicImmoCrawler {
         let total_data_grabbed: number = job.data['total_data_grabbed'] || 0;
         let attempts_count: number = job.data['attempts_count'] || 0;
         let retrying_failed_request = job.data['failed_request_url'] || null;
-
         const france_localities = ['ile-de-france,1_0', 'alsace,10_0', 'aquitaine,15_0', 'Auvergne,19_0', 'Bretagne,13_0',
             'centre,5_0', 'Bourgogne,7_0', 'champagne-ardenne,2_0', 'corse,22_0',
             'franche-comte,11_0', 'languedoc-roussillon,20_0', 'limousin,17_0', 'lorraine,9_0',
@@ -103,17 +101,18 @@ export class LogicImmoCrawler {
 
         let stat: FinalStatistics = await crawler.run([`https://www.logic-immo.com/vente-immobilier-${france_localities[localite_index]}/options/groupprptypesids=1,2,6,7,12,3,18,4,5,14,13,11,10,9,8/searchoptions=0,1,3/page=${list_page}/order=update_date_desc`]);
         await crawler.teardown();
-        if (stat.requestsFailed > 0 || stat.requestsTotal === 0 || stat.requestsFinished === 0) {
+        if (job.data['status'] === 'failed') {
             await job.update({
                 ...job.data,
                 total_request: stat.requestsTotal,
                 success_requests: stat.requestsFinished,
                 failed_requests: stat.requestsFailed,
             });
-            await job.moveToFailed(new Error(`Failed requests: ${stat.requestsFailed}`), false);
+            await job.moveToFailed(job.data['failedReason'], false);
             return;
         }
         await job.update({
+            ...job.data,
             success_date: new Date(),
             crawler_origin: 'logic-immo',
             status: 'success',

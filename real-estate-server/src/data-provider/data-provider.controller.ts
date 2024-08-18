@@ -3,9 +3,9 @@ import { InjectModel } from "@nestjs/mongoose";
 import { AuthGuard } from "@nestjs/passport";
 import { Throttle } from "@nestjs/throttler";
 import { Model } from "mongoose";
-import { RealEstateAuthGuard } from "src/auth/guard/RealEstate.guard";
-import { Ad } from "src/models/ad.schema";
-import { CrawlerSession } from "src/models/crawlerSession.schema";
+import { RealEstateAuthGuard } from "../auth/guard/RealEstate.guard";
+import { Ad } from "../models/ad.schema";
+import { CrawlerSession } from "../models/crawlerSession.schema";
 
 
 @Controller('data-provider')
