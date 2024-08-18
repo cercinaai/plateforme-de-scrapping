@@ -3,6 +3,7 @@ import { InjectModel } from "@nestjs/mongoose";
 import { AuthGuard } from "@nestjs/passport";
 import { Throttle } from "@nestjs/throttler";
 import { Model } from "mongoose";
+import { RealEstateAuthGuard } from "src/auth/guard/RealEstate.guard";
 import { Ad } from "src/models/ad.schema";
 import { CrawlerSession } from "src/models/crawlerSession.schema";
 
@@ -13,7 +14,7 @@ export class DataProviderController {
     constructor(@InjectModel(CrawlerSession.name) private crawlerSessionModel: Model<CrawlerSession>, @InjectModel(Ad.name) private adModel: Model<Ad>) { }
 
     @Throttle({ short: { limit: 2, ttl: 1000 }, long: { limit: 5, ttl: 60000 } })
-    @UseGuards(AuthGuard('jwt'))
+    @UseGuards(RealEstateAuthGuard)
     @Get('crawler-session')
     async get_crawler_session(@Query('page') page = 1, @Query('limit') limit = 4): Promise<CrawlerSession[]> {
         const skip = (page - 1) * limit;
@@ -21,14 +22,14 @@ export class DataProviderController {
     }
 
     @Throttle({ short: { limit: 2, ttl: 1000 }, long: { limit: 5, ttl: 60000 } })
-    @UseGuards(AuthGuard('jwt'))
+    @UseGuards(RealEstateAuthGuard)
     @Get('date-range-crawler')
     async get_date_range_crawler(@Query('startDate') startDate: string, @Query('endDate') endDate: string): Promise<CrawlerSession[]> {
         return this.crawlerSessionModel.find({ session_date: { $gte: startDate, $lte: endDate } }).sort({ session_date: -1 });
     }
 
     @Throttle({ short: { limit: 2, ttl: 1000 }, long: { limit: 5, ttl: 60000 } })
-    @UseGuards(AuthGuard('jwt'))
+    @UseGuards(RealEstateAuthGuard)
     @Get('ad-list')
     async get_ad(
         @Query('page') page = 1,

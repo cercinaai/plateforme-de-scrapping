@@ -68,6 +68,7 @@ deploy:
             export DASHBOARD_IMAGE=\"$DASHBOARD_IMAGE\" &&
             export ADMIN_USERNAME=\"$ADMIN_USERNAME\" &&
             export ADMIN_PASSWORD=\"$ADMIN_PASSWORD\" &&
+            export REAL_ESTATE_API_KEY=\"$REAL_ESTATE_API_KEY\" &&
             export JWT_SECRET=\"$JWT_SECRET\" &&
             export REDIS_HOST=\"$REDIS_HOST\" &&
             export MONGODB_URI=\"$MONGODB_URI\" &&
