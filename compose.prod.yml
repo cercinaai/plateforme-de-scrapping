@@ -6,7 +6,7 @@ services:
     ports:
       - "6379:6379"
     volumes:
-      - redis_data:/data
+      - real_state_redis:/data
 
   mongodb:
     image: mongo:5.0.28
@@ -15,7 +15,7 @@ services:
     ports:
       - "27017:27017"
     volumes:
-      - mongo_data:/data/db
+      - real_state_mongo:/data/db
 
   backend:
     image: $SERVER_IMAGE:latest
@@ -53,7 +53,7 @@ services:
       - backend
 
 volumes:
-  mongo_data:
-    driver: local
-  redis_data:
-    driver: local
+  real_state_mongo:
+    external: true
+  real_state_redis:
+    external: true
