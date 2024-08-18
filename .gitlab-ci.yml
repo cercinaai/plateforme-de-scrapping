@@ -6,6 +6,9 @@ variables:
   DOCKER_DRIVER: overlay2
   SERVER_IMAGE: $CI_REGISTRY_IMAGE/real-estate-server
   DASHBOARD_IMAGE: $CI_REGISTRY_IMAGE/real-estate-dashboard
+  MONGO_USER: $MONGO_USER
+  MONGO_PASSWORD: $MONGO_PASSWORD
+  MONGO_DATABASE: $MONGO_DATABASE
 
 build_server:
   stage: build
@@ -41,6 +44,8 @@ build_dashboard:
     - docker push $DASHBOARD_IMAGE:$CI_COMMIT_SHORT_SHA
     - docker push $DASHBOARD_IMAGE:latest
 
+
+
 deploy:
   stage: deploy
   rules:
@@ -48,7 +53,7 @@ deploy:
     - if: $CI_COMMIT_REF_NAME == "main"
   environment:
     name: production
-    url: https://93.127.203.195
+    url: https://$SERVER_IP_ADRESS
   before_script:
     - 'command -v ssh-agent >/dev/null || ( apt-get update -y && apt-get install openssh-client -y )'
     - eval $(ssh-agent -s)
@@ -59,15 +64,18 @@ deploy:
     - cp "$SSH_KNOWN_HOSTS" ~/.ssh/known_hosts
     - chmod 644 ~/.ssh/known_hosts
   script:
-    - ssh haythem@93.127.203.195 "docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY"
-    - ssh haythem@93.127.203.195 "docker pull $SERVER_IMAGE:latest"
-    - ssh haythem@93.127.203.195 "docker pull $DASHBOARD_IMAGE:latest"
-    - scp compose.prod.yml haythem@93.127.203.195:/home/haythem/
-    - ssh haythem@93.127.203.195 "
+    - ssh haythem@"$SERVER_IP_ADRESS" "docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY"
+    - ssh haythem@"$SERVER_IP_ADRESS" "docker pull $SERVER_IMAGE:latest"
+    - ssh haythem@"$SERVER_IP_ADRESS" "docker pull $DASHBOARD_IMAGE:latest"
+    - scp compose.prod.yml haythem@"$SERVER_IP_ADRESS":/home/haythem/
+    - ssh haythem@"$SERVER_IP_ADRESS"
             export SERVER_IMAGE=\"$SERVER_IMAGE\" &&
             export DASHBOARD_IMAGE=\"$DASHBOARD_IMAGE\" &&
             export ADMIN_USERNAME=\"$ADMIN_USERNAME\" &&
             export ADMIN_PASSWORD=\"$ADMIN_PASSWORD\" &&
+            export MONGO_USER=\"$MONGO_USER\" &&
+            export MONGO_PASSWORD=\"$MONGO_PASSWORD\" &&
+            export MONGO_DATABASE=\"$MONGO_DATABASE\" &&
             export REAL_ESTATE_API_KEY=\"$REAL_ESTATE_API_KEY\" &&
             export JWT_SECRET=\"$JWT_SECRET\" &&
             export REDIS_HOST=\"$REDIS_HOST\" &&
@@ -77,6 +85,16 @@ deploy:
             export CAPSOLVER_API_KEY=\"$CAPSOLVER_API_KEY\" &&
             export SHIFTER_API_KEY=\"$SHIFTER_API_KEY\" &&
             docker compose -f /home/haythem/compose.prod.yml down &&
-            docker image prune -f && docker volume ls && 
-            docker compose -f /home/haythem/compose.prod.yml up -d"
+            docker image prune -f && 
+            docker compose -f compose.prod.yml up -d mongodb redis &&
+            until docker exec mongodb-container mongo --eval "print('waited for connection')" >/dev/null 2>&1; do sleep 1; done
+            >
+            docker exec mongodb-container mongo --eval "
+            db = db.getSiblingDB('$MONGO_DATABASE');
+            db.createUser({
+              user: '$MONGO_USER',
+              pwd: '$MONGO_PASSWORD',
+              roles: [{ role: 'readWrite', db: '$MONGO_DATABASE' }]
+            });"
+            docker compose -f /home/haythem/compose.prod.yml up -d backend frontend"
     

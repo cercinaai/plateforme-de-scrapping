@@ -34,7 +34,7 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - MONGODB_URI=mongodb://mongodb:27017/real-estate
+      - MONGODB_URI=mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongodb:27017/${MONGO_DATABASE}
       - PROXY_API_KEY=${PROXY_API_KEY}
       - TWO_CAPTCHA_API_KEY=${TWO_CAPTCHA_API_KEY}
       - CAPSOLVER_API_KEY=${CAPSOLVER_API_KEY}
