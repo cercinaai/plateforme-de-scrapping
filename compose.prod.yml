@@ -63,6 +63,4 @@ services:
 
 volumes:
   real_state_mongo:
-    external: true
   real_state_redis:
-    external: true
