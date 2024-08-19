@@ -15,10 +15,14 @@ export class BieniciCrawler {
 
     @Process('bienici-crawler')
     async start(job: Job) {
-        const { total_data_grabbed = 0, attempts_count = 0, failed_request_url } = job.data;
+        await job.update({
+            ...job.data,
+            total_data_grabbed: 0,
+            attempts_count: 0
+        })
         const checkDate = new Date();
-        const crawler = this.createCrawler(job, checkDate, total_data_grabbed, attempts_count);
-        const stats = await crawler.run([failed_request_url || this.targetUrl]);
+        const crawler = this.createCrawler(job, checkDate);
+        const stats = await crawler.run([this.targetUrl]);
         await crawler.teardown();
         if (job.data['status'] && job.data['status'] === 'failed') {
             await this.handleFailure(job, stats);
@@ -27,14 +31,14 @@ export class BieniciCrawler {
         }
     }
 
-    private createCrawler(job: Job, checkDate: Date, totalDataGrabbed: number, attemptsCount: number) {
+    private createCrawler(job: Job, checkDate: Date) {
         return new PlaywrightCrawler({
             ...bieniciCrawlerOption,
             preNavigationHooks: [this.preNavigationHook.bind(this)],
             postNavigationHooks: [this.postNavigationHook.bind(this)],
             requestHandler: this.createRequestHandler(checkDate, job).bind(this),
             errorHandler: this.handleError.bind(this),
-            failedRequestHandler: this.handleFailedRequest.bind(this, job, totalDataGrabbed, attemptsCount)
+            failedRequestHandler: this.handleFailedRequest.bind(this, job)
         }, bieniciConfig);
     }
 
@@ -111,14 +115,14 @@ export class BieniciCrawler {
         this.logger.error(error);
     }
 
-    private async handleFailedRequest(job: Job, totalDataGrabbed: number, attemptsCount: number, { request, proxyInfo }: any, error: Error) {
+    private async handleFailedRequest(job: Job, { request, proxyInfo }: any, error: Error) {
         await job.update({
             ...job.data,
             job_id: job.id.toString(),
             error_date: new Date(),
             crawler_origin: 'bienici',
             status: 'failed',
-            attempts_count: attemptsCount + 1,
+            attempts_count: job.data['attempts_count'] + 1,
             failedReason: request.errorMessages?.slice(-1)[0] || error.message || 'Unknown error',
             failed_request_url: request.url || 'N/A',
             proxy_used: proxyInfo ? proxyInfo.url : 'N/A',
