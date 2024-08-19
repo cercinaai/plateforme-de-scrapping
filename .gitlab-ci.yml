@@ -9,7 +9,7 @@ variables:
   MONGO_USER: $MONGO_USER
   MONGO_PASSWORD: $MONGO_PASSWORD
   MONGO_DATABASE: $MONGO_DATABASE
-
+  SERVER_IP_ADDRESS: $SERVER_IP_ADDRESS
 build_server:
   stage: build
   image: docker:latest
@@ -53,7 +53,6 @@ deploy:
     - if: $CI_COMMIT_REF_NAME == "main"
   environment:
     name: production
-    url: https://$SERVER_IP_ADRESS
   before_script:
     - 'command -v ssh-agent >/dev/null || ( apt-get update -y && apt-get install openssh-client -y )'
     - eval $(ssh-agent -s)
@@ -64,12 +63,12 @@ deploy:
     - cp "$SSH_KNOWN_HOSTS" ~/.ssh/known_hosts
     - chmod 644 ~/.ssh/known_hosts
   script:
-    - ssh haythem@"$SERVER_IP_ADRESS" "docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY"
-    - ssh haythem@"$SERVER_IP_ADRESS" "docker pull $SERVER_IMAGE:latest"
-    - ssh haythem@"$SERVER_IP_ADRESS" "docker pull $DASHBOARD_IMAGE:latest"
-    - scp compose.prod.yml haythem@"$SERVER_IP_ADRESS":/home/haythem/
-    - scp mongo-entrypoint haythem@"$SERVER_IP_ADRESS":/home/haythem/
-    - ssh haythem@"$SERVER_IP_ADRESS" "
+    - ssh $SERVER_IP_ADDRESS "docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY"
+    - ssh $SERVER_IP_ADDRESS "docker pull $SERVER_IMAGE:latest"
+    - ssh $SERVER_IP_ADDRESS "docker pull $DASHBOARD_IMAGE:latest"
+    - scp compose.prod.yml $SERVER_IP_ADDRESS:/home/haythem/
+    - scp mongo-entrypoint $SERVER_IP_ADDRESS:/home/haythem/
+    - ssh $SERVER_IP_ADDRESS "
         export SERVER_IMAGE=\"$SERVER_IMAGE\" &&
         export DASHBOARD_IMAGE=\"$DASHBOARD_IMAGE\" &&
         export ADMIN_USERNAME=\"$ADMIN_USERNAME\" &&
