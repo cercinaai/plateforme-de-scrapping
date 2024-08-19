@@ -16,7 +16,7 @@ import { createCursor } from '@avilabs/ghost-cursor-playwright';
 @Processor({ name: 'crawler', scope: Scope.DEFAULT })
 export class SelogerCrawler {
     private readonly logger = new Logger(SelogerCrawler.name);
-    private readonly targetUrl = 'https://www.seloger.com';
+    private readonly targetUrl = 'https://www.seloger.com/list.htm?projects=2,5&types=2,4,1,13,9,3,14,12,11,10&natures=1,2,4&sort=d_dt_crea&mandatorycommodities=0&privateseller=0&enterprise=0&houseboat=1&qsVersion=1.0&m=search_refine-redirection-search_results';
     private readonly LIMIT_PER_PAGE = 20;
     constructor(
         private readonly dataProcessingService: DataProcessingService,
@@ -48,7 +48,11 @@ export class SelogerCrawler {
             requestQueue: selogerQueue,
             proxyConfiguration: new ProxyConfiguration({ proxyUrls: this.proxyService.get_proxy_list() }),
             preNavigationHooks: [async ({ page }) => await this.extract_data_from_dom(page)],
-            postNavigationHooks: [async (context) => await this.handleCapSolver(context)],
+            postNavigationHooks: [async (context) => {
+                let { page } = context;
+                await this.handleCapSolver(context);
+                await page.unrouteAll({ behavior: 'ignoreErrors' });
+            }],
             requestHandler: async ({ page, enqueueLinks, closeCookieModals, waitForSelector }) => await this.selogerRequestHandler(job, page, closeCookieModals, enqueueLinks, waitForSelector),
             failedRequestHandler: ({ request, proxyInfo }, error) => this.handleRequestFailure(job, request, proxyInfo, error),
         }, selogerConfig);
