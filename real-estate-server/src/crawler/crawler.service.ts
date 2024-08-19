@@ -1,7 +1,7 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { Job, Queue } from 'bull';
 import { InjectQueue } from '@nestjs/bull';
-import { CrawlerSession } from "src/models/crawlerSession.schema";
+import { CrawlerSession } from "../models/crawlerSession.schema";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 

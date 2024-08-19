@@ -2,7 +2,7 @@ import { Injectable, Logger, OnModuleInit, UnauthorizedException } from '@nestjs
 import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Admin, AdminDocument } from 'src/models/admin.schema';
+import { Admin, AdminDocument } from '../models/admin.schema';
 import { hash, compare } from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 @Injectable()

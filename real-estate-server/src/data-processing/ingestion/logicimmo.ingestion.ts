@@ -5,7 +5,7 @@ import { ConfigService } from "@nestjs/config";
 import { InjectModel } from "@nestjs/mongoose";
 import { Job } from "bull";
 import { Model } from "mongoose";
-import { Ad, AdDocument } from "src/models/ad.schema";
+import { Ad, AdDocument } from "../../models/ad.schema";
 import { logicImmoCategoryMapping } from "../models/Category.type";
 
 @Processor({ name: 'data-processing', scope: Scope.DEFAULT })

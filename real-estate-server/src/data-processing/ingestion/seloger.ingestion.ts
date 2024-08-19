@@ -5,9 +5,7 @@ import { ConfigService } from "@nestjs/config";
 import { InjectModel } from "@nestjs/mongoose";
 import { Job } from "bull";
 import { Model } from "mongoose";
-import { Ad, AdDocument } from "src/models/ad.schema";
-import * as fs from 'fs';
-import { first } from "rxjs";
+import { Ad, AdDocument } from "../../models/ad.schema";
 import { selogerCategoryMapping } from "../models/Category.type";
 
 

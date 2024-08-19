@@ -3,7 +3,7 @@ import { Logger, Scope } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Job } from "bull";
 import { Model } from "mongoose";
-import { Ad, AdDocument } from "src/models/ad.schema";
+import { Ad, AdDocument } from "../../models/ad.schema";
 import { ConfigService } from "@nestjs/config";
 import * as fs from 'fs';
 import { HttpService } from "@nestjs/axios";
