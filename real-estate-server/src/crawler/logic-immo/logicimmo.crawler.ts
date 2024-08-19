@@ -80,9 +80,6 @@ export class LogicImmoCrawler {
                     })
                 }
             },
-            errorHandler: async ({ request, proxyInfo }, error) => {
-                this.logger.error(error);
-            },
             failedRequestHandler: async ({ request, proxyInfo }, error) => {
                 await job.update({
                     job_id: job.id.toLocaleString(),

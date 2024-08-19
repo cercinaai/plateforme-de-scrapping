@@ -37,7 +37,6 @@ export class BieniciCrawler {
             preNavigationHooks: [this.preNavigationHook.bind(this)],
             postNavigationHooks: [this.postNavigationHook.bind(this)],
             requestHandler: this.createRequestHandler(checkDate, job).bind(this),
-            errorHandler: this.handleError.bind(this),
             failedRequestHandler: this.handleFailedRequest.bind(this, job)
         }, bieniciConfig);
     }
@@ -47,7 +46,7 @@ export class BieniciCrawler {
             const res = await route.fetch();
             const body = await res.json();
             const ads = body.realEstateAds || [];
-            if (ads.length) {
+            if (ads.length > 0) {
                 await route.continue();
                 await page.evaluate((ads) => { window['crawled_ads'] = ads; }, ads);
             }
@@ -63,7 +62,7 @@ export class BieniciCrawler {
             await closeCookieModals();
             await waitForSelector("#searchResults > div > div.resultsListContainer");
             const ads = await this.filterAds(page, checkDate);
-            if (!ads.length) {
+            if (!ads || ads.length === 0) {
                 this.logger.log("Found ads older than check_date. Stopping the crawler.");
                 return;
             }
@@ -79,6 +78,7 @@ export class BieniciCrawler {
 
     private async filterAds(page: Page, checkDate: Date) {
         const ads = await page.evaluate(() => window['crawled_ads']);
+        if (!ads || ads.length === 0) return [];
         const previousDay = new Date(checkDate);
         previousDay.setDate(checkDate.getDate() - 1);
         return ads.filter((ad: any) => {
@@ -111,9 +111,7 @@ export class BieniciCrawler {
         }
     }
 
-    private async handleError({ request, proxyInfo }: any, error: Error) {
-        this.logger.error(error);
-    }
+
 
     private async handleFailedRequest(job: Job, { request, proxyInfo }: any, error: Error) {
         await job.update({
