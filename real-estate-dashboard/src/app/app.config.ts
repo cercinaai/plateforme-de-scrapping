@@ -7,6 +7,7 @@ import { HTTP_INTERCEPTORS, provideHttpClient, withFetch, withInterceptorsFromDi
 import { environment } from '../environments/environment';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { JwtInterceptorLocal } from './interceptors/jwt.interceptor';
+import { provideNativeDateAdapter } from '@angular/material/core';
 
 export function tokenGetter() {
   return localStorage.getItem("access_token");
@@ -17,6 +18,7 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
     provideClientHydration(),
+    provideNativeDateAdapter(),
     importProvidersFrom(JwtModule.forRoot({
       config: {
         tokenGetter: tokenGetter,

@@ -1,0 +1,86 @@
+<p-toast></p-toast>
+<div class="ads-list-container">
+    <div class="sidebar">
+        <div class="filter-section">
+            <mat-accordion multi>
+                <mat-expansion-panel expanded class="filter-expansion-panel">
+                    <mat-expansion-panel-header>
+                        <mat-panel-title> Dates des annonces </mat-panel-title>
+                    </mat-expansion-panel-header>
+                    <div class="date-filter-section">
+                        <label for="start-date">Date de début :</label>
+                        <input type="date" id="start-date" />
+
+                        <label for="end-date">Date de fin :</label>
+                        <input type="date" id="end-date" />
+                    </div>
+                </mat-expansion-panel>
+                <mat-expansion-panel expanded class="filter-expansion-panel">
+                    <mat-expansion-panel-header>
+                        <mat-panel-title> Origine du robot </mat-panel-title>
+                    </mat-expansion-panel-header>
+                    <div class="origin-chips">
+                        <span class="chip" data-origin="seloger">SeLoger</span>
+                        <span class="chip" data-origin="logicimmo">LogicImmo</span>
+                        <span class="chip" data-origin="bienici">BienIci</span>
+                        <span class="chip" data-origin="leboncoin">LeBonCoin</span>
+                    </div>
+                </mat-expansion-panel>
+                <mat-expansion-panel expanded class="filter-expansion-panel">
+                    <mat-expansion-panel-header>
+                        <mat-panel-title> Catégorie des annonces </mat-panel-title>
+                    </mat-expansion-panel-header>
+                    <div class="origin-chips" style="justify-content: flex-start;">
+                        <span class="chip" data-origin="Appartement">Appartement</span>
+                        <span class="chip" data-origin="Maison">Maison</span>
+                        <span class="chip" data-origin="Loft/Atelier">Loft/Atelier</span>
+                        <span class="chip" data-origin="Villa">Villa</span>
+                        <span class="chip" data-origin="Terrain">Terrain</span>
+                        <span class="chip" data-origin="Parking">Parking</span>
+                        <span class="chip" data-origin="Bureau">Bureau</span>
+                        <span class="chip" data-origin="Local-Commercial">Local Commercial</span>
+                        <span class="chip" data-origin="Chalet">Chalet</span>
+                        <span class="chip" data-origin="Chateau">Chateau</span>
+                        <span class="chip" data-origin="Autre">Autre</span>
+                    </div>
+                </mat-expansion-panel>
+                <mat-expansion-panel class="filter-expansion-panel">
+                    <mat-expansion-panel-header>
+                        <mat-panel-title> filtres personnalisés </mat-panel-title>
+                    </mat-expansion-panel-header>
+                    <div class="range-section">
+                        <label>Prix (€)</label>
+                        <mat-slider min="0" max="1000" step="10" discrete [displayWith]="priceFormat">
+                            <input value="100" matSliderStartThumb>
+                            <input value="500" matSliderEndThumb>
+                        </mat-slider>
+                    </div>
+                    <div class="range-section">
+                        <label>Superficie (m²)</label>
+                        <mat-slider min="0" max="2000" step="100" discrete>
+                            <input value="100" matSliderStartThumb>
+                            <input value="1500" matSliderEndThumb>
+                        </mat-slider>
+                    </div>
+                    <div class="range-section">
+                        <label>Chambres</label>
+                        <mat-slider min="1" max="20" step="1" discrete>
+                            <input value="2" matSliderStartThumb>
+                            <input value="5" matSliderEndThumb>
+                        </mat-slider>
+                    </div>
+                </mat-expansion-panel>
+                <mat-expansion-panel class="filter-expansion-panel">
+                    <mat-expansion-panel-header>
+                        <mat-panel-title> Localisation des annonces</mat-panel-title>
+                    </mat-expansion-panel-header>
+                    <div class="location-filter">
+
+                    </div>
+                </mat-expansion-panel>
+            </mat-accordion>
+        </div>
+    </div>
+    <div class="ads-list"></div>
+    <div class="selected-ad"></div>
+</div>
