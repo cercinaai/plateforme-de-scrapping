@@ -2,7 +2,7 @@ import { Cookie, Dictionary, FinalStatistics, PlaywrightCrawler, ProxyConfigurat
 import { Processor, Process } from '@nestjs/bull';
 import { Job } from 'bull';
 import { Inject, Logger, Scope } from '@nestjs/common';
-import { DataProcessingService } from 'src/data-processing/data-processing.service';
+import { DataProcessingService } from '../../data-processing/data-processing.service';
 import { boncoinConfig, boncoinCrawlerOption } from './boncoin.config';
 import { ProxyService } from '../proxy.service';
 import { ConfigService } from '@nestjs/config';

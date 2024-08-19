@@ -1,6 +1,6 @@
 import { Process, Processor } from "@nestjs/bull";
 import { Logger, Scope } from "@nestjs/common";
-import { DataProcessingService } from "src/data-processing/data-processing.service";
+import { DataProcessingService } from "../../data-processing/data-processing.service";
 import { Job } from "bull";
 import { Cookie, CrawlingContext, Dictionary, FinalStatistics, PlaywrightCrawler, PlaywrightCrawlingContext, ProxyConfiguration, ProxyInfo, Request, RequestQueue, Session } from "crawlee";
 import { Page } from "playwright";
@@ -8,7 +8,7 @@ import { selogerConfig, selogerCrawlerOptions } from "./seloger.config";
 import { ProxyService } from "../proxy.service";
 import { ConfigService } from "@nestjs/config";
 import { InjectModel } from "@nestjs/mongoose";
-import { Ad } from "src/models/ad.schema";
+import { Ad } from "../../models/ad.schema";
 import { Model } from "mongoose";
 import { HttpService } from "@nestjs/axios";
 import { createCursor } from '@avilabs/ghost-cursor-playwright';
@@ -48,13 +48,13 @@ export class SelogerCrawler {
             requestQueue: selogerQueue,
             proxyConfiguration: new ProxyConfiguration({ proxyUrls: this.proxyService.get_proxy_list() }),
             preNavigationHooks: [async ({ page }) => await this.extract_data_from_dom(page)],
-            // postNavigationHooks: [async (context) => {
-            //     if (job.data['PAGE_REACHED'] === 1) {
-            //         await this.navigate_listing_page(context);
-            //         return;
-            //     }
-            //     await this.handleCapSolver(context);
-            // }],
+            postNavigationHooks: [async (context) => {
+                if (job.data['PAGE_REACHED'] === 1) {
+                    await this.navigate_listing_page(context);
+                    return;
+                }
+                await this.handleCapSolver(context);
+            }],
             requestHandler: async ({ page, enqueueLinks, closeCookieModals, waitForSelector }) => await this.selogerRequestHandler(job, page, closeCookieModals, enqueueLinks, waitForSelector),
             errorHandler: async ({ request, proxyInfo }, error) => {
                 this.logger.error(error);
