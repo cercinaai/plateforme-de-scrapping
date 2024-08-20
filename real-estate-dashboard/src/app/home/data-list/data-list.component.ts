@@ -110,24 +110,19 @@ export class DataListComponent implements OnInit {
         }
       }
     }
-    orderBy?: {
-      key_display: 'Trier par'
-      filter_key: 'orderBy'
-      value: 'price' | 'Date'
-    }
   } = {}
   displayedColumns: string[] = ['title', 'origin', 'price', 'surface', 'category'];
   dataSource = new MatTableDataSource<Ad_Model>([]);
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
   selectedAd!: Ad_Model | null;
-
+  viewMode = 'interface';
   ngOnInit(): void {
     this._getData();
   }
 
   private _getData(): void {
-    this.dataListService.getAds({ limit: 20 }).pipe(first()).subscribe({
+    this.dataListService.getAds({}).pipe(first()).subscribe({
       next: (ads) => {
         this.dataSource.data = ads;
         this.dataSource.paginator = this.paginator;
@@ -139,6 +134,7 @@ export class DataListComponent implements OnInit {
 
   public filterAds(): void {
     const filter = this._extract_filters();
+    this.paginator.firstPage();
     this.dataListService.getAds(filter).pipe(first()).subscribe({
       next: (ads) => {
         this.dataSource.data = ads;
@@ -166,7 +162,6 @@ export class DataListComponent implements OnInit {
 
   public clearFilters(): void {
     this.ads_filter = {}
-    this.paginator.firstPage();
     this._getData();
   }
 
@@ -187,6 +182,7 @@ export class DataListComponent implements OnInit {
           value: (value.target as any).value,
         }
       }
+      this.filterAds();
       return;
     }
     if ((value.target as any)['id'] === 'end-date') {
@@ -198,7 +194,7 @@ export class DataListComponent implements OnInit {
           value: (value.target as any).value,
         }
       }
-      return;
+      this.filterAds();
     }
   }
 
@@ -208,6 +204,7 @@ export class DataListComponent implements OnInit {
         ...this.ads_filter.origin,
         value: this.ads_filter.origin?.value.filter((item) => item !== value),
       }
+      this.filterAds();
       return;
     }
     this.ads_filter.origin = {
@@ -216,6 +213,7 @@ export class DataListComponent implements OnInit {
       filter_key: "origin",
       value: [...this.ads_filter.origin?.value || [], value],
     }
+    this.filterAds();
   }
 
   public applyCategoryFilter(value: string): void {
@@ -224,6 +222,7 @@ export class DataListComponent implements OnInit {
         ...this.ads_filter.category,
         value: this.ads_filter.category?.value.filter((item) => item !== value),
       }
+      this.filterAds();
       return;
     }
     this.ads_filter.category = {
@@ -232,6 +231,7 @@ export class DataListComponent implements OnInit {
       filter_key: "category",
       value: [...this.ads_filter.category?.value || [], value],
     }
+    this.filterAds();
   }
   public applyPriceFilter(value: Event): void {
     if ((value.target as any)['id'] === 'min-price') {
@@ -246,6 +246,7 @@ export class DataListComponent implements OnInit {
           value: (value.target as any)['nextElementSibling'].value,
         }
       }
+      this.filterAds();
       return;
     }
     if ((value.target as any)['id'] === 'max-price') {
@@ -260,6 +261,7 @@ export class DataListComponent implements OnInit {
           value: (value.target as any).value,
         }
       }
+      this.filterAds();
     }
   }
 
@@ -276,6 +278,7 @@ export class DataListComponent implements OnInit {
           value: (value.target as any)['nextElementSibling'].value,
         }
       }
+      this.filterAds();
       return;
     }
     if ((value.target as any)['id'] === 'max-surface') {
@@ -290,6 +293,7 @@ export class DataListComponent implements OnInit {
           value: (value.target as any).value,
         }
       }
+      this.filterAds();
     }
   }
 
@@ -306,6 +310,7 @@ export class DataListComponent implements OnInit {
           value: (value.target as any)['nextElementSibling'].value,
         }
       }
+      this.filterAds();
       return;
     }
     if ((value.target as any)['id'] === 'max-rooms') {
@@ -320,6 +325,7 @@ export class DataListComponent implements OnInit {
           value: (value.target as any).value,
         }
       }
+      this.filterAds();
     }
   }
 
@@ -340,7 +346,7 @@ export class DataListComponent implements OnInit {
   }
 
   private _extract_filters(): any {
-    const { date, origin, category, price, surface, romms, location, orderBy } = this.ads_filter;
+    const { date, origin, category, price, surface, romms, location } = this.ads_filter;
     const filter: any = {}
     if (date) {
       filter.startDate = date.startDate?.value
@@ -374,9 +380,6 @@ export class DataListComponent implements OnInit {
         filter.lon = location.ByExtactLocation.lon.value
         filter.radius = location.ByExtactLocation.radius.value
       }
-    }
-    if (orderBy) {
-      filter.orderBy = orderBy.value
     }
     return filter;
   }

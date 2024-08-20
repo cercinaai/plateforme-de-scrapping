@@ -159,7 +159,8 @@
             </ng-container>
             <ng-container matColumnDef="price">
                 <th mat-header-cell *matHeaderCellDef mat-sort-header> Prix (€) </th>
-                <td mat-cell *matCellDef="let element"> {{element.price | currency:'EUR':'symbol'}} </td>
+                <td mat-cell *matCellDef="let element"> {{element.price | currency:'EUR':'symbol'}}
+                </td>
             </ng-container>
 
             <ng-container matColumnDef="surface">
@@ -179,5 +180,49 @@
         </table>
         <mat-paginator class="ads-paginator" (page)="pageChange($event)" [pageSizeOptions]="[10]"></mat-paginator>
     </div>
-    <div class="selected-ad"></div>
+    @if(selectedAd) {
+    <div class="selected-ad">
+        <div class="view-toggle">
+            <mat-radio-group [(ngModel)]="viewMode">
+                <mat-radio-button [value]="'interface'">Mode Interface</mat-radio-button>
+                <mat-radio-button [value]="'json'">Mode JSON</mat-radio-button>
+            </mat-radio-group>
+        </div>
+        @if(viewMode === 'interface') {
+        <div *ngIf="viewMode === 'interface'" class="ad-card">
+            <img *ngIf="selectedAd.pictureUrl" [src]="selectedAd.pictureUrl" alt="Ad Image" class="ad-image" />
+            <div class="ad-details">
+                <h3>{{ selectedAd.title || 'Annonce Sans Titre' }}</h3>
+                <p><strong>Id:</strong> {{ selectedAd.adId || 'N/A' }}</p>
+                <p><strong>Référence:</strong> {{ selectedAd.reference || 'N/A' }}</p>
+                <p *ngIf="selectedAd.description"><strong>Description:</strong> {{ selectedAd.description }}</p>
+                <p><strong>Adresse:</strong> {{ selectedAd.location.city }}, {{ selectedAd.location.postalCode }}
+                </p>
+                <p *ngIf="selectedAd.publisher"><strong>Vendeur:</strong> {{ selectedAd.publisher.name }}</p>
+                <p *ngIf="selectedAd.constructionYear"><strong>Année de construction:</strong> {{
+                    selectedAd.constructionYear }}</p>
+                <p *ngIf="selectedAd.floor"><strong>Étage:</strong> {{ selectedAd.floor }} / {{
+                    selectedAd.buildingFloors || 'N/A' }}</p>
+                <p *ngIf="selectedAd.energyGrade"><strong>Énergie:</strong> {{ selectedAd.energyGrade }} ({{
+                    selectedAd.energyValue }} kWh/m².an)</p>
+                <p *ngIf="selectedAd.gasGrade"><strong>Gaz:</strong> {{ selectedAd.gasGrade }} ({{
+                    selectedAd.gasValue
+                    }} kWh/m².an)</p>
+                <p *ngIf="selectedAd.options && selectedAd.options.length"><strong>Options:</strong> {{
+                    selectedAd.options.join(', ') }}</p>
+                <p><strong>Date de Création:</strong> {{ selectedAd.creationDate | date:'dd/MM/yyyy' }}</p>
+                <p><strong>Dernière Vérification:</strong> {{ selectedAd.lastCheckDate | date:'dd/MM/yyyy' }}</p>
+                <p><strong>Téléphone:</strong> {{ selectedAd.phoneNumber || selectedAd.publisher?.phoneNumber ||
+                    'N/A'
+                    }}</p>
+            </div>
+        </div>
+        } @else {
+        <div class="json-view">
+            <pre>{{ selectedAd | json }}</pre>
+        </div>
+        }
+
+    </div>
+    }
 </div>
