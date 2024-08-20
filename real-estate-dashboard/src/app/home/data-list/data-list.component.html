@@ -1,0 +1,228 @@
+<p-toast></p-toast>
+<div class="ads-list-container">
+    <div class="sidebar">
+        <div class="filter-section">
+            <div class="filter-buttons">
+                <button class="filter-button">
+                    <mat-icon>arrow_back</mat-icon>
+                    Revenir
+                </button>
+                <button class="filter-button clear-button" (click)="clearFilters()">
+                    <mat-icon>cancel</mat-icon>
+                    Réinitialiser
+                </button>
+            </div>
+            <mat-accordion multi>
+                <mat-expansion-panel expanded class="filter-expansion-panel">
+                    <mat-expansion-panel-header>
+                        <mat-panel-title> Dates des annonces </mat-panel-title>
+                    </mat-expansion-panel-header>
+                    <div class="date-filter-section">
+                        <label for="start-date">Date de début :</label>
+                        <input type="date" id="start-date" (change)="applyDateFilter($event)" />
+
+                        <label for=" end-date">Date de fin :</label>
+                        <input type="date" id="end-date" (change)="applyDateFilter($event)" />
+                    </div>
+                </mat-expansion-panel>
+                <mat-expansion-panel expanded class="filter-expansion-panel">
+                    <mat-expansion-panel-header>
+                        <mat-panel-title> Origine du robot </mat-panel-title>
+                    </mat-expansion-panel-header>
+                    <div class="origin-chips">
+                        <span class="chip"
+                            [ngClass]="{ 'active': ads_filter.origin && ads_filter.origin.value.includes('seloger')  }"
+                            (click)="applyOriginFilter('seloger')">Seloger</span>
+                        <span class="chip"
+                            [ngClass]="{ 'active': ads_filter.origin && ads_filter.origin.value.includes('logic-immo')  }"
+                            (click)="applyOriginFilter('logic-immo')">Logicimmo</span>
+                        <span class="chip"
+                            [ngClass]="{ 'active': ads_filter.origin && ads_filter.origin.value.includes('bienici')  }"
+                            (click)="applyOriginFilter('bienici')">Bienici</span>
+                        <span class="chip"
+                            [ngClass]="{ 'active': ads_filter.origin && ads_filter.origin.value.includes('boncoin')  }"
+                            (click)="applyOriginFilter('boncoin')">Boncoin</span>
+                    </div>
+                </mat-expansion-panel>
+                <mat-expansion-panel expanded class="filter-expansion-panel">
+                    <mat-expansion-panel-header>
+                        <mat-panel-title> Catégorie des annonces </mat-panel-title>
+                    </mat-expansion-panel-header>
+                    <div class="origin-chips" style="justify-content: flex-start;">
+                        <span class="chip"
+                            [ngClass]="{ 'active': ads_filter.category && ads_filter.category.value.includes('Appartement')  }"
+                            (click)="applyCategoryFilter('Appartement')">Appartement</span>
+                        <span class="chip"
+                            [ngClass]="{ 'active': ads_filter.category && ads_filter.category.value.includes('Maison')  }"
+                            (click)="applyCategoryFilter('Maison')">Maison</span>
+                        <span class="chip"
+                            [ngClass]="{ 'active': ads_filter.category && ads_filter.category.value.includes('Loft/Atelier')  }"
+                            (click)="applyCategoryFilter('Loft/Atelier')">Loft/Atelier</span>
+                        <span class="chip"
+                            [ngClass]="{ 'active': ads_filter.category && ads_filter.category.value.includes('Villa')  }"
+                            (click)="applyCategoryFilter('Villa')">Villa</span>
+                        <span class="chip"
+                            [ngClass]="{ 'active': ads_filter.category && ads_filter.category.value.includes('Terrain')  }"
+                            (click)="applyCategoryFilter('Terrain')">Terrain</span>
+                        <span class="chip"
+                            [ngClass]="{ 'active': ads_filter.category && ads_filter.category.value.includes('Parking')  }"
+                            (click)="applyCategoryFilter('Parking')">Parking</span>
+                        <span class="chip"
+                            [ngClass]="{ 'active': ads_filter.category && ads_filter.category.value.includes('Bureau')  }"
+                            (click)="applyCategoryFilter('Bureau')">Bureau</span>
+                        <span class="chip"
+                            [ngClass]="{ 'active': ads_filter.category && ads_filter.category.value.includes('Local-Commercial')  }"
+                            (click)="applyCategoryFilter('Local-Commercial')">Local Commercial</span>
+                        <span class="chip"
+                            [ngClass]="{ 'active': ads_filter.category && ads_filter.category.value.includes('Chalet')  }"
+                            (click)="applyCategoryFilter('Chalet')">Chalet</span>
+                        <span class="chip"
+                            [ngClass]="{ 'active': ads_filter.category && ads_filter.category.value.includes('Chateau')  }"
+                            (click)="applyCategoryFilter('Chateau')">Chateau</span>
+                        <span class="chip"
+                            [ngClass]="{ 'active': ads_filter.category && ads_filter.category.value.includes('Autre')  }"
+                            (click)="applyCategoryFilter('Autre')">Autre</span>
+                    </div>
+                </mat-expansion-panel>
+                <mat-expansion-panel class="filter-expansion-panel">
+                    <mat-expansion-panel-header>
+                        <mat-panel-title> filtres personnalisés </mat-panel-title>
+                    </mat-expansion-panel-header>
+                    <div class="range-section">
+                        <label>Prix (€)</label>
+                        <mat-slider min="0" max="1000" step="10" discrete [displayWith]="priceFormat" ngDefaultControl>
+                            <input id="min-price" (change)="applyPriceFilter($event)" matSliderStartThumb>
+                            <input id="max-price" (change)="applyPriceFilter($event)" matSliderEndThumb>
+                        </mat-slider>
+                    </div>
+                    <div class="range-section">
+                        <label>Superficie (m²)</label>
+                        <mat-slider min="0" max="2000" step="100" discrete ngDefaultControl>
+                            <input id="min-surface" (change)="applySurfaceAreaFilter($event)" matSliderStartThumb>
+                            <input id="max-surface" (change)="applySurfaceAreaFilter($event)" matSliderEndThumb>
+                        </mat-slider>
+                    </div>
+                    <div class="range-section">
+                        <label>Chambres</label>
+                        <mat-slider min="1" max="20" step="1" discrete ngDefaultControl>
+                            <input id="min-rooms" (change)="applyRoomsFilter($event)" matSliderStartThumb>
+                            <input id="max-rooms" (change)="applyRoomsFilter($event)" matSliderEndThumb>
+                        </mat-slider>
+                    </div>
+                </mat-expansion-panel>
+                <mat-expansion-panel class="filter-expansion-panel">
+                    <mat-expansion-panel-header>
+                        <mat-panel-title> Localisation des annonces</mat-panel-title>
+                    </mat-expansion-panel-header>
+                    <div class="location-filter">
+                        <mat-radio-group [(ngModel)]="findByCoordinates" ngDefaultControl>
+                            <mat-radio-button [value]="false" class="location-radio">
+                                Rechercher par Ville
+                            </mat-radio-button>
+                            <mat-radio-button [value]="true" class="location-radio">
+                                Rechercher par Emplacement Exact
+                            </mat-radio-button>
+                        </mat-radio-group>
+                        <div *ngIf="!findByCoordinates">
+                            <label for="city">Ville</label>
+                            <input type="text" id="city" placeholder="Entrez la ville" ngDefaultControl>
+
+                            <label for="postcode">Code Postal</label>
+                            <input type="text" id="postcode" placeholder="Entrez le code postal" ngDefaultControl>
+                        </div>
+                        <div *ngIf="findByCoordinates">
+                            <label for="lat">Latitude</label>
+                            <input type="number" id="lat" placeholder="Entrez la latitude" step="any" ngDefaultControl>
+
+                            <label for="lon">Longitude</label>
+                            <input type="number" id="lon" placeholder="Entrez la longitude" step="any" ngDefaultControl>
+
+                            <label for="radius">Rayon (m)</label>
+                            <input type="number" id="radius" placeholder="Entrez le rayon en mètres" step="1"
+                                ngDefaultControl>
+                        </div>
+                    </div>
+                </mat-expansion-panel>
+            </mat-accordion>
+        </div>
+    </div>
+    <div class="ads-list">
+        <table mat-table [dataSource]="dataSource" matSort class="ads-table">
+            <ng-container matColumnDef="title">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header> Titre </th>
+                <td mat-cell *matCellDef="let element"> {{element.title}} </td>
+            </ng-container>
+
+            <ng-container matColumnDef="origin">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header> Origine du robot </th>
+                <td mat-cell *matCellDef="let element"> {{element.origin}} </td>
+            </ng-container>
+            <ng-container matColumnDef="price">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header> Prix (€) </th>
+                <td mat-cell *matCellDef="let element"> {{element.price | currency:'EUR':'symbol'}}
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="surface">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header> Surface (m²) </th>
+                <td mat-cell *matCellDef="let element"> {{element.surface}} </td>
+            </ng-container>
+
+            <ng-container matColumnDef="category">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header> Catégorie </th>
+                <td mat-cell *matCellDef="let element"> {{element.category}} </td>
+            </ng-container>
+
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;" (click)="selectAd(row)"
+                [class.demo-row-is-clicked]="selectedAd === row"></tr>
+        </table>
+        <mat-paginator class="ads-paginator" (page)="pageChange($event)" [pageSizeOptions]="[10]"></mat-paginator>
+    </div>
+    @if(selectedAd) {
+    <div class="selected-ad">
+        <div class="view-toggle">
+            <mat-radio-group [(ngModel)]="viewMode">
+                <mat-radio-button [value]="'interface'">Mode Interface</mat-radio-button>
+                <mat-radio-button [value]="'json'">Mode JSON</mat-radio-button>
+            </mat-radio-group>
+        </div>
+        @if(viewMode === 'interface') {
+        <div *ngIf="viewMode === 'interface'" class="ad-card">
+            <img *ngIf="selectedAd.pictureUrl" [src]="selectedAd.pictureUrl" alt="Ad Image" class="ad-image" />
+            <div class="ad-details">
+                <h3>{{ selectedAd.title || 'Annonce Sans Titre' }}</h3>
+                <p><strong>Id:</strong> {{ selectedAd.adId || 'N/A' }}</p>
+                <p><strong>Référence:</strong> {{ selectedAd.reference || 'N/A' }}</p>
+                <p *ngIf="selectedAd.description"><strong>Description:</strong> {{ selectedAd.description }}</p>
+                <p><strong>Adresse:</strong> {{ selectedAd.location.city }}, {{ selectedAd.location.postalCode }}
+                </p>
+                <p *ngIf="selectedAd.publisher"><strong>Vendeur:</strong> {{ selectedAd.publisher.name }}</p>
+                <p *ngIf="selectedAd.constructionYear"><strong>Année de construction:</strong> {{
+                    selectedAd.constructionYear }}</p>
+                <p *ngIf="selectedAd.floor"><strong>Étage:</strong> {{ selectedAd.floor }} / {{
+                    selectedAd.buildingFloors || 'N/A' }}</p>
+                <p *ngIf="selectedAd.energyGrade"><strong>Énergie:</strong> {{ selectedAd.energyGrade }} ({{
+                    selectedAd.energyValue }} kWh/m².an)</p>
+                <p *ngIf="selectedAd.gasGrade"><strong>Gaz:</strong> {{ selectedAd.gasGrade }} ({{
+                    selectedAd.gasValue
+                    }} kWh/m².an)</p>
+                <p *ngIf="selectedAd.options && selectedAd.options.length"><strong>Options:</strong> {{
+                    selectedAd.options.join(', ') }}</p>
+                <p><strong>Date de Création:</strong> {{ selectedAd.creationDate | date:'dd/MM/yyyy' }}</p>
+                <p><strong>Dernière Vérification:</strong> {{ selectedAd.lastCheckDate | date:'dd/MM/yyyy' }}</p>
+                <p><strong>Téléphone:</strong> {{ selectedAd.phoneNumber || selectedAd.publisher?.phoneNumber ||
+                    'N/A'
+                    }}</p>
+            </div>
+        </div>
+        } @else {
+        <div class="json-view">
+            <pre>{{ selectedAd | json }}</pre>
+        </div>
+        }
+
+    </div>
+    }
+</div>

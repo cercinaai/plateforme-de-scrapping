@@ -11,7 +11,7 @@ export class DataListService {
 
   private http = inject(HttpClient);
 
-  public getAds(params:any) : Observable<Ad_Model[]> {
-    return this.http.get<Ad_Model[]>(`${environment.api_url}/data-provider/ad-list`, {params})
+  public getAds(params: any): Observable<Ad_Model[]> {
+    return this.http.get<Ad_Model[]>(`${environment.api_url}/data-provider/ad-list`, { params })
   }
 }

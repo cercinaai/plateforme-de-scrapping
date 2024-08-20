@@ -131,6 +131,7 @@ $border-color: #444;
                         justify-content: space-around;
                         align-items: center;
                         margin-top: 10px;
+                        flex-wrap: wrap;
 
                         .circle-wrapper {
                             display: flex;
