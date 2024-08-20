@@ -41,13 +41,52 @@ $label-font-size: 16px; // Slightly larger font size
                 border-radius: 3px;
             }
 
+            .filter-buttons {
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 20px;
+                flex-wrap: wrap;
+
+                .filter-button {
+                    display: flex;
+                    align-items: center;
+                    background-color: $highlight-color;
+                    color: $light-text;
+                    border: none;
+                    padding: 10px;
+                    border-radius: 4px;
+                    font-size: 14px;
+                    margin: 3px;
+                    cursor: pointer;
+                    transition: background-color 0.3s ease;
+
+                    &:hover {
+                        background-color: darken($highlight-color, 10%);
+                    }
+
+                    &:focus {
+                        outline: none;
+                    }
+
+                    mat-icon {
+                        margin-right: 5px;
+                    }
+                }
+
+                .clear-button {
+                    background-color: $debit-color;
+
+                    &:hover {
+                        background-color: darken($debit-color, 10%);
+                    }
+                }
+            }
+
             .filter-expansion-panel {
                 background-color: $darker-bg;
                 border-radius: 10px;
                 box-shadow: none;
                 margin-bottom: 10px;
-
-
 
                 mat-expansion-panel-header {
                     background-color: $darker-bg;
@@ -84,6 +123,10 @@ $label-font-size: 16px; // Slightly larger font size
                         &:hover {
                             background-color: $highlight-color;
                         }
+
+                        &.active {
+                            background-color: $highlight-color;
+                        }
                     }
                 }
 
@@ -118,10 +161,112 @@ $label-font-size: 16px; // Slightly larger font size
                         margin-bottom: 10px;
                         width: 100%;
                         font-size: 14px;
+
+                        &::-webkit-calendar-picker-indicator {
+                            filter: invert(1);
+                        }
                     }
                 }
 
-                .location-filter {}
+                .location-filter {
+                    label {
+                        display: block;
+                        color: $light-text;
+                        font-size: $label-font-size;
+                        font-weight: bold;
+                        margin-top: 10px;
+                    }
+
+                    input[type="text"],
+                    input[type="number"] {
+                        background-color: $darker-bg;
+                        border: 1px solid $border-color;
+                        color: $light-text;
+                        padding: 5px;
+                        border-radius: 4px;
+                        margin-bottom: 10px;
+                        width: 100%;
+                        font-size: 14px;
+
+                        &::placeholder {
+                            color: $lighter-text;
+                        }
+
+                        &:focus {
+                            border-color: $highlight-color;
+                            outline: none;
+                        }
+                    }
+
+                    .location-radio {
+                        color: $light-text;
+                        margin-bottom: 10px;
+                        display: block;
+
+                        ::ng-deep label {
+                            color: $light-text;
+                        }
+
+                        .mat-radio-outer-circle {
+                            border-color: $highlight-color;
+                        }
+
+                        .mat-radio-inner-circle {
+                            background-color: $highlight-color;
+                        }
+
+                        .mat-radio-button.mat-accent .mat-radio-ripple .mat-ripple-element {
+                            background-color: $highlight-color;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    .ads-list {
+        width: 40%;
+
+        .ads-table {
+            width: 100%;
+            height: 88%;
+            background-color: $darker-bg;
+            padding: 15px;
+            color: #ccc;
+
+            .mat-mdc-row .mat-mdc-cell {
+                border-bottom: 1px solid transparent;
+                border-top: 1px solid transparent;
+                cursor: pointer;
+            }
+
+            .mat-mdc-row:hover .mat-mdc-cell {
+                border-color: currentColor;
+            }
+
+            .demo-row-is-clicked {
+                background-color: $highlight-color;
+            }
+
+            ::ng-deep th {
+                color: $label-color;
+            }
+
+            ::ng-deep td {
+                color: $light-text;
+            }
+        }
+
+        .ads-paginator {
+            background-color: $darker-bg;
+            padding: 15px;
+
+            ::ng-deep * {
+                color: $light-text;
+            }
+
+            ::ng-deep svg {
+                fill: $light-text;
             }
         }
     }
