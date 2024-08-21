@@ -19,9 +19,9 @@ import { ThrottlerModule } from '@nestjs/throttler';
 
 const configEnv = (): ConfigModuleOptions => {
   if (!process.env.NODE_ENV || process.env.NODE_ENV !== 'production') {
-    return { envFilePath: 'real-estate.env', isGlobal: true, cache: true }
+    return { envFilePath: 'real-estate.env', isGlobal: true, expandVariables: true }
   }
-  return { ignoreEnvFile: true, isGlobal: true, cache: true }
+  return { ignoreEnvFile: true, isGlobal: true }
 }
 
 @Module({
@@ -50,7 +50,7 @@ const configEnv = (): ConfigModuleOptions => {
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
-        uri: configService.get<string>('MONGODB_URI')
+        uri: configService.get<string>('MONGODB_URI'),
       }),
       inject: [ConfigService]
     }),
