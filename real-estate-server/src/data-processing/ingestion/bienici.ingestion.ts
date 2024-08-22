@@ -49,9 +49,9 @@ export class BienIciIngestion {
             type: data.adType,
             category: BienIciCategoryMapping[data.propertyType] || 'Autre',
             publisher: {
-                name: data.userRelativeData.accountIds[0], // Assuming first accountId as the publisher name
+                name: data.contactRelativeData.contactNameToDisplay,
                 storeUrl: data.agencyFeeUrl,
-                phoneNumber: data.phoneDisplays.length ? data.phoneDisplays[0] : '' // Assuming the first phone display if available
+                phoneNumber: data.contactRelativeData.phoneToDisplay // Assuming the first phone display if available
             },
             description: data.description,
             url: data.url,
@@ -68,7 +68,6 @@ export class BienIciIngestion {
                 },
             },
             price: getFirstValidNumber(data.price),
-            originalPrice: 0,
             pricePerSquareMeter: getFirstValidNumber(data.pricePerSquareMeter) || 0,
             rooms: getFirstValidNumber(data.roomsQuantity) || 0,
             bedrooms: data.bedroomsQuantity || 0,
