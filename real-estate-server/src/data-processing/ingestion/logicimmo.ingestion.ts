@@ -60,7 +60,6 @@ export class LogicImmoIngestion {
                 },
             },
             price: data.price,
-            originalPrice: 0,
             pricePerSquareMeter: 0,
             rooms: parseInt(data.nb_rooms) || 0,
             bedrooms: parseInt(data.nb_bedrooms) || 0,

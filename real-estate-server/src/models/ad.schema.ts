@@ -59,9 +59,6 @@ export class Ad {
     price: number;
 
     @Prop()
-    originalPrice: number;
-
-    @Prop()
     pricePerSquareMeter: number;
 
     @Prop()

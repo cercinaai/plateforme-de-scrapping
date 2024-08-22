@@ -71,7 +71,6 @@ export class BoncoinIngestion {
                 },
             },
             price: data.price[0],
-            originalPrice: getValue(data.attributes, 'old_price') || 0,
             pricePerSquareMeter: getValue(data.attributes, 'price_per_square_meter') || 0,
             rooms: parseInt(getValue(data.attributes, 'rooms')) || 0,
             bedrooms: parseInt(getValue(data.attributes, 'bedrooms')) || 0,
