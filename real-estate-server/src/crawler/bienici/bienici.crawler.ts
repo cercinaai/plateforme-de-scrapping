@@ -53,7 +53,7 @@ export class BieniciCrawler {
                 this.dataProcessingService.process([{ ...ad, url: page.url() }], 'bienici-crawler');
                 await job.update({
                     ...job.data,
-                    total_data_grabbed: job.data['total_data_grabbed']++,
+                    total_data_grabbed: job.data['total_data_grabbed'] + 1,
                 })
             }
         });
@@ -81,16 +81,15 @@ export class BieniciCrawler {
 
     protected async listHandler(context: PlaywrightCrawlingContext, env?: 'test' | 'dev' | 'prod') {
         const checkDate = new Date();
-        const { waitForSelector, page, enqueueLinks, closeCookieModals, log } = context;
+        const { waitForSelector, page, enqueueLinks, closeCookieModals } = context;
         await closeCookieModals();
-        await waitForSelector("#searchResults > div > div.resultsListContainer", 5000);
+        await waitForSelector("#searchResults > div > div.resultsListContainer");
         const ads = await this.filterAds(page, checkDate);
         if (!ads || ads.length === 0) {
             this.logger.log("Found ads older than check_date. Stopping the crawler.");
             return;
         }
         const links_urls = await this.extract_links(ads, page);
-        log.info(`Found ${links_urls.length} links to process.`);
         await enqueueLinks({ urls: links_urls, label: 'ad-single-url' });
         if (env && env === 'test') return;
         const nextPageHtml = await page.$("#searchResultsContainer > div.vue-pagination.pagination > div.pagination__nav-buttons > a.pagination__go-forward-button");
@@ -103,7 +102,7 @@ export class BieniciCrawler {
     protected async handleSingleAd(context: PlaywrightCrawlingContext) {
         const { closeCookieModals, waitForSelector } = context;
         await closeCookieModals();
-        await waitForSelector('.section-detailedSheet', 10000);
+        await waitForSelector('.section-detailedSheet');
     }
 
     protected async filterAds(page: Page, checkDate: Date) {
