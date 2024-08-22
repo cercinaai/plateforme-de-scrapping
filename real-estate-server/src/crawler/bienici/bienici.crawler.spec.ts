@@ -4,9 +4,8 @@ import { DataProcessingService } from './../../data-processing/data-processing.s
 import { Job } from 'bull';
 import { Configuration, createPlaywrightRouter, Dictionary, LogLevel, PlaywrightCrawler, PlaywrightCrawlingContext, RouterHandler } from 'crawlee';
 import { bieniciCrawlerOption } from './bienici.config';
-import { test } from '@playwright/test';
 import { HttpModule, HttpService } from '@nestjs/axios';
-import { combineLatest, combineLatestAll, forkJoin, lastValueFrom } from 'rxjs';
+
 class BieniciCrawlerTest extends BieniciCrawler {
     constructor(dataProcessingService: DataProcessingService, protected readonly httpService: HttpService) {
         super(dataProcessingService, httpService);
@@ -80,9 +79,5 @@ describe('BieniciCrawler', () => {
         await bieniciCrawler.parse_links(job as Job);
         done();
     }, 80000);
-
-    // it('should parse single ad', async (done) => {
-
-    // })
 })
 

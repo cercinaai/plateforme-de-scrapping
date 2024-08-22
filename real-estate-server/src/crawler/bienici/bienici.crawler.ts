@@ -83,7 +83,7 @@ export class BieniciCrawler {
         const checkDate = new Date();
         const { waitForSelector, page, enqueueLinks, closeCookieModals } = context;
         await closeCookieModals();
-        await waitForSelector("#searchResults > div > div.resultsListContainer");
+        await waitForSelector("#searchResults > div > div.resultsListContainer", 10000);
         const ads = await this.filterAds(page, checkDate);
         if (!ads || ads.length === 0) {
             this.logger.log("Found ads older than check_date. Stopping the crawler.");
