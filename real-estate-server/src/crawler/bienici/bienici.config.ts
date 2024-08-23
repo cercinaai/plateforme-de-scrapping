@@ -9,15 +9,12 @@ export const bieniciConfig = new Configuration({
         persistStorage: false,
         writeMetadata: false,
     },
-    headless: true
+    headless: true,
 })
 export const bieniciCrawlerOption: PlaywrightCrawlerOptions = {
     launchContext: {
         launcher: chromium.use(stealthPlugin()),
         userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-    },
-    sessionPoolOptions: {
-        blockedStatusCodes: [401, 403, 429],
     },
     browserPoolOptions: {
         useFingerprints: true,
@@ -33,6 +30,8 @@ export const bieniciCrawlerOption: PlaywrightCrawlerOptions = {
     },
     useSessionPool: true,
     persistCookiesPerSession: true,
+    maxConcurrency: 10,
+    maxRequestsPerMinute: 10,
     maxSessionRotations: 10,
     maxRequestRetries: 10,
     retryOnBlocked: true,

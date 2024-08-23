@@ -3,15 +3,17 @@ import { Logger } from "@nestjs/common";
 import { DataProcessingService } from "../../data-processing/data-processing.service";
 import { Job } from "bull";
 import { bieniciConfig, bieniciCrawlerOption } from "./bienici.config";
-import { FinalStatistics, PlaywrightCrawler } from "crawlee";
+import { createPlaywrightRouter, CriticalError, Dictionary, FinalStatistics, PlaywrightCrawler, PlaywrightCrawlingContext, RouterHandler } from "crawlee";
 import { Page } from "playwright";
+import { lastValueFrom } from "rxjs";
+import { HttpService } from "@nestjs/axios";
 
 @Processor('crawler')
 export class BieniciCrawler {
     private readonly logger = new Logger(BieniciCrawler.name);
-    private readonly targetUrl = "https://www.bienici.com/recherche/achat/france/maisonvilla,appartement,parking,terrain,loft,commerce,batiment,chateau,local,bureau,hotel,autres?mode=liste&tri=publication-desc";
+    protected readonly targetUrl = "https://www.bienici.com/recherche/achat/france/maisonvilla,appartement,parking,terrain,loft,commerce,batiment,chateau,local,bureau,hotel,autres?mode=liste&tri=publication-desc";
 
-    constructor(private dataProcessingService: DataProcessingService) { }
+    constructor(protected readonly dataProcessingService: DataProcessingService, protected readonly httpService: HttpService) { }
 
     @Process('bienici-crawler')
     async start(job: Job) {
@@ -20,8 +22,7 @@ export class BieniciCrawler {
             total_data_grabbed: 0,
             attempts_count: 0
         })
-        const checkDate = new Date();
-        const crawler = this.createCrawler(job, checkDate);
+        const crawler = this.createCrawler(job);
         const stats = await crawler.run([this.targetUrl]);
         await crawler.teardown();
         if (job.data['status'] && job.data['status'] === 'failed') {
@@ -31,18 +32,32 @@ export class BieniciCrawler {
         }
     }
 
-    private createCrawler(job: Job, checkDate: Date) {
+    protected createCrawler(job: Job) {
         return new PlaywrightCrawler({
             ...bieniciCrawlerOption,
-            preNavigationHooks: [this.preNavigationHook.bind(this)],
+            preNavigationHooks: [async (context) => await this.preNavigationHook(context, job)],
             postNavigationHooks: [this.postNavigationHook.bind(this)],
-            requestHandler: this.createRequestHandler(checkDate, job).bind(this),
+            requestHandler: this.createRequestHandler(),
             failedRequestHandler: this.handleFailedRequest.bind(this, job)
         }, bieniciConfig);
     }
 
-    private async preNavigationHook({ page }: { page: Page }) {
-        await page.route('https://www.bienici.com/realEstateAds**', async (route) => {
+    protected async preNavigationHook(context: PlaywrightCrawlingContext, job: Job) {
+        const { page } = context;
+        await page.route('https://www.bienici.com/realEstateAd.json?id=**', async (route) => {
+            const res = await route.fetch();
+            const body = await res.json();
+            const ad = body || null;
+            if (ad) {
+                await route.continue();
+                this.dataProcessingService.process([{ ...ad, url: page.url() }], 'bienici-crawler');
+                await job.update({
+                    ...job.data,
+                    total_data_grabbed: job.data['total_data_grabbed'] + 1,
+                })
+            }
+        });
+        await page.route('https://www.bienici.com/realEstateAds.json?filters=**', async (route) => {
             const res = await route.fetch();
             const body = await res.json();
             const ads = body.realEstateAds || [];
@@ -53,30 +68,44 @@ export class BieniciCrawler {
         });
     }
 
-    private async postNavigationHook({ page }: { page: Page }) {
+    protected async postNavigationHook({ page }: PlaywrightCrawlingContext) {
         await page.unrouteAll({ behavior: 'ignoreErrors' });
     }
 
-    private createRequestHandler(checkDate: Date, job: Job) {
-        return async ({ waitForSelector, page, enqueueLinks, log, closeCookieModals }: any) => {
-            await closeCookieModals();
-            await waitForSelector("#searchResults > div > div.resultsListContainer");
-            const ads = await this.filterAds(page, checkDate);
-            if (!ads || ads.length === 0) {
-                this.logger.log("Found ads older than check_date. Stopping the crawler.");
-                return;
-            }
-            const formattedAds = await this.formatAds(ads, page);
-            await this.dataProcessingService.process(formattedAds, 'bienici-crawler');
-            await job.update({
-                ...job.data,
-                total_data_grabbed: formattedAds.length + job.data['total_data_grabbed'],
-            })
-            await this.handlePagination(page, enqueueLinks, log);
-        };
+    protected createRequestHandler(): RouterHandler<PlaywrightCrawlingContext<Dictionary>> {
+        const router = createPlaywrightRouter();
+        router.addDefaultHandler(async (context) => await this.listHandler(context));
+        router.addHandler('ad-single-url', async (context) => await this.handleSingleAd(context));
+        return router
     }
 
-    private async filterAds(page: Page, checkDate: Date) {
+    protected async listHandler(context: PlaywrightCrawlingContext, env?: 'test' | 'dev' | 'prod') {
+        const checkDate = new Date();
+        const { waitForSelector, page, enqueueLinks, closeCookieModals } = context;
+        await closeCookieModals();
+        await waitForSelector("#searchResults > div > div.resultsListContainer", 10000);
+        const ads = await this.filterAds(page, checkDate);
+        if (!ads || ads.length === 0) {
+            this.logger.log("Found ads older than check_date. Stopping the crawler.");
+            return;
+        }
+        const links_urls = await this.extract_links(ads, page);
+        await enqueueLinks({ urls: links_urls, label: 'ad-single-url' });
+        if (env && env === 'test') return;
+        const nextPageHtml = await page.$("#searchResultsContainer > div.vue-pagination.pagination > div.pagination__nav-buttons > a.pagination__go-forward-button");
+        const nextPage = await nextPageHtml?.getAttribute('href');
+        if (nextPage) {
+            await enqueueLinks({ urls: [`https://www.bienici.com${nextPage}`] });
+        }
+    }
+
+    protected async handleSingleAd(context: PlaywrightCrawlingContext) {
+        const { closeCookieModals, waitForSelector } = context;
+        await closeCookieModals();
+        await waitForSelector('.section-detailedSheet');
+    }
+
+    protected async filterAds(page: Page, checkDate: Date) {
         const ads = await page.evaluate(() => window['crawled_ads']);
         if (!ads || ads.length === 0) return [];
         const previousDay = new Date(checkDate);
@@ -87,33 +116,22 @@ export class BieniciCrawler {
         });
     }
 
-    private isSameDay(date1: Date, date2: Date) {
+    protected isSameDay(date1: Date, date2: Date) {
         return date1.getUTCFullYear() === date2.getUTCFullYear() &&
             date1.getUTCMonth() === date2.getUTCMonth() &&
             date1.getUTCDate() === date2.getUTCDate();
     }
 
-    private async formatAds(ads: any[], page: Page): Promise<any[]> {
+    protected async extract_links(ads: any[], page: Page): Promise<string[]> {
         const baseUrl = 'https://www.bienici.com';
         return Promise.all(ads.map(async (ad: any) => {
             const adLinkHtml = await page.$(`article[data-id="${ad.id}"]  a`);
             const adLink = await adLinkHtml?.getAttribute('href');
-            return { ...ad, url: adLink ? `${baseUrl}${adLink}` : '' };
+            return adLink ? `${baseUrl}${adLink}` : ''
         }));
     }
 
-    private async handlePagination(page: Page, enqueueLinks: any, log: any) {
-        const nextPageHtml = await page.$("#searchResultsContainer > div.vue-pagination.pagination > div.pagination__nav-buttons > a.pagination__go-forward-button");
-        const nextPage = await nextPageHtml?.getAttribute('href');
-        log.info(nextPage || "NO NEXT PAGE");
-        if (nextPage) {
-            await enqueueLinks({ urls: [`https://www.bienici.com${nextPage}`], label: 'next_page' });
-        }
-    }
-
-
-
-    private async handleFailedRequest(job: Job, { request, proxyInfo }: any, error: Error) {
+    protected async handleFailedRequest(job: Job, { request, proxyInfo }: any, error: Error) {
         await job.update({
             ...job.data,
             job_id: job.id.toString(),
@@ -127,7 +145,7 @@ export class BieniciCrawler {
         });
     }
 
-    private async handleFailure(job: Job, stats: FinalStatistics) {
+    protected async handleFailure(job: Job, stats: FinalStatistics) {
         await job.update({
             ...job.data,
             total_request: stats.requestsTotal,
@@ -137,7 +155,7 @@ export class BieniciCrawler {
         await job.moveToFailed(job.data['failedReason'], false);
     }
 
-    private async handleSuccess(job: Job, stats: FinalStatistics) {
+    protected async handleSuccess(job: Job, stats: FinalStatistics) {
         await job.update({
             ...job.data,
             success_date: new Date(),
