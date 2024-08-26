@@ -16,7 +16,7 @@ export class LogicImmoCrawler {
     private readonly logger = new Logger(LogicImmoCrawler.name);
     private readonly LIMIT_PAGE = 10;
 
-    constructor(private dataProcessingService: DataProcessingService, @InjectModel(Ad.name) private adModel: Model<Ad>) { }
+    constructor(protected dataProcessingService: DataProcessingService, @InjectModel(Ad.name) protected adModel: Model<Ad>) { }
 
     @Process({ name: 'logicimmo-crawler' })
     async start(job: Job) {

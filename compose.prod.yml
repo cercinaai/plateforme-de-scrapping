@@ -28,8 +28,7 @@ services:
 
   backend:
     image: $SERVER_IMAGE:latest
-    container_name: backend-container
-    entrypoint: ["npm","run","start:prod"]
+    container_name: real-estate-server-container
     restart: on-failure
     expose:
       - 3000
