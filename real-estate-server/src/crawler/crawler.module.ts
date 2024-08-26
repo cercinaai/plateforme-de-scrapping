@@ -20,10 +20,6 @@ import { HttpModule } from '@nestjs/axios';
     imports: [
         BullModule.registerQueue({
             name: 'crawler',
-            limiter: {
-                max: 2,
-                duration: 50000,
-            },
         }),
         BullBoardModule.forFeature({
             name: 'crawler',
