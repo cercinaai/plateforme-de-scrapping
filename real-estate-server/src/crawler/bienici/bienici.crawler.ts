@@ -2,10 +2,10 @@ import { Process, Processor } from "@nestjs/bull";
 import { Logger } from "@nestjs/common";
 import { DataProcessingService } from "../../data-processing/data-processing.service";
 import { Job } from "bull";
-import { bieniciConfig, bieniciCrawlerOption } from "./bienici.config";
-import { createPlaywrightRouter, CriticalError, Dictionary, FinalStatistics, PlaywrightCrawler, PlaywrightCrawlingContext, RouterHandler } from "crawlee";
+import { bieniciConfig } from "./../../config/crawler.config";
+import { bieniciCrawlerOption } from './../../config/playwright.config';
+import { createPlaywrightRouter, Dictionary, FinalStatistics, PlaywrightCrawler, PlaywrightCrawlingContext, RouterHandler } from "crawlee";
 import { Page } from "playwright";
-import { lastValueFrom } from "rxjs";
 import { HttpService } from "@nestjs/axios";
 
 @Processor('crawler')

@@ -6,14 +6,15 @@ import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { Ad } from "../../models/ad.schema";
 import { DataProcessingService } from "../../data-processing/data-processing.service";
-import { logicimmoConfig, logicimmoCrawlerOption } from "./logicimmo.config";
+import { logicimmoConfig } from "../../config/crawler.config";
+import { logicimmoCrawlerOption } from "../../config/playwright.config";
 import { Page } from "playwright";
 
 @Processor({ name: 'crawler', scope: Scope.DEFAULT })
 export class LogicImmoCrawler {
 
     private readonly logger = new Logger(LogicImmoCrawler.name);
-    private readonly LIMIT_PAGE = 3;
+    private readonly LIMIT_PAGE = 10;
 
     constructor(private dataProcessingService: DataProcessingService, @InjectModel(Ad.name) private adModel: Model<Ad>) { }
 

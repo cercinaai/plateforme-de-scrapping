@@ -4,7 +4,8 @@ import { DataProcessingService } from "../../data-processing/data-processing.ser
 import { Job } from "bull";
 import { Cookie, CrawlingContext, Dictionary, FinalStatistics, PlaywrightCrawler, PlaywrightCrawlingContext, ProxyConfiguration, ProxyInfo, Request, RequestQueue, Session } from "crawlee";
 import { Page } from "playwright";
-import { selogerConfig, selogerCrawlerOptions } from "./seloger.config";
+import { selogerConfig } from "../../config/crawler.config";
+import { selogerCrawlerOptions } from "../../config/playwright.config";
 import { ProxyService } from "../proxy.service";
 import { ConfigService } from "@nestjs/config";
 import { InjectModel } from "@nestjs/mongoose";
