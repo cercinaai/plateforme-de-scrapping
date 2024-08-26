@@ -23,6 +23,7 @@ export const boncoinCrawlerOption: PlaywrightCrawlerOptions = {
     persistCookiesPerSession: true,
     maxSessionRotations: 10,
     maxRequestRetries: 10,
+    sameDomainDelaySecs: 5,
     retryOnBlocked: true,
 }
 
@@ -68,12 +69,12 @@ export const bieniciCrawlerOption: PlaywrightCrawlerOptions = {
             }
         }
     },
+    maxConcurrency: 1,
     useSessionPool: true,
     persistCookiesPerSession: true,
-    maxConcurrency: 2,
-    maxRequestsPerMinute: 10,
     maxSessionRotations: 10,
     maxRequestRetries: 10,
+    sameDomainDelaySecs: 5,
     retryOnBlocked: true,
 }
 
@@ -98,5 +99,6 @@ export const logicimmoCrawlerOption: PlaywrightCrawlerOptions = {
     persistCookiesPerSession: true,
     maxSessionRotations: 10,
     maxRequestRetries: 10,
+    sameDomainDelaySecs: 5,
     retryOnBlocked: true,
 }
