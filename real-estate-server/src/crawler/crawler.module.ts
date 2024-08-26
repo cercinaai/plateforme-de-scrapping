@@ -22,7 +22,8 @@ import { HttpModule } from '@nestjs/axios';
             name: 'crawler',
             limiter: {
                 max: 2,
-                duration: 50000
+                duration: 50000,
+                bounceBack: true
             },
         }),
         BullBoardModule.forFeature({
