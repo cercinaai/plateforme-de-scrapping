@@ -35,7 +35,7 @@ const configEnv = (): ConfigModuleOptions => {
         redis: {
           host: configService.get<string>('REDIS_HOST'),
           port: configService.get<number>('REDIS_PORT')
-        }
+        },
       }),
       inject: [ConfigService]
     }),
