@@ -17,29 +17,38 @@ export class BieniciCrawler {
 
     @Process({ name: 'bienici-crawler' })
     async start(job: Job) {
-        await job.update({
-            ...job.data,
-            total_data_grabbed: 0,
-            attempts_count: 0
-        })
-        this.logger.log(`Starting Crawler BienIci`);
+        await this.initialize(job);
+        const stats = await this.crawl(job);
+        if (job.data['status'] && job.data['status'] === 'failed' || stats.requestsTotal === 0) {
+            await this.handleFailure(job, stats);
+            return;
+        }
+        await this.handleSuccess(job, stats);
+    }
+
+    protected async crawl(job: Job): Promise<FinalStatistics> {
         const crawler = this.createCrawler(job);
         const stats = await crawler.run([this.targetUrl]);
         await crawler.teardown();
-        if (job.data['status'] && job.data['status'] === 'failed' || stats.requestsFailed > 0 || stats.requestsTotal === 0) {
-            await this.handleFailure(job, stats);
-        } else {
-            await this.handleSuccess(job, stats);
-        }
+        return stats
+    }
+
+    protected async initialize(job: Job) {
+        await job.update({
+            crawler_origin: 'bienici',
+            status: 'running',
+            total_data_grabbed: 0,
+            attempts_count: 0
+        })
     }
 
     protected createCrawler(job: Job) {
         return new PlaywrightCrawler({
             ...bieniciCrawlerOption,
             preNavigationHooks: [async (context) => await this.preNavigationHook(context, job)],
-            postNavigationHooks: [this.postNavigationHook.bind(this)],
+            postNavigationHooks: [async (context) => await this.postNavigationHook(context)],
             requestHandler: this.createRequestHandler(),
-            failedRequestHandler: this.handleFailedRequest.bind(this, job)
+            failedRequestHandler: (context, error) => this.handleFailedRequest(job, context, error)
         }, bieniciConfig);
     }
 
@@ -112,7 +121,7 @@ export class BieniciCrawler {
         const previousDay = new Date(checkDate);
         previousDay.setDate(checkDate.getDate() - 1);
         return ads.filter((ad: any) => {
-            const adDate = new Date(ad.publicationDate);
+            const adDate = new Date(ad.modificationDate);
             return this.isSameDay(adDate, checkDate) || this.isSameDay(adDate, previousDay);
         });
     }
@@ -135,9 +144,7 @@ export class BieniciCrawler {
     protected async handleFailedRequest(job: Job, { request, proxyInfo }: any, error: Error) {
         await job.update({
             ...job.data,
-            job_id: job.id.toString(),
             error_date: new Date(),
-            crawler_origin: 'bienici',
             status: 'failed',
             attempts_count: job.data['attempts_count'] + 1,
             failedReason: request.errorMessages?.slice(-1)[0] || error.message || 'Unknown error',
@@ -147,13 +154,30 @@ export class BieniciCrawler {
     }
 
     protected async handleFailure(job: Job, stats: FinalStatistics) {
-        await job.update({
-            ...job.data,
-            total_request: stats.requestsTotal,
-            success_requests: stats.requestsFinished,
-            failed_requests: stats.requestsFailed,
-        });
-        await job.moveToFailed(job.data['failedReason'], false);
+        if (job.data['status'] && job.data['status'] === 'failed') {
+            await job.update({
+                ...job.data,
+                total_request: stats.requestsTotal,
+                success_requests: stats.requestsFinished,
+                failed_requests: stats.requestsFailed,
+            })
+            await job.moveToFailed(job.data['failedReason']);
+            return;
+        }
+        if (stats.requestsTotal === 0) {
+            await job.update({
+                ...job.data,
+                error_date: new Date(),
+                status: 'failed',
+                total_request: stats.requestsTotal,
+                attempts_count: job.data['attempts_count'] + 1,
+                failed_requests: stats.requestsFailed,
+                failed_request_url: 'N/A',
+                proxy_used: 'N/A',
+                failedReason: 'Crawler did not start as expected'
+            })
+            await job.moveToFailed(job.data['failedReason']);
+        }
     }
 
     protected async handleSuccess(job: Job, stats: FinalStatistics) {

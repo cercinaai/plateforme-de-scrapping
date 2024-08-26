@@ -2,6 +2,7 @@ import { Configuration, LogLevel } from "crawlee";
 
 export const boncoinConfig = new Configuration({
     logLevel: LogLevel.INFO,
+    purgeOnStart: true,
     persistStorage: false,
     storageClientOptions: {
         persistStorage: false,
@@ -11,6 +12,7 @@ export const boncoinConfig = new Configuration({
 })
 export const selogerConfig = new Configuration({
     logLevel: LogLevel.INFO,
+    purgeOnStart: true,
     persistStorage: false,
     storageClientOptions: {
         persistStorage: false,
@@ -21,6 +23,7 @@ export const selogerConfig = new Configuration({
 })
 export const bieniciConfig = new Configuration({
     logLevel: LogLevel.INFO,
+    purgeOnStart: true,
     persistStorage: false,
     storageClientOptions: {
         persistStorage: false,
@@ -30,6 +33,7 @@ export const bieniciConfig = new Configuration({
 })
 export const logicimmoConfig = new Configuration({
     logLevel: LogLevel.INFO,
+    purgeOnStart: true,
     persistStorage: false,
     storageClientOptions: {
         persistStorage: false,

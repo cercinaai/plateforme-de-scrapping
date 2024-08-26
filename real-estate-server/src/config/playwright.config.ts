@@ -69,7 +69,7 @@ export const bieniciCrawlerOption: PlaywrightCrawlerOptions = {
             }
         }
     },
-    maxConcurrency: 1,
+    maxConcurrency: 5,
     useSessionPool: true,
     persistCookiesPerSession: true,
     maxSessionRotations: 10,
