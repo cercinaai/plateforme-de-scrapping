@@ -11,7 +11,7 @@ import { HttpService } from '@nestjs/axios';
 import { Page } from 'playwright';
 import { createCursor } from '@avilabs/ghost-cursor-playwright';
 
-@Processor({ name: 'crawler', scope: Scope.DEFAULT })
+@Processor('crawler')
 export class BoncoinCrawler {
     private readonly logger = new Logger(BoncoinCrawler.name);
     private readonly target_url: string = 'https://www.leboncoin.fr/recherche?category=9&owner_type=pro';

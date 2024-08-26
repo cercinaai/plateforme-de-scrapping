@@ -1,8 +1,8 @@
 import { Process, Processor } from "@nestjs/bull";
-import { Logger, Scope } from "@nestjs/common";
+import { Logger } from "@nestjs/common";
 import { DataProcessingService } from "../../data-processing/data-processing.service";
 import { Job } from "bull";
-import { Cookie, CrawlingContext, Dictionary, FinalStatistics, PlaywrightCrawler, PlaywrightCrawlingContext, ProxyConfiguration, ProxyInfo, Request, RequestQueue, Session } from "crawlee";
+import { Cookie, Dictionary, FinalStatistics, PlaywrightCrawler, PlaywrightCrawlingContext, ProxyConfiguration, ProxyInfo, Request, RequestQueue, Session } from "crawlee";
 import { Page } from "playwright";
 import { selogerConfig } from "../../config/crawler.config";
 import { selogerCrawlerOptions } from "../../config/playwright.config";
@@ -14,7 +14,7 @@ import { Model } from "mongoose";
 import { HttpService } from "@nestjs/axios";
 import { createCursor } from '@avilabs/ghost-cursor-playwright';
 
-@Processor({ name: 'crawler', scope: Scope.DEFAULT })
+@Processor('crawler')
 export class SelogerCrawler {
     private readonly logger = new Logger(SelogerCrawler.name);
     private readonly targetUrl = 'https://www.seloger.com/list.htm?projects=2,5&types=2,4,1,13,9,3,14,12,11,10&natures=1,2,4&sort=d_dt_crea&mandatorycommodities=0&privateseller=0&enterprise=0&houseboat=1&qsVersion=1.0&m=search_refine-redirection-search_results';

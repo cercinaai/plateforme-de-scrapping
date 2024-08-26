@@ -1,13 +1,27 @@
-FROM node:22.5.1-bookworm
+FROM apify/actor-node-playwright-chrome:22-1.45.2 AS builder
 
-WORKDIR /usr/src/app
 
-COPY package*.json ./
+COPY --chown=myuser package*.json ./
 
-RUN npm install
+RUN npm install --include=dev --audit=false
 
-RUN npx -y playwright@1.45.2 install --with-deps
-
-COPY . .
+COPY --chown=myuser . ./
 
 RUN npm run build
+
+FROM apify/actor-node-playwright-chrome:22-1.45.2
+
+COPY --from=builder --chown=myuser /home/myuser/dist ./dist
+
+COPY --chown=myuser package*.json ./
+
+RUN npm --quiet set progress=false \
+    && npm install --omit=dev --omit=optional \
+    && echo "Installed NPM packages:" \
+    && (npm list --omit=dev --all || true) \
+    && echo "Node.js version:" \
+    && node --version \
+    && echo "NPM version:" \
+    && npm --version
+
+COPY --chown=myuser . ./

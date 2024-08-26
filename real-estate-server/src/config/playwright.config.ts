@@ -47,6 +47,7 @@ export const selogerCrawlerOptions: PlaywrightCrawlerOptions = {
     persistCookiesPerSession: true,
     maxSessionRotations: 10,
     maxRequestRetries: 10,
+    sameDomainDelaySecs: 5,
     retryOnBlocked: true,
 }
 
@@ -80,9 +81,6 @@ export const logicimmoCrawlerOption: PlaywrightCrawlerOptions = {
     launchContext: {
         launcher: chromium.use(stealthPlugin()),
         userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-    },
-    sessionPoolOptions: {
-        blockedStatusCodes: [401, 403, 429],
     },
     browserPoolOptions: {
         useFingerprints: true,

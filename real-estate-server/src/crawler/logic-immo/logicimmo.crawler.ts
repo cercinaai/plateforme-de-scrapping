@@ -1,5 +1,5 @@
 import { Process, Processor } from "@nestjs/bull";
-import { Logger, Scope } from "@nestjs/common";
+import { Logger } from "@nestjs/common";
 import { Job } from "bull";
 import { PlaywrightCrawler, FinalStatistics } from "crawlee";
 import { InjectModel } from "@nestjs/mongoose";
@@ -10,7 +10,7 @@ import { logicimmoConfig } from "../../config/crawler.config";
 import { logicimmoCrawlerOption } from "../../config/playwright.config";
 import { Page } from "playwright";
 
-@Processor({ name: 'crawler', scope: Scope.DEFAULT })
+@Processor('crawler')
 export class LogicImmoCrawler {
 
     private readonly logger = new Logger(LogicImmoCrawler.name);

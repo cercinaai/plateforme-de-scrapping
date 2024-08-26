@@ -3,7 +3,7 @@ import { BieniciCrawler } from './bienici.crawler';
 import { DataProcessingService } from './../../data-processing/data-processing.service';
 import { Job } from 'bull';
 import { Configuration, createPlaywrightRouter, Dictionary, LogLevel, PlaywrightCrawler, PlaywrightCrawlingContext, RouterHandler } from 'crawlee';
-import { bieniciCrawlerOption } from './bienici.config';
+import { bieniciCrawlerOption } from '../../config/playwright.config';
 import { HttpModule, HttpService } from '@nestjs/axios';
 
 class BieniciCrawlerTest extends BieniciCrawler {
