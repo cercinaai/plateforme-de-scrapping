@@ -22,10 +22,11 @@ export class BieniciCrawler {
             total_data_grabbed: 0,
             attempts_count: 0
         })
+        this.logger.log(`Starting Crawler BienIci`);
         const crawler = this.createCrawler(job);
         const stats = await crawler.run([this.targetUrl]);
         await crawler.teardown();
-        if (job.data['status'] && job.data['status'] === 'failed') {
+        if (job.data['status'] && job.data['status'] === 'failed' || stats.requestsFailed > 0 || stats.requestsTotal === 0) {
             await this.handleFailure(job, stats);
         } else {
             await this.handleSuccess(job, stats);

@@ -96,17 +96,17 @@ export class LogicImmoCrawler {
             }
 
         }, logicimmoConfig);
-
+        this.logger.log(`Starting Crawler Logic-Immo`);
         let stat: FinalStatistics = await crawler.run([`https://www.logic-immo.com/vente-immobilier-${france_localities[localite_index]}/options/groupprptypesids=1,2,6,7,12,3,18,4,5,14,13,11,10,9,8/searchoptions=0,1,3/page=${list_page}/order=update_date_desc`]);
         await crawler.teardown();
-        if (job.data['status'] === 'failed') {
+        if (job.data['status'] === 'failed' || stat.requestsFailed > 0 || stat.requestsTotal === 0) {
             await job.update({
                 ...job.data,
                 total_request: stat.requestsTotal,
                 success_requests: stat.requestsFinished,
                 failed_requests: stat.requestsFailed,
             });
-            await job.moveToFailed(job.data['failedReason'], false);
+            await job.moveToFailed(job.data['failedReason'] || 'Unknown error', false);
             return;
         }
         await job.update({

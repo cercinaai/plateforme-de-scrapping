@@ -36,6 +36,7 @@ export class SelogerCrawler {
             PAGE_REACHED: 1
         });
         const crawler = await this.configureCrawler(job);
+        this.logger.log(`Starting Crawler Seloger`);
         const stats = await crawler.run([this.targetUrl]);
         await this.handleCrawlerCompletion(job, stats);
         await crawler.requestQueue.drop();
@@ -190,7 +191,7 @@ export class SelogerCrawler {
     }
 
     private async handleCrawlerCompletion(job: Job, stats: FinalStatistics) {
-        if (job.data['status'] === 'failed') {
+        if (job.data['status'] === 'failed' || stats.requestsFailed > 0 || stats.requestsTotal === 0) {
             job.update({
                 ...job.data,
                 total_request: stats.requestsTotal,

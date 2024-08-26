@@ -25,15 +25,16 @@ export class BoncoinCrawler {
             total_data_grabbed: 0,
             attempts_count: 0
         });
-        const captcha_stat = await this.runCrawler(job, this.target_url);
-        if (!this.isJobFailed(job)) {
-            await this.updateJobSuccess(job, captcha_stat);
+        const stat = await this.runCrawler(job, this.target_url);
+        if (!this.isJobFailed(job, stat)) {
+            await this.updateJobSuccess(job, stat);
             return;
         }
-        await this.updateJobFailure(job, captcha_stat)
+        await this.updateJobFailure(job, stat)
     }
     private async runCrawler(job: Job, url: string = this.target_url): Promise<FinalStatistics> {
         const crawler = await this._configure_crawler_captcha(job);
+        this.logger.log(`Starting Crawler Boncoin`);
         const stat: FinalStatistics = await crawler.run([url]);
         await crawler.requestQueue.drop();
         await crawler.teardown();
@@ -177,8 +178,8 @@ export class BoncoinCrawler {
         }
         return captchaUrl;
     }
-    private isJobFailed(job: Job): boolean {
-        return job.data['status'] && job.data['status'] === 'failed';
+    private isJobFailed(job: Job, stat: FinalStatistics): boolean {
+        return (job.data['status'] && job.data['status'] === 'failed') || stat.requestsFailed > 0 || stat.requestsTotal === 0;
     }
 
     private async updateJobSuccess(job: Job, ...stats: FinalStatistics[]) {

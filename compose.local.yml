@@ -23,7 +23,6 @@ services:
   backend:
     build: ./real-estate-server
     container_name: real-estate-server-container
-    entrypoint: ["npm","run","start:prod"]
     env_file:
       - ./real-estate-server/real-estate.env
     expose:
