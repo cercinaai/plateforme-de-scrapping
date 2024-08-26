@@ -23,7 +23,6 @@ import { HttpModule } from '@nestjs/axios';
             limiter: {
                 max: 2,
                 duration: 50000,
-                bounceBack: true
             },
         }),
         BullBoardModule.forFeature({
