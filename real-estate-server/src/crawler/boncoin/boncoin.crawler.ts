@@ -18,7 +18,7 @@ export class BoncoinCrawler {
 
     constructor(private dataProcessingService: DataProcessingService, private proxyService: ProxyService, private configService: ConfigService, private httpClient: HttpService) { }
 
-    @Process('boncoin-crawler')
+    @Process({ name: 'boncoin-crawler' })
     async full_data_crawler(job: Job) {
         await job.update({
             ...job.data,
