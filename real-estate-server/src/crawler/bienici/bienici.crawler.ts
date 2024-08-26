@@ -47,7 +47,7 @@ export class BieniciCrawler {
             ...bieniciCrawlerOption,
             preNavigationHooks: [async (context) => await this.preNavigationHook(context, job)],
             postNavigationHooks: [async (context) => await this.postNavigationHook(context)],
-            errorHandler: (error) => this.logger.error(error),
+            errorHandler: (_, error) => this.logger.error(error),
             requestHandler: this.createRequestHandler(),
             failedRequestHandler: (context, error) => this.handleFailedRequest(job, context, error)
         }, bieniciConfig);

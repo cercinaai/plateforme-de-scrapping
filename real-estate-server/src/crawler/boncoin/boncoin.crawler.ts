@@ -34,7 +34,6 @@ export class BoncoinCrawler {
     }
     private async runCrawler(job: Job, url: string = this.target_url): Promise<FinalStatistics> {
         const crawler = await this._configure_crawler_captcha(job);
-        this.logger.log(`Starting Crawler Boncoin`);
         const stat: FinalStatistics = await crawler.run([url]);
         await crawler.requestQueue.drop();
         await crawler.teardown();
