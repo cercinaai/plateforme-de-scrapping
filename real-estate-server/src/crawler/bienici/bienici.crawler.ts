@@ -15,7 +15,7 @@ export class BieniciCrawler {
 
     constructor(protected readonly dataProcessingService: DataProcessingService, protected readonly httpService: HttpService) { }
 
-    @Process('bienici-crawler')
+    @Process({ name: 'bienici-crawler' })
     async start(job: Job) {
         await job.update({
             ...job.data,

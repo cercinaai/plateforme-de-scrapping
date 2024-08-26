@@ -18,7 +18,7 @@ export class LogicImmoCrawler {
 
     constructor(private dataProcessingService: DataProcessingService, @InjectModel(Ad.name) private adModel: Model<Ad>) { }
 
-    @Process('logicimmo-crawler')
+    @Process({ name: 'logicimmo-crawler' })
     async start(job: Job) {
         let localite_index = 0;
         let list_page = 1;

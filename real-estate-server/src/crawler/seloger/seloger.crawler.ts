@@ -27,7 +27,7 @@ export class SelogerCrawler {
         @InjectModel(Ad.name) private readonly adModel: Model<Ad>
     ) { }
 
-    @Process('seloger-crawler')
+    @Process({ name: 'seloger-crawler' })
     async full_data_crawler(job: Job) {
         await job.update({
             ...job.data,
