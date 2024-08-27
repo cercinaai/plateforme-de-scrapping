@@ -95,6 +95,7 @@ export const logicimmoCrawlerOption: PlaywrightCrawlerOptions = {
             }
         }
     },
+    maxConcurrency: 5,
     useSessionPool: true,
     persistCookiesPerSession: true,
     maxSessionRotations: 10,
