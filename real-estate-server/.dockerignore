@@ -1,4 +1,8 @@
+**/node_modules/
+**/dist
+.git
 npm-debug.log
-yarn.lock
-node_modules
-.gitignore
+.coverage
+.coverage.*
+.env
+.aws

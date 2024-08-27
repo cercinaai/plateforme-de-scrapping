@@ -37,18 +37,18 @@ export class LogicImmoIngestion {
             reference: data.client_id || '',
             creationDate: new Date(),
             lastCheckDate: new Date(),
-            title: data.title || data.name || '',
+            title: data.title || '',
             type: data.type_use || '',
             category: logicImmoCategoryMapping[data.estate_type] || "Autre",
             publisher: {
                 name: data.agencyName,
                 storeUrl: data.agencyUrl,
-                phoneNumber: ''
+                phoneNumber: data.agencyPhoneNumber
             },
             description: data.description || '',
             url: `https://www.logic-immo.com/detail-vente-${data.id}.htm`,
             pictureUrl: data.pictureUrl || '',
-            pictureUrls: [],
+            pictureUrls: data.pictureUrls || [],
             location: {
                 city: data.city || '',
                 postalCode: data.zip_code,
@@ -60,7 +60,6 @@ export class LogicImmoIngestion {
                 },
             },
             price: data.price,
-            pricePerSquareMeter: 0,
             rooms: parseInt(data.nb_rooms) || 0,
             bedrooms: parseInt(data.nb_bedrooms) || 0,
             surface: parseFloat(data.indoor_surface) || 0,
@@ -68,11 +67,10 @@ export class LogicImmoIngestion {
             floor: null,
             buildingFloors: null,
             energyGrade: data.energy_certificate || '',
-            gasGrade: '',
+            gasGrade: data.gas_certificate || '',
             options: [],
             history: [],
             duplicates: [],
-            phoneNumber: '',
         };
     }
 
