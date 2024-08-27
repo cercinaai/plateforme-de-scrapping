@@ -59,15 +59,6 @@ export class Ad {
     price: number;
 
     @Prop()
-    pricePerSquareMeter: number;
-
-    @Prop()
-    propertyCharges: number;
-
-    @Prop()
-    propertyTax: number;
-
-    @Prop()
     rooms: number;
 
     @Prop()
@@ -109,8 +100,6 @@ export class Ad {
     @Prop([DuplicateSchema])
     duplicates: Duplicate[];
 
-    @Prop()
-    phoneNumber: string;
 }
 
 export const AdSchema = SchemaFactory.createForClass(Ad);

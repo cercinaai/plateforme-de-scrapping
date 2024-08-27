@@ -65,7 +65,6 @@ export class SelogerIngestion {
                 }
             },
             price: data.pricing.rawPrice ? parseFloat(data.pricing.rawPrice) : missingFields.push("price"),
-            pricePerSquareMeter: data.pricing.squareMeterPrice ? parseFloat(data.pricing.squareMeterPrice.replace(' €', '').replace(' ', '')) : null,
             rooms: data.rooms || 0,
             bedrooms: data.bedroomCount || 0,
             surface: data.surface || null,

@@ -68,7 +68,6 @@ export class BienIciIngestion {
                 },
             },
             price: getFirstValidNumber(data.price),
-            pricePerSquareMeter: getFirstValidNumber(data.pricePerSquareMeter) || 0,
             rooms: getFirstValidNumber(data.roomsQuantity) || 0,
             bedrooms: data.bedroomsQuantity || 0,
             surface: getFirstValidNumber(data.surfaceArea) || 0,

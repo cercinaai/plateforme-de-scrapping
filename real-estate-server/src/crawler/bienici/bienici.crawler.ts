@@ -61,7 +61,7 @@ export class BieniciCrawler {
                 // SINGLE AD PAGE
                 let body = await response.json();
                 if (body) {
-                    this.dataProcessingService.process([{ ...body, url: page.url() }], 'bienici-crawler');
+                    await this.dataProcessingService.process([{ ...body, url: page.url() }], 'bienici-crawler');
                     await job.update({
                         ...job.data,
                         total_data_grabbed: job.data['total_data_grabbed'] + 1,
@@ -181,7 +181,6 @@ export class BieniciCrawler {
         await job.update({
             ...job.data,
             success_date: new Date(),
-            crawler_origin: 'bienici',
             status: 'success',
             total_request: stats.requestsTotal,
             attempts_count: job.data['attempts_count'] + 1,

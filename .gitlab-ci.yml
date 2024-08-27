@@ -81,5 +81,6 @@ deploy:
         export SHIFTER_API_KEY=\"$SHIFTER_API_KEY\" &&
         docker compose -f /home/haythem/compose.prod.yml down &&
         docker image prune -f && 
+        docker compose -f /home/haythem/compose.prod.yml build --no-cache &&
         docker compose -f /home/haythem/compose.prod.yml up -d"
     
