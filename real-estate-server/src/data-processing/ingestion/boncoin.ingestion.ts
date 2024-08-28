@@ -9,6 +9,7 @@ import * as fs from 'fs';
 import { HttpService } from "@nestjs/axios";
 import { first } from "rxjs";
 import { boncoinCategoryMapping } from "../models/Category.type";
+import { EstateOptionDocument } from "src/models/estateOption.schema";
 
 @Processor({ name: 'data-processing', scope: Scope.DEFAULT })
 export class BoncoinIngestion {
@@ -79,7 +80,7 @@ export class BoncoinIngestion {
             buildingFloors: parseInt(getValue(data.attributes, 'nb_floors_building')) || null,
             energyGrade: getValueLabel(data.attributes, 'energy_rate') || '',
             gasGrade: getValueLabel(data.attributes, 'ges') || '',
-            options: data.attributes.filter((attr: any) => attr.generic && attr.value_label).map((attr: any) => attr.value_label),
+            options: {} as EstateOptionDocument,
             history: [],
             duplicates: [],
         };

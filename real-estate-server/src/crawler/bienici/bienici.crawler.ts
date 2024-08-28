@@ -4,7 +4,7 @@ import { DataProcessingService } from "../../data-processing/data-processing.ser
 import { Job } from "bull";
 import { bieniciConfig } from "./../../config/crawler.config";
 import { bieniciCrawlerOption } from './../../config/playwright.config';
-import { createPlaywrightRouter, Dictionary, FinalStatistics, PlaywrightCrawler, PlaywrightCrawlingContext, RouterHandler } from "crawlee";
+import { createPlaywrightRouter, Dictionary, FinalStatistics, PlaywrightCrawler, PlaywrightCrawlingContext, RequestQueue, RouterHandler } from "crawlee";
 import { Page } from "playwright";
 import { HttpService } from "@nestjs/axios";
 
@@ -27,8 +27,9 @@ export class BieniciCrawler {
     }
 
     protected async crawl(job: Job): Promise<FinalStatistics> {
-        const crawler = this.createCrawler(job);
+        const crawler = await this.createCrawler(job);
         const stats = await crawler.run([this.targetUrl]);
+        await crawler.requestQueue.drop();
         await crawler.teardown();
         return stats
     }
@@ -42,9 +43,11 @@ export class BieniciCrawler {
         })
     }
 
-    protected createCrawler(job: Job) {
+    protected async createCrawler(job: Job) {
+        const request_queue = await RequestQueue.open('bienici-crawler-queue');
         return new PlaywrightCrawler({
             ...bieniciCrawlerOption,
+            requestQueue: request_queue,
             preNavigationHooks: [async (context) => await this.preNavigationHook(context, job)],
             errorHandler: (_, error) => this.logger.error(error),
             requestHandler: this.createRequestHandler(),
@@ -54,7 +57,6 @@ export class BieniciCrawler {
 
     protected async preNavigationHook(context: PlaywrightCrawlingContext, job: Job) {
         const { page } = context;
-
         page.on('response', async (response) => {
             const url = response.url();
             if (url.match(/realEstateAd\.json\?id=.*$/)) {
@@ -86,7 +88,7 @@ export class BieniciCrawler {
         return router
     }
 
-    protected async listHandler(context: PlaywrightCrawlingContext, env?: 'test' | 'dev' | 'prod') {
+    protected async listHandler(context: PlaywrightCrawlingContext) {
         const checkDate = new Date();
         const { page, enqueueLinks } = context;
         await page.waitForLoadState('networkidle');
@@ -97,7 +99,6 @@ export class BieniciCrawler {
         }
         const links_urls = await this.extract_links(ads, page);
         await enqueueLinks({ urls: links_urls, label: 'ad-single-url' });
-        if (env && env === 'test') return;
         const nextPageHtml = await page.$("#searchResultsContainer > div.vue-pagination.pagination > div.pagination__nav-buttons > a.pagination__go-forward-button");
         const nextPage = await nextPageHtml?.getAttribute('href');
         if (nextPage) {

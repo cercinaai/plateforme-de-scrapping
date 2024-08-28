@@ -7,6 +7,7 @@ import { Job } from "bull";
 import { Model } from "mongoose";
 import { Ad, AdDocument } from "../../models/ad.schema";
 import { BienIciCategoryMapping } from "../models/Category.type";
+import { EstateOptionDocument } from "src/models/estateOption.schema";
 
 
 
@@ -76,27 +77,33 @@ export class BienIciIngestion {
             buildingFloors: data.floorQuantity || null,
             energyGrade: data.energyClassification || '',
             gasGrade: data.greenhouseGazClassification || '',
-            options: this.extractOptions(data),
+            options: this.extractOptions(data) as EstateOptionDocument,
             history: [],
             duplicates: [],
         };
     }
 
-    private extractOptions(data: any): string[] {
-        const options: string[] = [];
-
-        if (data.hasElevator) options.push("Elevator");
-        if (data.hasDoorCode) options.push("Door Code");
-        if (data.hasIntercom) options.push("Intercom");
-        if (data.hasVideophone) options.push("Videophone");
-        if (data.hasAirConditioning) options.push("Air Conditioning");
-        if (data.hasFirePlace) options.push("Fireplace");
-        if (data.hasAlarm) options.push("Alarm");
-        if (data.needHomeStaging) options.push("Home Staging");
-
-        // Add more as needed based on the data's properties
-
-        return options;
+    private extractOptions(data: any): Partial<EstateOptionDocument> {
+        return {
+            hasTerrace: data.hasTerrace || false,
+            hasCellar: data.hasCellar || false,
+            hasBalcony: data.hasBalcony || false,
+            hasGarden: data.hasGarden || false,
+            workToDo: data.workToDo || false,
+            hasAirConditioning: data.hasAirConditioning || false,
+            hasFirePlace: data.hasFirePlace || false,
+            hasElevator: data.hasElevator || false,
+            hasAlarm: data.hasAlarm || false,
+            hasDoorCode: data.hasDoorCode || false,
+            hasCaretaker: data.hasCaretaker || false,
+            hasIntercom: data.hasIntercom || false,
+            hasPool: data.hasPool || false,
+            hasSeparateToilet: data.hasSeparateToilet || false,
+            isDisabledPeopleFriendly: data.isDisabledPeopleFriendly || false,
+            hasUnobstructedView: data.hasUnobstructedView || false,
+            exposition: data.exposition || null,
+            parkingPlacesQuantity: data.parkingPlacesQuantity || null
+        }
     }
 
     private async process_data(data: Partial<AdDocument>) {

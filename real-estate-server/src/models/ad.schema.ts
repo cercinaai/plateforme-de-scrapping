@@ -3,6 +3,7 @@ import { Location, LocationSchema } from './location.schema';
 import { History, HistorySchema } from './history.schema';
 import { Duplicate, DuplicateSchema } from './duplicate.schema';
 import { HydratedDocument } from 'mongoose';
+import { EstateOption, EstateOptionSchema } from './estateOption.schema';
 
 export type AdDocument = HydratedDocument<Ad>;
 
@@ -71,9 +72,6 @@ export class Ad {
     landSurface: number;
 
     @Prop()
-    constructionYear: number;
-
-    @Prop()
     floor: number;
 
     @Prop()
@@ -91,8 +89,8 @@ export class Ad {
     @Prop()
     gasGrade: string;
 
-    @Prop([String])
-    options: string[];
+    @Prop({ type: EstateOptionSchema })
+    options: EstateOption;
 
     @Prop([HistorySchema])
     history: History[];

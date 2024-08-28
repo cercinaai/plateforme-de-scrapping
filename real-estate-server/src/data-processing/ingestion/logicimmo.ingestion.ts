@@ -7,6 +7,7 @@ import { Job } from "bull";
 import { Model } from "mongoose";
 import { Ad, AdDocument } from "../../models/ad.schema";
 import { logicImmoCategoryMapping } from "../models/Category.type";
+import { EstateOptionDocument } from "src/models/estateOption.schema";
 
 @Processor({ name: 'data-processing', scope: Scope.DEFAULT })
 export class LogicImmoIngestion {
@@ -68,12 +69,58 @@ export class LogicImmoIngestion {
             buildingFloors: null,
             energyGrade: data.energy_certificate || '',
             gasGrade: data.gas_certificate || '',
-            options: [],
+            options: this.extractOptions(data.options) as EstateOptionDocument,
             history: [],
             duplicates: [],
         };
     }
-
+    private extractOptions(data: any): Partial<EstateOptionDocument> {
+        let estateOption: Partial<EstateOptionDocument> = {};
+        for (let option of data) {
+            const trimmedItem = option.trim();
+            if (trimmedItem.includes('Terrasse/Balcon') && trimmedItem.includes('Terrasse')) {
+                estateOption.hasTerrace = true;
+                continue;
+            }
+            if (trimmedItem.includes('Terrasse/Balcon') && trimmedItem.includes('Balcon')) {
+                estateOption.hasBalcony = true;
+                continue;
+            }
+            if (trimmedItem.includes('Cave')) {
+                estateOption.hasCellar = true;
+                continue;
+            }
+            if (trimmedItem.includes('Ascenseur')) {
+                estateOption.hasElevator = true;
+                continue;
+            }
+            if (trimmedItem.includes('Piscine')) {
+                estateOption.hasPool = true;
+                continue;
+            }
+            if (trimmedItem.includes('Garage')) {
+                estateOption.hasGarage = true;
+                continue;
+            }
+            if (trimmedItem.includes('Jardin/Terrain') && trimmedItem.includes('Jardin')) {
+                estateOption.hasGarden = true;
+                continue;
+            }
+            if (trimmedItem.includes('Air conditionné')) {
+                estateOption.hasAirConditioning = true;
+                continue;
+            }
+            if (trimmedItem.includes('Accès Handicapé')) {
+                estateOption.isDisabledPeopleFriendly = true;
+                continue;
+            }
+            if (trimmedItem.includes('Gardien')) {
+                estateOption.hasCaretaker = true;
+                continue;
+            }
+        }
+        return estateOption;
+    }
     private async process_data(data: Partial<AdDocument>) {
         const existingAd = await this.adModel.findOne({ origin: data.origin, adId: data.adId });
         if (existingAd) {

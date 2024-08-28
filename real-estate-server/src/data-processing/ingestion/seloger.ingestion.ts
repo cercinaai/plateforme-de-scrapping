@@ -7,6 +7,7 @@ import { Job } from "bull";
 import { Model } from "mongoose";
 import { Ad, AdDocument } from "../../models/ad.schema";
 import { selogerCategoryMapping } from "../models/Category.type";
+import { EstateOptionDocument } from "src/models/estateOption.schema";
 
 
 @Processor({ name: 'data-processing', scope: Scope.DEFAULT })
@@ -73,7 +74,7 @@ export class SelogerIngestion {
             buildingFloors: null,
             energyGrade: data.epc || '',
             gasGrade: null,
-            options: data.tags || [],
+            options: {} as EstateOptionDocument,
             history: [],
             duplicates: [],
         };
