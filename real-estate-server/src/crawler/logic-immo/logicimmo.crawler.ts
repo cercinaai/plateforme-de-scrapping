@@ -8,6 +8,7 @@ import { Ad } from "../../models/ad.schema";
 import { DataProcessingService } from "../../data-processing/data-processing.service";
 import { logicimmoConfig } from "../../config/crawler.config";
 import { logicimmoCrawlerOption } from "../../config/playwright.config";
+import { Page } from "playwright";
 
 @Processor('crawler')
 export class LogicImmoCrawler {
@@ -80,7 +81,7 @@ export class LogicImmoCrawler {
             await enqueueLinks({ urls: [this.build_link(job)] });
         });
         router.addHandler('ad-single-url', async (context) => {
-            const { page, log } = context;
+            const { page } = context;
             const current_date = new Date();
             const previousDay = new Date(current_date);
             previousDay.setDate(previousDay.getDate() - 1);
@@ -90,7 +91,7 @@ export class LogicImmoCrawler {
             const ad_date_brute = await (await page.$('.offer-description-notes')).textContent();
             const extracted_date_match = ad_date_brute.match(/Mis à jour:\s*(\d{2}\/\d{2}\/\d{4})/);
             const ad_date = new Date(extracted_date_match[1].toString().split('/').reverse().join('-'))
-            if (!this.isSameDay(ad_date, current_date) && !this.isSameDay(ad_date, previousDay)) {
+            if (!this.isSameDay(ad_date, current_date) && !this.isSameDay(ad_date, previousDay) && ad_date < current_date) {
                 await job.update({
                     ...job.data,
                     LIMIT_REACHED: true
@@ -100,17 +101,23 @@ export class LogicImmoCrawler {
             const ad_list = await page.evaluate(() => window['thor']['dataLayer']['av_items']);
             if (!ad_list || !ad_list[0]) return;
             let ad = ad_list[0];
+            const agency = await this.extractAgency(page);
+            if (!agency) return;
             const titleElement = await page.$('body > main > div > div.mainContent > div.offerDetailContainer > section > div.offerSummary.offerCreditPrice > h1 > p');
             const pictureUrlElement = (await page.$$('.swiper-slide > picture > img')).map(async (img) => await img.getAttribute('src') || await img.getAttribute('data-src'));
             const descriptionElement = await page.$('body > main > div > div.mainContent > div.offerDetailContainer > section > div.nativeAds > div.blocDescrProperty > article > p.descrProperty');
             const gas_certificateElement = await page.$("body > main > div > div.mainContent > div.offerDetailContainer > section > section.energyDiagnosticContainer > div > article.GES > ul > li > span[tabindex]");
+            const OptionsElement = (await page.$$('.dtlTechiqueItm')).map(async (option) => await option.textContent());
+            const extractedOption = (await Promise.all(OptionsElement)).filter((option) => option);
             ad = {
                 ...ad,
+                ...agency,
                 title: titleElement ? await titleElement.textContent() : '',
                 pictureUrl: pictureUrlElement ? await pictureUrlElement[0] : '',
                 pictureUrls: pictureUrlElement ? await Promise.all(pictureUrlElement) : [],
                 description: descriptionElement ? await descriptionElement.textContent() : '',
                 gas_certificate: gas_certificateElement ? await gas_certificateElement.textContent() : '',
+                options: extractedOption
             };
             await this.dataProcessingService.process([ad], 'logicimmo-crawler');
             await job.update({
@@ -182,6 +189,14 @@ export class LogicImmoCrawler {
     }
 
     protected build_link(job: Job): string {
-        return `https://www.logic-immo.com/vente-immobilier-${job.data.france_localities[job.data.localite_index]}/options/groupprptypesids=1,2,6,7,12,3,18,4,5,14,13,11,10,9,8/searchoptions=0,1,3/page=${job.data.list_page}/order=update_date_desc`;
+        return `https://www.logic-immo.com/vente-immobilier-${job.data.france_localities[job.data.localite_index]}/options/groupprptypesids=1,2,6,7,12,3,18,4,5,14,13,11,10,9,8/searchoptions=0,1/page=${job.data.list_page}/order=update_date_desc`;
+    }
+
+    protected async extractAgency(page: Page): Promise<{ agencyName: string, agencyUrl: string, agencyPhoneNumber: string }> {
+        const agencyName = await (await page.$('.agencyName')).textContent();
+        const agencyUrlElement = await page.$("[data-js-agencyurl]:not([data-js-agencyurl=''])");
+        const agencyUrl = agencyUrlElement ? `https://www.logic-immo.com${await agencyUrlElement.getAttribute('data-js-agencyurl')}` : '';
+        const agencyPhoneNumber = (await (await page.$('.stickyContactContent > a')).getAttribute('href')).split(':').pop();
+        return { agencyName, agencyUrl, agencyPhoneNumber };
     }
 }
