@@ -11,7 +11,7 @@ const bieniciCrawler = new PlaywrightCrawler({
                 // SINGLE AD PAGE
                 let body = await response.json();
                 if (body) {
-                    log.info('AD FOUND', body);
+                    log.info('AD FOUND');
                 }
             }
             if (url.match(/realEstateAds\.json\?filters=.*$/)) {
@@ -69,7 +69,6 @@ logicImmoRouter.addHandler('ad-single-url', async (context) => {
     const current_date = new Date();
     const previousDay = new Date(current_date);
     previousDay.setDate(previousDay.getDate() - 1);
-
     await page.waitForLoadState('networkidle');
     const adNotFound = await page.$('body > main > .errorPageBox');
     if (adNotFound) {

@@ -15,10 +15,6 @@ import { LogicImmoIngestion } from './ingestion/logicimmo.ingestion';
     imports: [
         BullModule.registerQueue({
             name: 'data-processing',
-            settings: {
-                lockDuration: 300000,
-                maxStalledCount: 10
-            }
         }),
         BullBoardModule.forFeature({
             name: 'data-processing',

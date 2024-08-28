@@ -1,7 +1,7 @@
 import { Process, Processor } from "@nestjs/bull";
 import { Logger } from "@nestjs/common";
 import { Job } from "bull";
-import { PlaywrightCrawler, FinalStatistics, createPlaywrightRouter } from "crawlee";
+import { PlaywrightCrawler, FinalStatistics, createPlaywrightRouter, RequestQueue } from "crawlee";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { Ad } from "../../models/ad.schema";
@@ -45,13 +45,14 @@ export class LogicImmoCrawler {
     }
 
     private async crawl(job: Job): Promise<FinalStatistics> {
-        const crawler = this.createCrawler(job);
+        const crawler = await this.createCrawler(job);
         const stat = await crawler.run([this.build_link(job)]);
         await crawler.teardown();
         return stat
     }
 
-    private createCrawler(job: Job): PlaywrightCrawler {
+    private async createCrawler(job: Job): Promise<PlaywrightCrawler> {
+        const request_queue = await RequestQueue.open('logicimmo-crawler-queue');
         const router = createPlaywrightRouter();
         router.addDefaultHandler(async (context) => {
             const { page, enqueueLinks, closeCookieModals, log } = context;
@@ -62,7 +63,6 @@ export class LogicImmoCrawler {
             await enqueueLinks({ urls: ads_links, label: 'ad-single-url' });
             if (job.data['LIMIT_REACHED'] === true) {
                 if (job.data['localite_index'] < job.data['france_localities'].length - 1) {
-                    log.info('LIMIT REACHED PER LOCALITY REACHED');
                     await job.update({
                         ...job.data,
                         LIMIT_REACHED: false,
@@ -70,12 +70,9 @@ export class LogicImmoCrawler {
                         list_page: 1,
                     });
                     await enqueueLinks({ urls: [this.build_link(job)] });
-                } else {
-                    log.info('ALL LOCALITIES DONE');
                 }
                 return;
             }
-            log.info('NEXT PAGE');
             await job.update({
                 ...job.data,
                 list_page: job.data.list_page + 1,
@@ -87,25 +84,22 @@ export class LogicImmoCrawler {
             const current_date = new Date();
             const previousDay = new Date(current_date);
             previousDay.setDate(previousDay.getDate() - 1);
-            await page.waitForLoadState('networkidle');
+            await page.waitForLoadState('domcontentloaded');
             const adNotFound = await page.$('body > main > .errorPageBox');
-            if (adNotFound) {
-                log.info('AD NOT FOUND');
-                return;
-            }
+            if (adNotFound) return;
             const ad_date_brute = await (await page.$('.offer-description-notes')).textContent();
             const extracted_date_match = ad_date_brute.match(/Mis à jour:\s*(\d{2}\/\d{2}\/\d{4})/);
             const ad_date = new Date(extracted_date_match[1].toString().split('/').reverse().join('-'))
             if (!this.isSameDay(ad_date, current_date) && !this.isSameDay(ad_date, previousDay)) {
-                log.info('AD OLDER THAN 1 DAY');
                 await job.update({
                     ...job.data,
                     LIMIT_REACHED: true
                 });
                 return;
             }
-            let ad = await page.evaluate(() => window['thor']['dataLayer']['av_items'][0]);
-            if (!ad) return;
+            const ad_list = await page.evaluate(() => window['thor']['dataLayer']['av_items']);
+            if (!ad_list || !ad_list[0]) return;
+            let ad = ad_list[0];
             const titleElement = await page.$('body > main > div > div.mainContent > div.offerDetailContainer > section > div.offerSummary.offerCreditPrice > h1 > p');
             const pictureUrlElement = (await page.$$('.swiper-slide > picture > img')).map(async (img) => await img.getAttribute('src') || await img.getAttribute('data-src'));
             const descriptionElement = await page.$('body > main > div > div.mainContent > div.offerDetailContainer > section > div.nativeAds > div.blocDescrProperty > article > p.descrProperty');
@@ -126,6 +120,7 @@ export class LogicImmoCrawler {
         });
         return new PlaywrightCrawler({
             ...logicimmoCrawlerOption,
+            requestQueue: request_queue,
             requestHandler: router,
             errorHandler: (_, error) => this.logger.error(error),
             failedRequestHandler: (context, error) => this.handleFailedRequest(job, context, error)

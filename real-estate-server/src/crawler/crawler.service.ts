@@ -14,10 +14,10 @@ export class CrawlerService {
 
     async populate_database() {
         this.logger.log('Populating Crawler Queues...');
+        await this.crawlerQueue.add('boncoin-crawler', {}, { attempts: 1 });
+        await this.crawlerQueue.add('seloger-crawler', {}, { attempts: 1 });
         await this.crawlerQueue.add('bienici-crawler', {}, { attempts: 1 });
-        await this.crawlerQueue.add('logicimmo-crawler', {}, { attempts: 1, delay: 5000 });
-        await this.crawlerQueue.add('boncoin-crawler', {}, { attempts: 1, delay: 10000 });
-        await this.crawlerQueue.add('seloger-crawler', {}, { attempts: 1, delay: 15000 });
+        await this.crawlerQueue.add('logicimmo-crawler', {}, { attempts: 1 });
         this.logger.log('Crawler Queues Populated');
     }
 

@@ -10,19 +10,19 @@ export class DataProcessingService {
 
     async process(data_to_process: any, _from: string) {
         if (_from === 'boncoin-crawler') {
-            await this.dataQueues.add('boncoin-ingestion', { data_ingestion: data_to_process }, { removeOnComplete: true, removeOnFail: false });
+            await this.dataQueues.add('boncoin-ingestion', { data_ingestion: data_to_process }, { attempts: 1, removeOnComplete: true, removeOnFail: true });
             return;
         }
         if (_from === 'seloger-crawler') {
-            await this.dataQueues.add('seloger-ingestion', { data_ingestion: data_to_process }, { removeOnComplete: true, removeOnFail: false });
+            await this.dataQueues.add('seloger-ingestion', { data_ingestion: data_to_process }, { attempts: 1, removeOnComplete: true, removeOnFail: true });
             return;
         }
         if (_from === 'bienici-crawler') {
-            await this.dataQueues.add('bienici-ingestion', { data_ingestion: data_to_process }, { removeOnComplete: true, removeOnFail: false });
+            await this.dataQueues.add('bienici-ingestion', { data_ingestion: data_to_process }, { attempts: 1, removeOnComplete: true, removeOnFail: true });
             return;
         }
         if (_from === 'logicimmo-crawler') {
-            await this.dataQueues.add('logicimmo-ingestion', { data_ingestion: data_to_process }, { removeOnComplete: true, removeOnFail: false });
+            await this.dataQueues.add('logicimmo-ingestion', { data_ingestion: data_to_process }, { attempts: 1, removeOnComplete: true, removeOnFail: true });
             return;
         }
     }
