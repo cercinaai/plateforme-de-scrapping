@@ -15,7 +15,6 @@ export class ScheduleTasksService {
     }
 
     async start_crawler_with_health_check() {
-        await this.crawlerService.populate_database();
         const heath_check_job = new CronJob(CronExpression.EVERY_10_MINUTES, async () => {
             const session_saved = await this.crawlerService.heathCheck();
             if (!session_saved) return;
@@ -24,5 +23,6 @@ export class ScheduleTasksService {
         });
         this.schedulerRegistry.addCronJob('crawler_heath_check', heath_check_job);
         heath_check_job.start();
+        await this.crawlerService.populate_database();
     }
 }

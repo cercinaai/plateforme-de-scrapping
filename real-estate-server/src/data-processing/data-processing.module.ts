@@ -15,6 +15,11 @@ import { LogicImmoIngestion } from './ingestion/logicimmo.ingestion';
     imports: [
         BullModule.registerQueue({
             name: 'data-processing',
+            prefix: 'data-processing',
+            defaultJobOptions: {
+                removeOnComplete: 50,
+                removeOnFail: 100,
+            }
         }),
         BullBoardModule.forFeature({
             name: 'data-processing',
