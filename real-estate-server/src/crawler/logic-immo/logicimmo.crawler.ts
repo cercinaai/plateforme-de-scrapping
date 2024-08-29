@@ -48,6 +48,7 @@ export class LogicImmoCrawler {
     private async crawl(job: Job): Promise<FinalStatistics> {
         const crawler = await this.createCrawler(job);
         const stat = await crawler.run([this.build_link(job)]);
+        await crawler.requestQueue.drop();
         await crawler.teardown();
         return stat
     }
@@ -128,6 +129,7 @@ export class LogicImmoCrawler {
         return new PlaywrightCrawler({
             ...logicimmoCrawlerOption,
             requestQueue: request_queue,
+            requestHandlerTimeoutSecs: 1800,
             requestHandler: router,
             errorHandler: (_, error) => this.logger.error(error),
             failedRequestHandler: (context, error) => this.handleFailedRequest(job, context, error)

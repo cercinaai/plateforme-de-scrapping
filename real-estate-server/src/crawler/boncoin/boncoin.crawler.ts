@@ -45,6 +45,7 @@ export class BoncoinCrawler {
         return new PlaywrightCrawler({
             ...boncoinCrawlerOption,
             requestQueue: request_queue,
+            requestHandlerTimeoutSecs: 1800,
             proxyConfiguration: new ProxyConfiguration({
                 proxyUrls: this.proxyService.get_proxy_list()
             }),

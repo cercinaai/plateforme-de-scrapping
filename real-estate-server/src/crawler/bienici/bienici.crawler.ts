@@ -48,6 +48,7 @@ export class BieniciCrawler {
         return new PlaywrightCrawler({
             ...bieniciCrawlerOption,
             requestQueue: request_queue,
+            requestHandlerTimeoutSecs: 1800,
             preNavigationHooks: [async (context) => await this.preNavigationHook(context, job)],
             errorHandler: (_, error) => this.logger.error(error),
             requestHandler: this.createRequestHandler(),

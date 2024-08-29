@@ -47,6 +47,7 @@ export class SelogerCrawler {
         return new PlaywrightCrawler({
             ...selogerCrawlerOptions,
             requestQueue: selogerQueue,
+            requestHandlerTimeoutSecs: 1800,
             proxyConfiguration: new ProxyConfiguration({ proxyUrls: this.proxyService.get_proxy_list() }),
             preNavigationHooks: [async ({ page }) => await this.extract_data_from_dom(page)],
             postNavigationHooks: [async (context) => {
