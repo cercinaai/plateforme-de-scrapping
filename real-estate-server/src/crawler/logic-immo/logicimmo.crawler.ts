@@ -91,7 +91,7 @@ export class LogicImmoCrawler {
             const ad_date_brute = await (await page.$('.offer-description-notes')).textContent();
             const extracted_date_match = ad_date_brute.match(/Mis à jour:\s*(\d{2}\/\d{2}\/\d{4})/);
             const ad_date = new Date(extracted_date_match[1].toString().split('/').reverse().join('-'))
-            if (!this.isSameDay(ad_date, current_date) && !this.isSameDay(ad_date, previousDay) && ad_date < current_date) {
+            if (!this.isSameDay(ad_date, current_date) && !this.isSameDay(ad_date, previousDay)) {
                 await job.update({
                     ...job.data,
                     LIMIT_REACHED: true
