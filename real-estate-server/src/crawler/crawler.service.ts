@@ -9,18 +9,27 @@ import { Model } from "mongoose";
 export class CrawlerService {
 
     private readonly logger = new Logger(CrawlerService.name);
-
     constructor(@InjectQueue('crawler') private crawlerQueue: Queue, @InjectModel(CrawlerSession.name) private crawlerSession: Model<CrawlerSession>) { }
 
     async populate_database() {
         this.logger.log('Populating Crawler Queues...');
-        await this.crawlerQueue.add('boncoin-crawler', {}, { attempts: 1 });
-        await this.crawlerQueue.add('seloger-crawler', {}, { attempts: 1 });
-        await this.crawlerQueue.add('bienici-crawler', {}, { attempts: 1 });
-        await this.crawlerQueue.add('logicimmo-crawler', {}, { attempts: 1 });
+        await this.addJobAndWaitForCompletion('boncoin-crawler');
+        await this.addJobAndWaitForCompletion('seloger-crawler');
+        await this.addJobAndWaitForCompletion('bienici-crawler');
+        await this.addJobAndWaitForCompletion('logicimmo-crawler');
         this.logger.log('Crawler Queues Populated');
     }
+    private async addJobAndWaitForCompletion(jobName: string): Promise<void> {
+        const job = await this.crawlerQueue.add(jobName, {}, { attempts: 1 });
+        await this.waitForJobCompletion(job);
+    }
 
+    private async waitForJobCompletion(job: Job, interval: number = 5000): Promise<void> {
+        while (true) {
+            if ((await job.isCompleted() === true) || (await job.isFailed() === true)) return;
+            await new Promise(resolve => setTimeout(resolve, interval));
+        }
+    }
     async heathCheck(): Promise<boolean> {
         this.logger.log('Crawler Queues Health Check...');
         if ((await this.crawlerQueue.getActiveCount()) > 0) return false;

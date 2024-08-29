@@ -36,7 +36,6 @@ export class SelogerCrawler {
             PAGE_REACHED: 1
         });
         const crawler = await this.configureCrawler(job);
-        this.logger.log(`Starting Crawler Seloger`);
         const stats = await crawler.run([this.targetUrl]);
         await this.handleCrawlerCompletion(job, stats);
         await crawler.requestQueue.drop();
