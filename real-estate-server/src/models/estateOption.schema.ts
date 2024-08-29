@@ -7,6 +7,9 @@ export type EstateOptionDocument = HydratedDocument<EstateOption>;
 export class EstateOption {
 
     @Prop({ required: true, default: false })
+    isRecent: boolean;
+
+    @Prop({ required: true, default: false })
     hasTerrace: boolean;
 
     @Prop({ required: true, default: false })

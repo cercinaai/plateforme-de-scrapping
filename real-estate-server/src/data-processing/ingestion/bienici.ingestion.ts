@@ -8,6 +8,7 @@ import { Model } from "mongoose";
 import { Ad, AdDocument } from "../../models/ad.schema";
 import { BienIciCategoryMapping } from "../models/Category.type";
 import { EstateOptionDocument } from "src/models/estateOption.schema";
+import { lastValueFrom } from "rxjs";
 
 
 
@@ -62,7 +63,7 @@ export class BienIciIngestion {
                 city: data.city || 'NO CITY',
                 postalCode: data.postalCode,
                 departmentCode: data.departmentCode,
-                regionCode: '',
+                regionCode: data.city ? await this.extract_region_code(data.city) : 'NO REGION',
                 coordinates: {
                     lat: data.blurInfo?.position?.lat || 0,
                     lon: data.blurInfo?.position?.lon || 0,
@@ -138,6 +139,11 @@ export class BienIciIngestion {
                 }
             }
         }).exec();
+    }
+
+    private async extract_region_code(commune_name: string): Promise<string> {
+        const response = await lastValueFrom(this.httpService.get(`https://geo.api.gouv.fr/communes?nom=${commune_name}`));
+        return response.data[0].codeRegion;
     }
 
 }

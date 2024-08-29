@@ -8,6 +8,7 @@ import { Model } from "mongoose";
 import { Ad, AdDocument } from "../../models/ad.schema";
 import { logicImmoCategoryMapping } from "../models/Category.type";
 import { EstateOptionDocument } from "src/models/estateOption.schema";
+import { lastValueFrom } from "rxjs";
 
 @Processor({ name: 'data-processing', scope: Scope.DEFAULT })
 export class LogicImmoIngestion {
@@ -54,7 +55,7 @@ export class LogicImmoIngestion {
                 city: data.city || '',
                 postalCode: data.zip_code,
                 departmentCode: data.province,
-                regionCode: '',
+                regionCode: data.city ? await this.extract_region_code(data.city) : 'NO REGION',
                 coordinates: {
                     lat: parseFloat(data.geolocation.split(',')[0]),
                     lon: parseFloat(data.geolocation.split(',')[1]),
@@ -155,4 +156,8 @@ export class LogicImmoIngestion {
         }).exec();
     }
 
+    private async extract_region_code(commune_name: string): Promise<string> {
+        const response = await lastValueFrom(this.httpService.get(`https://geo.api.gouv.fr/communes?nom=${commune_name}`));
+        return response.data[0].codeRegion;
+    }
 }   
