@@ -1,24 +1,49 @@
-import { Configuration, createPlaywrightRouter, LogLevel, PlaywrightCrawler, PlaywrightCrawlingContext } from "crawlee";
+import { Configuration, createPlaywrightRouter, LogLevel, PlaywrightCrawler, PlaywrightCrawlingContext, RequestQueue } from "crawlee";
 import { logicimmoCrawlerOption } from "../../config/playwright.config";
 import { EstateOptionDocument } from "src/models/estateOption.schema";
-import { Page } from "playwright";
 
 const logicImmoRouter = createPlaywrightRouter();
+const franceLocality = [
+    'ile-de-france,1_0', 'alsace,10_0', 'aquitaine,15_0', 'Auvergne,19_0', 'Bretagne,13_0',
+    'centre,5_0', 'Bourgogne,7_0', 'champagne-ardenne,2_0', 'corse,22_0',
+    'franche-comte,11_0', 'languedoc-roussillon,20_0', 'limousin,17_0', 'lorraine,9_0',
+    'basse-normandie,6_0', 'midi-pyrenees,16_0', 'nord-pas-de-calais,8_0', 'pays-de-la-loire,12_0',
+    'picardie,3_0', 'poitou-charentes,14_0', 'provence-alpes-cote-d-azur,21_0', 'rhone-alpes,18_0', 'haute-normandie,4_0'
+]
+let localite_index = 0;
+let LIMIT_REACHED = false;
+let list_page = 1;
+const current_date = new Date();
+const previousDay = new Date(current_date);
+previousDay.setDate(previousDay.getDate() - 1);
 
 logicImmoRouter.addDefaultHandler(async (context) => {
-    const { page, enqueueLinks, closeCookieModals } = context;
+    const { page, enqueueLinks, closeCookieModals, log } = context;
     await closeCookieModals();
     await page.waitForTimeout(1200);
     const ads = await page.evaluate(() => window['thor']['dataLayer']['av_items']);
     const ads_links = ads.map((ad: any) => `https://www.logic-immo.com/detail-vente-${ad.id}.htm`);
     await enqueueLinks({ urls: ads_links, label: 'ad-single-url' });
+    if (LIMIT_REACHED) {
+        if (localite_index < franceLocality.length - 1) {
+            log.info('NEXT LOCALITY');
+            localite_index++;
+            list_page = 1;
+            LIMIT_REACHED = false;
+            await enqueueLinks({ urls: [build_link()] });
+        } else {
+            log.info('FINISH TEST');
+            return;
+        }
+
+    }
+    list_page++;
+    log.info(`PAGE ${list_page} INSIDE LOCALITY ${franceLocality[localite_index]}`);
+    await enqueueLinks({ urls: [build_link()] });
 });
 
 logicImmoRouter.addHandler('ad-single-url', async (context) => {
     const { page, log } = context;
-    const current_date = new Date();
-    const previousDay = new Date(current_date);
-    previousDay.setDate(previousDay.getDate() - 1);
     await page.waitForLoadState('domcontentloaded');
     const adNotFound = await page.$('body > main > .errorPageBox');
     if (adNotFound) {
@@ -28,10 +53,12 @@ logicImmoRouter.addHandler('ad-single-url', async (context) => {
     const ad_date_brute = await (await page.$('.offer-description-notes')).textContent();
     const extracted_date_match = ad_date_brute.match(/Mis à jour:\s*(\d{2}\/\d{2}\/\d{4})/);
     const ad_date = new Date(extracted_date_match[1].toString().split('/').reverse().join('-'))
-    // if (!isSameDay(ad_date, current_date) && !isSameDay(ad_date, previousDay)) {
-    //     log.info(`AD OUTDATED => ${ad_date} vs ${current_date} vs ${previousDay}`);
-    //     return;
-    // }
+    log.info(`AD DATE => ${ad_date} vs Current ${current_date} vs Previous ${previousDay}`);
+    if (!isSameDay(ad_date, current_date) && !isSameDay(ad_date, previousDay)) {
+        log.info(`AD OUTDATED => ${ad_date} vs ${current_date} vs ${previousDay}`);
+        LIMIT_REACHED = true;
+        return;
+    }
     const ad_list = await page.evaluate(() => window['thor']['dataLayer']['av_items']);
     if (!ad_list || !ad_list[0]) return;
     let ad = ad_list[0];
@@ -53,6 +80,7 @@ logicImmoRouter.addHandler('ad-single-url', async (context) => {
         gas_certificate: gas_certificateElement ? await gas_certificateElement.textContent() : '',
         options: cleanOptions
     };
+    log.info(`AD PROCESSED => ${ad.id.toString()}`);
 });
 const extractOptions = (data: any): Partial<EstateOptionDocument> => {
     let estateOption: Partial<EstateOptionDocument> = {};
@@ -113,22 +141,31 @@ const isSameDay = (date1: Date, date2: Date) => {
         date1.getUTCMonth() === date2.getUTCMonth() &&
         (date1.getUTCDate() === date2.getUTCDate());
 }
-const logicImmo = new PlaywrightCrawler({
-    ...logicimmoCrawlerOption,
-    requestHandler: logicImmoRouter,
-}, new Configuration({
-    logLevel: LogLevel.INFO,
-    purgeOnStart: true,
-    persistStorage: false,
-    storageClientOptions: {
+const build_link = (): string => {
+    return `https://www.logic-immo.com/vente-immobilier-${franceLocality[localite_index]}/options/groupprptypesids=1,2,6,7,12,3,18,4,5,14,13,11,10,9,8/searchoptions=0,1/page=${list_page}/order=update_date_desc`;
+}
+const createCrawler = async (): Promise<PlaywrightCrawler> => {
+    return new PlaywrightCrawler({
+        ...logicimmoCrawlerOption,
+        requestQueue: await RequestQueue.open('logic-immo-queue'),
+        requestHandler: logicImmoRouter,
+    }, new Configuration({
+        logLevel: LogLevel.INFO,
+        purgeOnStart: true,
         persistStorage: false,
-        writeMetadata: false,
-    },
-    headless: false,
-}));
+        storageClientOptions: {
+            persistStorage: false,
+            writeMetadata: false,
+        },
+        headless: true,
+    }));
+}
+
 
 const test = async () => {
+    const logicImmo = await createCrawler();
     await logicImmo.run(['https://www.logic-immo.com/vente-immobilier-ile-de-france,1_0/options/groupprptypesids=1,2,6,7,12,3,18,4,5,14,13,11,10,9,8/searchoptions=0,1,3/page=1/order=update_date_desc']);
+    await logicImmo.requestQueue.drop();
     await logicImmo.teardown();
 }
 
