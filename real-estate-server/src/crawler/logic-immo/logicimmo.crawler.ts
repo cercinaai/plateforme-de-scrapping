@@ -54,6 +54,9 @@ export class LogicImmoCrawler {
     }
 
     private async createCrawler(job: Job): Promise<PlaywrightCrawler> {
+        const current_date = new Date();
+        const previousDay = new Date(current_date);
+        previousDay.setDate(previousDay.getDate() - 1);
         const request_queue = await RequestQueue.open('logicimmo-crawler-queue');
         const router = createPlaywrightRouter();
         router.addDefaultHandler(async (context) => {
@@ -83,9 +86,6 @@ export class LogicImmoCrawler {
         });
         router.addHandler('ad-single-url', async (context) => {
             const { page } = context;
-            const current_date = new Date();
-            const previousDay = new Date(current_date);
-            previousDay.setDate(previousDay.getDate() - 1);
             await page.waitForLoadState('domcontentloaded');
             const adNotFound = await page.$('body > main > .errorPageBox');
             if (adNotFound) return;
@@ -113,6 +113,8 @@ export class LogicImmoCrawler {
             ad = {
                 ...ad,
                 ...agency,
+                creationDate: ad_date,
+                lastCheckDate: ad_date,
                 title: titleElement ? await titleElement.textContent() : '',
                 pictureUrl: pictureUrlElement ? await pictureUrlElement[0] : '',
                 pictureUrls: pictureUrlElement ? await Promise.all(pictureUrlElement) : [],

@@ -12,7 +12,7 @@ import { HttpService } from "@nestjs/axios";
 export class BieniciCrawler {
     private readonly logger = new Logger(BieniciCrawler.name);
     protected readonly targetUrl = "https://www.bienici.com/recherche/achat/france/maisonvilla,appartement,parking,terrain,loft,commerce,batiment,chateau,local,bureau,hotel,autres?mode=liste&tri=publication-desc";
-
+    private checkDate!: Date;
     constructor(protected readonly dataProcessingService: DataProcessingService, protected readonly httpService: HttpService) { }
 
     @Process({ name: 'bienici-crawler' })
@@ -35,6 +35,7 @@ export class BieniciCrawler {
     }
 
     protected async initialize(job: Job) {
+        this.checkDate = new Date();
         await job.update({
             crawler_origin: 'bienici',
             status: 'running',
@@ -90,10 +91,9 @@ export class BieniciCrawler {
     }
 
     protected async listHandler(context: PlaywrightCrawlingContext) {
-        const checkDate = new Date();
         const { page, enqueueLinks } = context;
         await page.waitForLoadState('networkidle');
-        const ads = await this.filterAds(page, checkDate);
+        const ads = await this.filterAds(page);
         if (ads.length === 0) {
             this.logger.log("Found ads older than check_date. Stopping the crawler.");
             return;
@@ -112,16 +112,16 @@ export class BieniciCrawler {
         await page.waitForLoadState('networkidle');
     }
 
-    protected async filterAds(page: Page, checkDate: Date) {
+    protected async filterAds(page: Page) {
         const ads = await page.evaluate(() => window['crawled_ads']);
         if (!ads || ads.length === 0) {
             throw new Error('No ads found');
         }
-        const previousDay = new Date(checkDate);
-        previousDay.setDate(checkDate.getDate() - 1);
+        const previousDay = new Date(this.checkDate);
+        previousDay.setDate(this.checkDate.getDate() - 1);
         return ads.filter((ad: any) => {
             const adDate = new Date(ad.modificationDate);
-            return this.isSameDay(adDate, checkDate) || this.isSameDay(adDate, previousDay);
+            return this.isSameDay(adDate, this.checkDate) || this.isSameDay(adDate, previousDay);
         });
     }
 
