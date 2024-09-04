@@ -89,7 +89,9 @@ export class LogicImmoCrawler {
             await page.waitForLoadState('domcontentloaded');
             const adNotFound = await page.$('body > main > .errorPageBox');
             if (adNotFound) return;
-            const ad_date_brute = await (await page.$('.offer-description-notes')).textContent();
+            let ad_date_brute_element = await page.$('.offer-description-notes');
+            if (!ad_date_brute_element) return;
+            const ad_date_brute = await ad_date_brute_element.textContent();
             const extracted_date_match = ad_date_brute.match(/Mis à jour:\s*(\d{2}\/\d{2}\/\d{4})/);
             const ad_date = new Date(extracted_date_match[1].toString().split('/').reverse().join('-'))
             if (!this.isSameDay(ad_date, current_date) && !this.isSameDay(ad_date, previousDay)) {
@@ -122,7 +124,10 @@ export class LogicImmoCrawler {
                 gas_certificate: gas_certificateElement ? await gas_certificateElement.textContent() : '',
                 options: extractedOption
             };
-            await this.dataProcessingService.process([ad], 'logicimmo-crawler');
+            const safeJobData = Object.fromEntries(
+                Object.entries(ad).filter(([key, value]) => value !== undefined)
+            );
+            await this.dataProcessingService.process([safeJobData], 'logicimmo-crawler');
             await job.update({
                 ...job.data,
                 total_data_grabbed: job.data.total_data_grabbed + 1

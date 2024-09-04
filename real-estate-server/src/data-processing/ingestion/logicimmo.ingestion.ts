@@ -158,6 +158,6 @@ export class LogicImmoIngestion {
 
     private async extract_region_code(commune_name: string): Promise<string> {
         const response = await lastValueFrom(this.httpService.get(`https://geo.api.gouv.fr/communes?nom=${commune_name}`));
-        return response.data[0].codeRegion;
+        return response.data[0].codeRegion || 'NO REGION';
     }
 }   

@@ -9,7 +9,6 @@ import { ProxyService } from '../proxy.service';
 import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { Page } from 'playwright';
-import { createCursor } from '@avilabs/ghost-cursor-playwright';
 
 @Processor('crawler')
 export class BoncoinCrawler {
@@ -59,8 +58,6 @@ export class BoncoinCrawler {
     private async handleCapSolver(page: Page, request: Request<Dictionary>, proxyInfo: ProxyInfo, crawler: PlaywrightCrawler, session: Session) {
         await page.waitForLoadState('domcontentloaded');
         const captchaUrl = await this._detect_captcha(page, session);
-        const cursor = await createCursor(page);
-        await cursor.performRandomMove();
         if (!captchaUrl) return;
         this.logger.log('Attempting to solve dataDome CAPTCHA using CapSolver.');
         const playload = {
@@ -73,7 +70,6 @@ export class BoncoinCrawler {
                 userAgent: crawler.launchContext.userAgent
             }
         }
-        await cursor.performRandomMove();
         const createTaskRes = await this.httpClient.axiosRef.post('https://api.capsolver.com/createTask', playload, { headers: { "Content-Type": "application/json" } });
         const task_id = createTaskRes.data.taskId;
         if (!task_id) throw new Error('Failed to create CapSolver task');
@@ -84,7 +80,6 @@ export class BoncoinCrawler {
                 const taskRes = await this.httpClient.axiosRef.post("https://api.capsolver.com/getTaskResult", getResultPayload, { headers: { "Content-Type": "application/json" } });
                 const status = taskRes.data.status;
                 if (status === "ready") {
-                    await cursor.performRandomMove();
                     this.logger.log(`Solved dataDome CAPTCHA using CapSolver Cookie Generated: ${taskRes.data.solution.cookie}`);
                     let cookie = this.parseCookieString(taskRes.data.solution.cookie);
                     await page.context().addCookies([cookie]);

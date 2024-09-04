@@ -12,7 +12,6 @@ import { InjectModel } from "@nestjs/mongoose";
 import { Ad } from "../../models/ad.schema";
 import { Model } from "mongoose";
 import { HttpService } from "@nestjs/axios";
-import { createCursor } from '@avilabs/ghost-cursor-playwright';
 
 @Processor('crawler')
 export class SelogerCrawler {
@@ -37,7 +36,11 @@ export class SelogerCrawler {
         });
         const crawler = await this.configureCrawler(job);
         const stats = await crawler.run([this.targetUrl]);
-        await this.handleCrawlerCompletion(job, stats);
+        if (job.data['status'] && job.data['status'] === 'failed' || stats.requestsTotal === 0) {
+            await this.handleFailure(job, stats);
+            return;
+        }
+        await this.handleSuccess(job, stats);
         await crawler.requestQueue.drop();
         await crawler.teardown();
     }
@@ -66,17 +69,10 @@ export class SelogerCrawler {
         await page.waitForLoadState('domcontentloaded');
         await this.handleCapSolver(context);
         await closeCookieModals();
-        const cursor = await createCursor(page);
-        await cursor.performRandomMove();
         const salesPagelink = await page.$('#agatha_actionbuttons > div > div:nth-child(3) > label > a');
-        await cursor.actions.move('#agatha_actionbuttons > div > div:nth-child(3) > label > a');
         await salesPagelink.click();
         await page.waitForURL('https://www.seloger.com/**', { waitUntil: 'domcontentloaded' });
-        await cursor.performRandomMove();
         await page.waitForTimeout(2000);
-        await cursor.actions.click({ target: '#search-section > div > div.Agathav2Bar__WrapperRefiner-sc-1qakpqy-2.dUYXnB > form > div.LocationPanel__LocationSection-sc-r69d19-0.jupNmu.Section__SectionContainer-sc-d7seoh-0.YgRPE' }, { waitForSelector: 1000 });
-        await cursor.actions.click({ target: '#search-section > div > div.Agathav2Bar__WrapperRefiner-sc-1qakpqy-2.dUYXnB > form > div.LocationPanel__LocationSection-sc-r69d19-0.jupNmu.Section__SectionContainer-sc-d7seoh-0.YgRPE > div.Section__SectionPanel-sc-d7seoh-1.OwWIr.Panel__PanelContainer-sc-v47afd-0.ehpIKZ > div.Panel__PanelContentWrapper-sc-v47afd-3.ebnVIU > div.LocationPanel__LocationContent-sc-r69d19-3.bIWlby > div.LocationPanel__LocationPlacesTab-sc-r69d19-1.goYWdD.places__PlacesTabContainer-sc-1vkjt2k-0.bhETso > div.places__LocationChips-sc-1vkjt2k-1.ghHwem.Chips__ChipContainer-sc-u5fwzj-0.NEGYs > div > span' }, { waitForSelector: 1000 });
-        await cursor.performRandomMove();
     }
 
     private async handleCapSolver(context: PlaywrightCrawlingContext): Promise<void> {
@@ -84,8 +80,6 @@ export class SelogerCrawler {
         const captchaUrl = await this._detect_captcha(page, session);
         if (typeof captchaUrl === 'boolean' && captchaUrl === false) return;
         if (typeof captchaUrl === 'boolean' && captchaUrl === true) throw new Error('Session flagged. Switching to new session');
-        const cursor = await createCursor(page);
-        await cursor.performRandomMove();
         this.logger.log('Attempting to solve dataDome CAPTCHA using CapSolver.');
         const playload = {
             clientKey: this.configService.get<string>('CAPSOLVER_API_KEY'),
@@ -97,7 +91,6 @@ export class SelogerCrawler {
                 userAgent: crawler.launchContext.userAgent
             }
         }
-        await cursor.performRandomMove();
         const createTaskRes = await this.httpClient.axiosRef.post('https://api.capsolver.com/createTask', playload, { headers: { "Content-Type": "application/json" } });
         const task_id = createTaskRes.data.taskId;
         if (!task_id) throw new Error('Failed to create CapSolver task');
@@ -111,7 +104,6 @@ export class SelogerCrawler {
                 const cookie = this.parseCookieString(taskRes.data.solution.cookie);
                 await page.context().addCookies([cookie]);
                 await page.reload({ waitUntil: 'domcontentloaded' });
-                await cursor.performRandomMove();
                 return;
             }
             if (status === "failed" || taskRes.data.errorId) throw new Error(taskRes.data.errorMessage);
@@ -190,23 +182,37 @@ export class SelogerCrawler {
         });
     }
 
-    private async handleCrawlerCompletion(job: Job, stats: FinalStatistics) {
-        if (job.data['status'] === 'failed' || stats.requestsFailed > 0 || stats.requestsTotal === 0) {
-            job.update({
+    protected async handleFailure(job: Job, stats: FinalStatistics) {
+        if (job.data['status'] && job.data['status'] === 'failed') {
+            await job.update({
                 ...job.data,
                 total_request: stats.requestsTotal,
                 success_requests: stats.requestsFinished,
                 failed_requests: stats.requestsFailed,
             })
-            await job.moveToFailed(job.data['failedReason'], false);
+            await job.moveToFailed(job.data['failedReason']);
             return;
         }
+        if (stats.requestsTotal === 0) {
+            await job.update({
+                ...job.data,
+                error_date: new Date(),
+                status: 'failed',
+                total_request: stats.requestsTotal,
+                attempts_count: job.data['attempts_count'] + 1,
+                failed_requests: stats.requestsFailed,
+                failed_request_url: 'N/A',
+                proxy_used: 'N/A',
+                failedReason: 'Crawler did not start as expected'
+            })
+            await job.moveToFailed(job.data['failedReason']);
+        }
+    }
+    protected async handleSuccess(job: Job, stats: FinalStatistics) {
         await job.update({
             ...job.data,
             success_date: new Date(),
-            crawler_origin: 'seloger',
-            status: job.data['status'] === 'failed' ? 'failed' : 'success',
-            total_data_grabbed: job.data['total_data_grabbed'],
+            status: 'success',
             total_request: stats.requestsTotal,
             attempts_count: job.data['attempts_count'] + 1,
             success_requests: stats.requestsFinished,
