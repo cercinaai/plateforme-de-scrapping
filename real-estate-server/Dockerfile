@@ -27,4 +27,4 @@ RUN npm --quiet set progress=false \
 COPY --chown=myuser . ./
 
 
-CMD ./start_xvfb_and_run_cmd.sh && npm run start:prod
+CMD npm run start:prod

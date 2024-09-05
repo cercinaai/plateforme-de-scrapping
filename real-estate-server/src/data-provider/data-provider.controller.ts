@@ -149,11 +149,11 @@ export class DataProviderController {
         city = city.toLowerCase();
         city = city.replace(/[^a-zA-Z0-9]/g, '');
         // CHECK IF CITY IS A REGION OR A DEPARTMENT
-        const isRegion = FrenshRegions.find(region => region.nom.toLowerCase() === city);
+        const isRegion = FrenshRegions.find(region => region.nom.toLowerCase() === city.toLowerCase());
         if (isRegion) {
             return { 'location.regionCode': isRegion.code };
         }
-        const isDepartment = FrenshDepartments.find(department => department.nom.toLowerCase() === city);
+        const isDepartment = FrenshDepartments.find(department => department.nom.toLowerCase() === city.toLowerCase());
         if (isDepartment) {
             return { 'location.departmentCode': isDepartment.code };
         }
