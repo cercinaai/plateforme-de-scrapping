@@ -54,8 +54,8 @@ export const selogerCrawlerOptions: PlaywrightCrawlerOptions = {
     },
     useSessionPool: true,
     persistCookiesPerSession: true,
-    maxSessionRotations: 200,
-    maxRequestRetries: 200,
+    maxSessionRotations: 10,
+    maxRequestRetries: 10,
     // retryOnBlocked: true,
 }
 
