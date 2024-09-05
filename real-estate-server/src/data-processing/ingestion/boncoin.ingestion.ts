@@ -7,9 +7,10 @@ import { Ad, AdDocument } from "../../models/ad.schema";
 import { ConfigService } from "@nestjs/config";
 import * as fs from 'fs';
 import { HttpService } from "@nestjs/axios";
-import { first } from "rxjs";
+import { first, lastValueFrom } from "rxjs";
 import { boncoinCategoryMapping } from "../models/Category.type";
 import { EstateOptionDocument } from "src/models/estateOption.schema";
+import { calculateAdAccuracy } from "../utils/ad.utils";
 
 @Processor({ name: 'data-processing', scope: Scope.DEFAULT })
 export class BoncoinIngestion {
@@ -22,7 +23,8 @@ export class BoncoinIngestion {
         try {
             for (let data of job.data.data_ingestion) {
                 let cleaned_data = await this.clean_data(data);
-                await this.process_data(cleaned_data);
+                let accuracy_data = calculateAdAccuracy(cleaned_data);
+                await this.process_data(accuracy_data);
             }
             this.logger.log(`Job ${job.id} has been processed successfully`);
             await job.moveToCompleted(`job-${job.id}-boncoin-ingestion-completed`)
@@ -64,8 +66,7 @@ export class BoncoinIngestion {
             location: {
                 city: data.location.city,
                 postalCode: data.location.zipcode,
-                departmentCode: data.location.department_id,
-                regionCode: data.location.region_id,
+                ...await this.extract_location_code(data.location.city, data.location.zipcode),
                 coordinates: {
                     lat: data.location.lat,
                     lon: data.location.lng,
@@ -147,5 +148,13 @@ export class BoncoinIngestion {
             });
         }
         return transformed_files;
+    }
+    private async extract_location_code(city_name: string, postal_code: string): Promise<{ departmentCode: string, regionCode: string }> {
+        if (!postal_code || !city_name) return { departmentCode: 'NO DEPARTMENT', regionCode: 'NO REGION' };
+        const response = await lastValueFrom(this.httpService.get(`https://geo.api.gouv.fr/communes?nom=${city_name}&codePostal=${postal_code}`));
+        return {
+            departmentCode: response.data[0].codeDepartement || 'NO DEPARTMENT',
+            regionCode: response.data[0].codeRegion || 'NO REGION'
+        }
     }
 }

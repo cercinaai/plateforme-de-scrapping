@@ -9,6 +9,7 @@ import { Ad, AdDocument } from "../../models/ad.schema";
 import { logicImmoCategoryMapping } from "../models/Category.type";
 import { EstateOptionDocument } from "src/models/estateOption.schema";
 import { lastValueFrom } from "rxjs";
+import { calculateAdAccuracy } from "../utils/ad.utils";
 
 @Processor({ name: 'data-processing', scope: Scope.DEFAULT })
 export class LogicImmoIngestion {
@@ -22,7 +23,8 @@ export class LogicImmoIngestion {
         try {
             for (let data of job.data.data_ingestion) {
                 let cleaned_data = await this.clean_data(data);
-                await this.process_data(cleaned_data);
+                let accuracy_data = calculateAdAccuracy(cleaned_data);
+                await this.process_data(accuracy_data);
             }
             this.logger.log(`Job ${job.id} has been processed successfully`);
             await job.moveToCompleted(`job-${job.id}-logicimmo-ingestion-completed`, false);
@@ -54,8 +56,7 @@ export class LogicImmoIngestion {
             location: {
                 city: data.city || '',
                 postalCode: data.zip_code,
-                departmentCode: data.province,
-                regionCode: data.city ? await this.extract_region_code(data.city) : 'NO REGION',
+                ...await this.extract_location_code(data.city, data.zip_code),
                 coordinates: {
                     lat: parseFloat(data.geolocation.split(',')[0]),
                     lon: parseFloat(data.geolocation.split(',')[1]),
@@ -156,8 +157,12 @@ export class LogicImmoIngestion {
         }).exec();
     }
 
-    private async extract_region_code(commune_name: string): Promise<string> {
-        const response = await lastValueFrom(this.httpService.get(`https://geo.api.gouv.fr/communes?nom=${commune_name}`));
-        return response.data[0].codeRegion || 'NO REGION';
+    private async extract_location_code(city_name: string, postal_code: string): Promise<{ departmentCode: string, regionCode: string }> {
+        if (!postal_code || !city_name) return { departmentCode: 'NO DEPARTMENT', regionCode: 'NO REGION' };
+        const response = await lastValueFrom(this.httpService.get(`https://geo.api.gouv.fr/communes?nom=${city_name}&codePostal=${postal_code}`));
+        return {
+            departmentCode: response.data[0].codeDepartement || 'NO DEPARTMENT',
+            regionCode: response.data[0].codeRegion || 'NO REGION'
+        }
     }
 }   

@@ -7,10 +7,10 @@ export type CoordinatesDocument = HydratedDocument<Coordinates>;
 @Schema()
 export class Coordinates {
     @Prop({ required: true })
-    lat: number;
+    lon: number;
 
     @Prop({ required: true })
-    lon: number;
+    lat: number;
 }
 
 export const CoordinatesSchema = SchemaFactory.createForClass(Coordinates);

@@ -92,6 +92,9 @@ export class Ad {
     @Prop({ type: EstateOptionSchema })
     options: EstateOption;
 
+    @Prop({ required: true })
+    adAccuracy: number;
+
     @Prop([HistorySchema])
     history: History[];
 
