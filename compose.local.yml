@@ -2,8 +2,6 @@ services:
   redis:
     image: redis:7.2.5
     container_name: redis-container
-    ports:
-      - "6379:6379"
     volumes:
       - ./local-data/redis_data:/data
   
