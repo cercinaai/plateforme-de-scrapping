@@ -6,8 +6,7 @@ export type EstateOptionDocument = HydratedDocument<EstateOption>;
 @Schema()
 export class EstateOption {
 
-    @Prop({ required: true, default: false })
-    isRecent: boolean;
+
 
     @Prop({ required: true, default: false })
     hasTerrace: boolean;
@@ -65,6 +64,9 @@ export class EstateOption {
 
     @Prop({ required: false, default: null })
     parkingPlacesQuantity: number | null;
+
+    @Prop({ required: false, default: null })
+    isRecent: boolean | null;
 }
 
 export const EstateOptionSchema = SchemaFactory.createForClass(EstateOption);

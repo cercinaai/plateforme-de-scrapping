@@ -142,18 +142,62 @@ export class DataProviderController {
         return ad;
     }
 
+    @Throttle({ short: { limit: 2, ttl: 1000 }, long: { limit: 5, ttl: 60000 } })
+    @UseGuards(RealEstateAuthGuard)
+    @Get('similar-ads')
+    async get_similar_ads(@Query('_id') _id: string): Promise<Ad[]> {
+        // Fetch the ad by its ID
+        const ad = await this.adModel.findById(_id);
+        if (!ad) {
+            throw new NotFoundException('Ad not found');
+        }
 
+        // Define a price range, for example, ±20% of the current ad price
+        const priceRange = {
+            $gte: ad.price * 0.8, // 20% less than the ad price
+            $lte: ad.price * 1.2  // 20% more than the ad price
+        };
+
+        const coordinates = [ad.location.coordinates.lon, ad.location.coordinates.lat];
+
+        // Query for similar ads based on category, location, and price range
+        const ads = await this.adModel.find({
+            _id: { $ne: _id },
+            category: ad.category, // Same category
+            'location.coordinates': {
+                $near: {
+                    $geometry: {
+                        type: 'Point',
+                        coordinates
+                    },
+                    $maxDistance: 100000 // Maximum distance in meters, can be adjusted
+                }
+            },
+            price: priceRange // Price range
+        }).limit(10);
+
+        // If no ads found within the geospatial range, return ads only based on category and price
+        if (ads.length === 0) {
+            return this.adModel.find({
+                _id: { $ne: _id },
+                category: ad.category, // Same category
+                price: priceRange // Price range
+            }).limit(10);
+        }
+
+        return ads;
+    }
 
     private extractFiltersByCity(city: string): object {
         // Clean city name
         city = city.toLowerCase();
         city = city.replace(/[^a-zA-Z0-9]/g, '');
         // CHECK IF CITY IS A REGION OR A DEPARTMENT
-        const isRegion = FrenshRegions.find(region => region.nom.toLowerCase() === city);
+        const isRegion = FrenshRegions.find(region => region.nom.toLowerCase() === city.toLowerCase());
         if (isRegion) {
             return { 'location.regionCode': isRegion.code };
         }
-        const isDepartment = FrenshDepartments.find(department => department.nom.toLowerCase() === city);
+        const isDepartment = FrenshDepartments.find(department => department.nom.toLowerCase() === city.toLowerCase());
         if (isDepartment) {
             return { 'location.departmentCode': isDepartment.code };
         }

@@ -8,6 +8,8 @@ import { Model } from "mongoose";
 import { Ad, AdDocument } from "../../models/ad.schema";
 import { selogerCategoryMapping } from "../models/Category.type";
 import { EstateOptionDocument } from "src/models/estateOption.schema";
+import { lastValueFrom } from "rxjs";
+import { calculateAdAccuracy } from "../utils/ad.utils";
 
 
 @Processor({ name: 'data-processing', scope: Scope.DEFAULT })
@@ -22,7 +24,8 @@ export class SelogerIngestion {
         try {
             for (let data of job.data.data_ingestion) {
                 let cleaned_data = await this.clean_data(data);
-                await this.process_data(cleaned_data);
+                let accuracy_data = calculateAdAccuracy(cleaned_data);
+                await this.process_data(accuracy_data);
             }
             this.logger.log(`Job ${job.id} has been processed successfully`);
             await job.moveToCompleted(`job-${job.id}-boncoin-ingestion-completed`)
@@ -58,8 +61,7 @@ export class SelogerIngestion {
             location: {
                 city: data.cityLabel,
                 postalCode: data.zipCode,
-                departmentCode: data.districtLabel,
-                regionCode: data.regionCode,
+                ...await this.extract_location_code(data.cityLabel, data.zipCode),
                 coordinates: {
                     lat: 46.2276,
                     lon: 2.2137
@@ -101,7 +103,14 @@ export class SelogerIngestion {
         }
     }
 
-
+    private async extract_location_code(city_name: string, postal_code: string): Promise<{ departmentCode: string, regionCode: string }> {
+        if (!postal_code || !city_name) return { departmentCode: 'NO DEPARTMENT', regionCode: 'NO REGION' };
+        const response = await lastValueFrom(this.httpService.get(`https://geo.api.gouv.fr/communes?nom=${city_name}&codePostal=${postal_code}`));
+        return {
+            departmentCode: response.data[0].codeDepartement || 'NO DEPARTMENT',
+            regionCode: response.data[0].codeRegion || 'NO REGION'
+        }
+    }
 
 
 }
