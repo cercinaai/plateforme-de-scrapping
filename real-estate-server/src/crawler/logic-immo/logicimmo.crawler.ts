@@ -37,11 +37,36 @@ export class LogicImmoCrawler {
             localite_index: 0,
             list_page: 1,
             LIMIT_REACHED: false,
-            france_localities: ['ile-de-france,1_0', 'alsace,10_0', 'aquitaine,15_0', 'Auvergne,19_0', 'Bretagne,13_0',
-                'centre,5_0', 'Bourgogne,7_0', 'champagne-ardenne,2_0', 'corse,22_0',
-                'franche-comte,11_0', 'languedoc-roussillon,20_0', 'limousin,17_0', 'lorraine,9_0',
-                'basse-normandie,6_0', 'midi-pyrenees,16_0', 'nord-pas-de-calais,8_0', 'pays-de-la-loire,12_0',
-                'picardie,3_0', 'poitou-charentes,14_0', 'provence-alpes-cote-d-azur,21_0', 'rhone-alpes,18_0', 'haute-normandie,4_0']
+            france_localities: [
+                { link: 'ile-de-france,1_0', limit: 563, data_grabbed: 0 },
+                { link: 'aquitaine,15_0', limit: 303, data_grabbed: 0 },
+                { link: 'Auvergne,19_0', limit: 357, data_grabbed: 0 },
+                { link: 'Bretagne,13_0', limit: 134, data_grabbed: 0 },
+                { link: 'centre,5_0', limit: 85, data_grabbed: 0 },
+                { link: 'Bourgogne,7_0', limit: 89, data_grabbed: 0 },
+                { link: 'corse,22_0', limit: 23, data_grabbed: 0 },
+                { link: 'franche-comte,11_0', limit: 89, data_grabbed: 0 },
+                { link: 'basse-normandie,6_0', limit: 52, data_grabbed: 0 },
+                { link: 'pays-de-la-loire,12_0', limit: 146, data_grabbed: 0 },
+                { link: 'provence-alpes-cote-d-azur,21_0', limit: 398, data_grabbed: 0 },
+                { link: 'haute-normandie,4_0', limit: 55, data_grabbed: 0 },
+                // HAUTS DE FRANCE
+                { link: 'picardie,3_0', limit: 75, data_grabbed: 0 },
+                { link: 'nord-pas-de-calais,8_0', limit: 75, data_grabbed: 0 },
+                // Occitanie
+                { link: 'midi-pyrenees,16_0', limit: 153, data_grabbed: 0 },
+                { link: 'languedoc-roussillon,20_0', limit: 153, data_grabbed: 0 },
+                // GRAND EST
+                { link: 'champagne-ardenne,2_0', limit: 56, data_grabbed: 0 },
+                { link: 'lorraine,9_0', limit: 56, data_grabbed: 0 },
+                { link: 'alsace,10_0', limit: 56, data_grabbed: 0 },
+                // GUADELOUPE
+                { link: 'guadeloupe-97,40266_1', limit: 18, data_grabbed: 0 },
+                // GUYANE
+                { link: 'guyane-973,40267_1', limit: 5, data_grabbed: 0 },
+                { link: 'la-reunion-97,40270_1', limit: 24, data_grabbed: 0 },
+                { link: 'martinique-97,40269_1', limit: 13, data_grabbed: 0 }
+            ]
         })
     }
 
@@ -94,7 +119,8 @@ export class LogicImmoCrawler {
             const ad_date_brute = await ad_date_brute_element.textContent();
             const extracted_date_match = ad_date_brute.match(/Mis à jour:\s*(\d{2}\/\d{2}\/\d{4})/);
             const ad_date = new Date(extracted_date_match[1].toString().split('/').reverse().join('-'))
-            if (!this.isSameDay(ad_date, current_date) && !this.isSameDay(ad_date, previousDay)) {
+            const { data_grabbed, limit } = job.data['france_localities'][job.data.localite_index];
+            if ((!this.isSameDay(ad_date, current_date) && !this.isSameDay(ad_date, previousDay)) || data_grabbed >= limit) {
                 await job.update({
                     ...job.data,
                     LIMIT_REACHED: true
@@ -128,9 +154,12 @@ export class LogicImmoCrawler {
                 Object.entries(ad).filter(([key, value]) => value !== undefined)
             );
             await this.dataProcessingService.process([safeJobData], 'logicimmo-crawler');
+            const france_localities = job.data['france_localities'];
+            france_localities[job.data.localite_index].data_grabbed = data_grabbed + 1
             await job.update({
                 ...job.data,
-                total_data_grabbed: job.data.total_data_grabbed + 1
+                total_data_grabbed: job.data.total_data_grabbed + 1,
+                france_localities
             });
         });
         return new PlaywrightCrawler({
@@ -198,7 +227,7 @@ export class LogicImmoCrawler {
     }
 
     protected build_link(job: Job): string {
-        return `https://www.logic-immo.com/vente-immobilier-${job.data.france_localities[job.data.localite_index]}/options/groupprptypesids=1,2,6,7,12,3,18,4,5,14,13,11,10,9,8/searchoptions=0,1/page=${job.data.list_page}/order=update_date_desc`;
+        return `https://www.logic-immo.com/vente-immobilier-${job.data.france_localities[job.data.localite_index].link}/options/groupprptypesids=1,2,6,7,12,3,18,4,5,14,13,11,10,9,8/searchoptions=0,1/page=${job.data.list_page}/order=update_date_desc`;
     }
 
     protected async extractAgency(page: Page): Promise<{ agencyName: string, agencyUrl: string, agencyPhoneNumber: string }> {
