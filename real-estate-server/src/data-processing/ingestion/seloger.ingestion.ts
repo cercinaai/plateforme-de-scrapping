@@ -10,6 +10,7 @@ import { selogerCategoryMapping } from "../models/Category.type";
 import { EstateOptionDocument } from "src/models/estateOption.schema";
 import { lastValueFrom } from "rxjs";
 import { calculateAdAccuracy } from "../utils/ad.utils";
+import { FileProcessingService } from "../file-processing.service";
 
 
 @Processor({ name: 'data-processing', scope: Scope.DEFAULT })
@@ -17,7 +18,7 @@ export class SelogerIngestion {
 
     private readonly logger = new Logger(SelogerIngestion.name);
 
-    constructor(@InjectModel(Ad.name) private adModel: Model<Ad>, private configService: ConfigService, private readonly httpService: HttpService) { }
+    constructor(@InjectModel(Ad.name) private adModel: Model<Ad>, private readonly fileProcessingService: FileProcessingService, private readonly httpService: HttpService) { }
 
     @Process('seloger-ingestion')
     async ingest(job: Job) {
@@ -56,8 +57,8 @@ export class SelogerIngestion {
             },
             description: data.description || '',
             url: `https://www.seloger.com${data.classifiedURL}`,
-            pictureUrl: data.photos.length ? `https://photos.seloger.com/photos/${data.photos[0]}` : '',
-            pictureUrls: data.photos.map((photo: string) => `https://photos.seloger.com/photos/${photo}`),
+            pictureUrl: await this.fileProcessingService.uploadFilesIntoBucket(`https://photos.seloger.com/photos/${data.photos[0]}` || null, 's') as string,
+            pictureUrls: await this.fileProcessingService.uploadFilesIntoBucket(data.photos.map((photo: string) => `https://photos.seloger.com/photos/${photo}` || null), 's') as string[],
             location: {
                 city: data.cityLabel,
                 postalCode: data.zipCode,

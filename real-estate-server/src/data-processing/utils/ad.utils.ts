@@ -1,3 +1,4 @@
+import { S3Client } from "@aws-sdk/client-s3";
 import { AdDocument } from "src/models/ad.schema"
 
 // Define importance percentages for each field in Ad_Model
@@ -91,4 +92,9 @@ export const calculateAdAccuracy = (ad: Partial<AdDocument>): Partial<AdDocument
     }
 
     return { ...ad, adAccuracy: Math.min(accuracy, 100) };
+}
+
+
+export const uploadFileIntoBucket = (s3Client: S3Client, fileBuffer: Buffer) => {
+
 }
