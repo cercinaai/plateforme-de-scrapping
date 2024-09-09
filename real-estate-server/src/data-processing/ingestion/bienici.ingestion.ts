@@ -148,8 +148,8 @@ export class BienIciIngestion {
         if (!postal_code || !city_name) return { departmentCode: 'NO DEPARTMENT', regionCode: 'NO REGION' };
         const response = await lastValueFrom(this.httpService.get(`https://geo.api.gouv.fr/communes?nom=${city_name}&codePostal=${postal_code}`));
         return {
-            departmentCode: response.data[0].codeDepartement || 'NO DEPARTMENT',
-            regionCode: response.data[0].codeRegion || 'NO REGION'
+            departmentCode: response.data[0] ? response.data[0].codeDepartement : 'NO DEPARTMENT',
+            regionCode: response.data[0] ? response.data[0].codeRegion : 'NO REGION'
         }
     }
 

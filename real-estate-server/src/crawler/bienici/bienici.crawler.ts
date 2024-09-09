@@ -92,7 +92,7 @@ export class BieniciCrawler {
 
     protected async listHandler(context: PlaywrightCrawlingContext) {
         const { page, enqueueLinks } = context;
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
         const ads = await this.filterAds(page);
         if (ads.length === 0) {
             this.logger.log("Found ads older than check_date. Stopping the crawler.");
@@ -109,7 +109,8 @@ export class BieniciCrawler {
 
     protected async handleSingleAd(context: PlaywrightCrawlingContext) {
         const { page } = context;
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
+        await page.evaluate(() => { window['crawled_ads'] = []; });
     }
 
     protected async filterAds(page: Page) {

@@ -29,7 +29,7 @@ import { FileProcessingService } from './file-processing.service';
         MongooseModule.forFeature([{ name: Ad.name, schema: AdSchema }]),
         HttpModule
     ],
-    providers: [DataProcessingService, BoncoinIngestion, SelogerIngestion, BienIciIngestion, LogicImmoIngestion],
+    providers: [DataProcessingService, FileProcessingService, BoncoinIngestion, SelogerIngestion, BienIciIngestion, LogicImmoIngestion],
     exports: [DataProcessingService, FileProcessingService],
 })
 export class DataProcessingModule { }
