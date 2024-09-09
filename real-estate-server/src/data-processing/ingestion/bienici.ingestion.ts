@@ -10,6 +10,7 @@ import { BienIciCategoryMapping } from "../models/Category.type";
 import { EstateOptionDocument } from "src/models/estateOption.schema";
 import { lastValueFrom } from "rxjs";
 import { calculateAdAccuracy } from "../utils/ad.utils";
+import { FileProcessingService } from "../file-processing.service";
 
 
 
@@ -17,7 +18,7 @@ import { calculateAdAccuracy } from "../utils/ad.utils";
 export class BienIciIngestion {
     private readonly logger = new Logger(BienIciIngestion.name);
 
-    constructor(@InjectModel(Ad.name) private adModel: Model<Ad>, private configService: ConfigService, private readonly httpService: HttpService) { }
+    constructor(@InjectModel(Ad.name) private adModel: Model<Ad>, private fileProcessingService: FileProcessingService, private readonly httpService: HttpService) { }
 
     @Process('bienici-ingestion')
     async ingest(job: Job) {
@@ -59,8 +60,8 @@ export class BienIciIngestion {
             },
             description: data.description,
             url: data.url,
-            pictureUrl: data.photos.length ? data.photos[0].url : '',
-            pictureUrls: data.photos.map((photo: any) => photo.url),
+            pictureUrl: await this.fileProcessingService.uploadFilesIntoBucket(data.photos[0].url || null, 'b') as string,
+            pictureUrls: await this.fileProcessingService.uploadFilesIntoBucket(data.photos.map((photo: any) => photo.url || null), 'b') as string[],
             location: {
                 city: data.city || 'NO CITY',
                 postalCode: data.postalCode,
@@ -147,8 +148,8 @@ export class BienIciIngestion {
         if (!postal_code || !city_name) return { departmentCode: 'NO DEPARTMENT', regionCode: 'NO REGION' };
         const response = await lastValueFrom(this.httpService.get(`https://geo.api.gouv.fr/communes?nom=${city_name}&codePostal=${postal_code}`));
         return {
-            departmentCode: response.data[0].codeDepartement || 'NO DEPARTMENT',
-            regionCode: response.data[0].codeRegion || 'NO REGION'
+            departmentCode: response.data[0] ? response.data[0].codeDepartement : 'NO DEPARTMENT',
+            regionCode: response.data[0] ? response.data[0].codeRegion : 'NO REGION'
         }
     }
 

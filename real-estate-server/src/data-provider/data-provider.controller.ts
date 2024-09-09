@@ -34,6 +34,8 @@ export class DataProviderController {
     @Get('ad-list')
     async get_ad(
         @Query('page') page = 1,
+        @Query('limit') limit = 20,
+        @Query('showTotal') showTotal: boolean = false,
         @Query('origin') origin?: string[],
         @Query('category') category?: string[],
         @Query('minPrice') minPrice?: number,
@@ -68,9 +70,9 @@ export class DataProviderController {
         @Query('hasGarage') hasGarage?: boolean,
         @Query('exposition') exposition?: string,
         @Query('parkingPlacesQuantity') parkingPlacesQuantity?: number,
-    ): Promise<Ad[]> {
-
-        const skip = (page - 1) * 20;
+    ): Promise<Ad[] | { ads: Ad[], total: number }> {
+        if (limit > 100) limit = 20;
+        const skip = (page - 1) * limit;
         let filters: any = {};
         if (origin && origin.length > 0) filters.origin = { $in: origin };
         if (category && category.length > 0) filters.category = { $in: category };
@@ -118,8 +120,12 @@ export class DataProviderController {
         if (typeof hasGarage !== 'undefined') filters['options.hasGarage'] = hasGarage;
         if (exposition) filters['options.exposition'] = exposition;
         if (typeof parkingPlacesQuantity !== 'undefined') filters['options.parkingPlacesQuantity'] = parkingPlacesQuantity;
-
-        return this.adModel.find(filters).sort({ creationDate: -1 }).skip(skip).limit(20);
+        if (showTotal) {
+            const total = await this.adModel.countDocuments(filters);
+            const ads = await this.adModel.find(filters).sort({ creationDate: -1 }).skip(skip).limit(limit);
+            return { ads, total };
+        }
+        return this.adModel.find(filters).sort({ creationDate: -1 }).skip(skip).limit(limit);
     }
 
     @Throttle({ short: { limit: 2, ttl: 1000 }, long: { limit: 5, ttl: 60000 } })

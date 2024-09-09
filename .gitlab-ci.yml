@@ -62,7 +62,7 @@ deploy:
     - ssh haythem@93.127.203.195 "docker pull $SERVER_IMAGE:latest"
     - ssh haythem@93.127.203.195 "docker pull $DASHBOARD_IMAGE:latest"
     - scp compose.prod.yml haythem@93.127.203.195:/home/haythem/
-    - scp -r mongo-entrypoint haythem@93.127.203.195:/home/haythem/
+    - scp -r entrypoints haythem@93.127.203.195:/home/haythem/
     - ssh haythem@93.127.203.195 "
         export SERVER_IMAGE=\"$SERVER_IMAGE\" &&
         export DASHBOARD_IMAGE=\"$DASHBOARD_IMAGE\" &&

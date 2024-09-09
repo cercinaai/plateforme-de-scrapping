@@ -11,12 +11,13 @@ import { first, lastValueFrom } from "rxjs";
 import { boncoinCategoryMapping } from "../models/Category.type";
 import { EstateOptionDocument } from "src/models/estateOption.schema";
 import { calculateAdAccuracy } from "../utils/ad.utils";
+import { FileProcessingService } from "../file-processing.service";
 
 @Processor({ name: 'data-processing', scope: Scope.DEFAULT })
 export class BoncoinIngestion {
     private readonly logger = new Logger(BoncoinIngestion.name);
 
-    constructor(@InjectModel(Ad.name) private adModel: Model<Ad>, private configService: ConfigService, private readonly httpService: HttpService) { }
+    constructor(@InjectModel(Ad.name) private adModel: Model<Ad>, private readonly fileProcessingService: FileProcessingService, private readonly httpService: HttpService) { }
 
     @Process('boncoin-ingestion')
     async ingest(job: Job) {
@@ -61,8 +62,8 @@ export class BoncoinIngestion {
             },
             description: data.body || '',
             url: data.url,
-            pictureUrl: data.images.thumb_url,
-            pictureUrls: data.images.urls,
+            pictureUrl: await this.fileProcessingService.uploadFilesIntoBucket(data.images.thumb_url, 'l') as string,
+            pictureUrls: await this.fileProcessingService.uploadFilesIntoBucket(data.images.urls, 'l') as string[],
             location: {
                 city: data.location.city,
                 postalCode: data.location.zipcode,
@@ -122,39 +123,12 @@ export class BoncoinIngestion {
         }).exec();
     }
 
-    private async save_files(files: string[], job: Job) {
-        let transformed_files = [];
-        for (let file of files) {
-            const fileName = file.split('/').pop();
-            transformed_files.push(fileName);
-            const rootPath = this.configService.get<string>('ROOT_PATH');
-            const uploadDir = this.configService.get<string>('UPLOAD_DIR');
-            this.httpService.get(file, { responseType: 'arraybuffer' }).pipe(first()).subscribe({
-                next: async (res) => {
-                    const fileBuffer = Buffer.from(res.data, 'binary');
-                    await fs.promises.writeFile(`${rootPath}/${uploadDir}/${fileName}`, fileBuffer);
-                },
-                error: async (err) => {
-                    await job.moveToFailed(err);
-                    job.update({
-                        failedReason: err.message,
-                        status: 'failed',
-                        job_id: job.id.toLocaleString(),
-                        error_date: new Date(),
-                        crawler_origin: 'boncoin',
-                        request_url: file,
-                    })
-                },
-            });
-        }
-        return transformed_files;
-    }
     private async extract_location_code(city_name: string, postal_code: string): Promise<{ departmentCode: string, regionCode: string }> {
         if (!postal_code || !city_name) return { departmentCode: 'NO DEPARTMENT', regionCode: 'NO REGION' };
         const response = await lastValueFrom(this.httpService.get(`https://geo.api.gouv.fr/communes?nom=${city_name}&codePostal=${postal_code}`));
         return {
-            departmentCode: response.data[0].codeDepartement || 'NO DEPARTMENT',
-            regionCode: response.data[0].codeRegion || 'NO REGION'
+            departmentCode: response.data[0] ? response.data[0].codeDepartement : 'NO DEPARTMENT',
+            regionCode: response.data[0] ? response.data[0].codeRegion : 'NO REGION'
         }
     }
 }
