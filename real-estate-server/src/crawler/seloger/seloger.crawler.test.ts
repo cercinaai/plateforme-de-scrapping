@@ -16,53 +16,54 @@ const proxyUrls = [
 const router = createPlaywrightRouter();
 
 router.addDefaultHandler(async (context) => {
-    const { page, closeCookieModals, waitForSelector } = context;
-    const isCaptcha = await detect_captcha(context);
-    console.log(isCaptcha);
-    if (isCaptcha) return;
-    await page.waitForTimeout(80000);
-    // await closeCookieModals();
-    // const cursor = await createCursor(page);
-    // await cursor.actions.randomMove();
-    // const nextButton = await page.$('a[data-testid="gsl.uilib.Paging.nextButton"]');
-    // await nextButton.scrollIntoViewIfNeeded();
-    // await page.waitForTimeout(1000);
-    // const nextButtonPosition = await nextButton.boundingBox();
-    // await page.mouse.move(nextButtonPosition.x, nextButtonPosition.y);
-    // await page.waitForTimeout(1000);
-    // await nextButton.click();
-    // await cursor.actions.randomMove();
-    // await page.waitForURL('https://www.seloger.com/**', { waitUntil: 'domcontentloaded' });
-    // await cursor.actions.randomMove();
-    // await page.waitForTimeout(8000);
-    // const saleButton = await page.$("li.c-main-list:nth-child(1) > div:nth-child(1) > a:nth-child(1)");
-    // const saleButtonPosition = await saleButton.boundingBox();
-    // await page.mouse.move(saleButtonPosition.x, saleButtonPosition.y);
-    // await page.waitForTimeout(Math.random() * 2000 + 1000);
-    // const saleButton2 = await page.$("li.c-main-list:nth-child(1) > section:nth-child(4) > div:nth-child(1) > div:nth-child(3) > ul:nth-child(1) > li:nth-child(1) > a:nth-child(1)");
-    // const saleButton2Position = await saleButton2.boundingBox();
-    // await page.mouse.move(saleButton2Position.x, saleButton2Position.y);
-    // await page.waitForTimeout(Math.random() * 2000 + 1000);
-    // await saleButton2.click();
-    // await page.waitForURL('https://www.seloger.com/vente.htm', { waitUntil: 'domcontentloaded' });
-    // await cursor.actions.randomMove();
-    // const searchButton = await page.$("button[data-testid='gsl.agatha.apply_btn']");
-    // await searchButton.scrollIntoViewIfNeeded();
-    // const searchButtonPosition = await searchButton.boundingBox();
-    // await cursor.actions.move({ x: searchButtonPosition.x, y: searchButtonPosition.y });
-    // await page.waitForTimeout(Math.random() * 2000 + 1000);
-    // await searchButton.click();
-    // await page.waitForURL('https://www.seloger.com/**', { waitUntil: 'domcontentloaded' });
-    // await page.waitForTimeout(8000);
+    const { page, closeCookieModals, enqueueLinks, waitForSelector } = context;
+    await handleCapSolver(context);
+    await closeCookieModals();
+    await page.waitForTimeout(1000);
+    const cursor = await createCursor(page);
+    await cursor.actions.randomMove();
+    await waitForSelector('.pagination__PagingWrapper-sc-1vi25cj-1');
+    const nextButton = await page.$('a[data-testid="gsl.uilib.Paging.nextButton"]');
+    const nextButtonPosition = await nextButton.boundingBox();
+    let ads = await page.evaluate(() => Array.from(window['initialData']['cards']['list']).filter(card => card['cardType'] === 'classified'));
+    if (ads) {
+        console.log(`ADS GRABBED ${ads.length}`);
+    }
+    await scrollToTargetHumanWay(page, nextButtonPosition.y);
+    await page.mouse.move(nextButtonPosition.x - 10, nextButtonPosition.y - 10);
+    await nextButton.scrollIntoViewIfNeeded();
+    await nextButton.click();
+    await page.waitForURL('https://www.seloger.com/**', { waitUntil: 'networkidle' });
+    await enqueueLinks({ urls: [page.url()], label: 'NEXT-PAGE', skipNavigation: true });
+});
 
+
+router.addHandler('NEXT-PAGE', async (context) => {
+    const { page, closeCookieModals, enqueueLinks, waitForSelector } = context;
+    await handleCapSolver(context);
+    await closeCookieModals();
+    const cursor = await createCursor(page);
+    await cursor.actions.randomMove();
+    await waitForSelector('.pagination__PagingWrapper-sc-1vi25cj-1');
+    const nextButton = await page.$('a[data-testid="gsl.uilib.Paging.nextButton"]');
+    const nextButtonPosition = await nextButton.boundingBox();
+    let ads = await page.evaluate(() => window['crawled_ads']);
+    if (ads) {
+        console.log(`ADS GRABBED ${ads.length}`);
+    }
+    await scrollToTargetHumanWay(page, nextButtonPosition.y);
+    await page.mouse.move(nextButtonPosition.x - 10, nextButtonPosition.y - 10);
+    await nextButton.scrollIntoViewIfNeeded();
+    await nextButton.click();
+    await enqueueLinks({ urls: [page.url()], label: 'NEXT-PAGE', skipNavigation: true });
 });
 
 const handleCapSolver = async (context: PlaywrightCrawlingContext): Promise<void> => {
     const { page, request, proxyInfo, log, browserController } = context;
-    // await page.waitForLoadState('domcontentloaded');
-    const captchaUrl = await detect_captcha(context);
-    if (typeof captchaUrl === 'boolean' && captchaUrl === false) return;
-    if (typeof captchaUrl === 'boolean' && captchaUrl === true) throw new Error('Session flagged. Switching to new session');
+    await page.waitForLoadState('networkidle');
+    const captcha_detection = await detect_captcha(context, { proxy_rotation: true });
+    if (typeof captcha_detection === 'boolean' && captcha_detection === false) return;
+    if (typeof captcha_detection === 'boolean' && captcha_detection === true) throw new Error('Session flagged. Switching to new session');
     log.info('Attempting to solve dataDome CAPTCHA using CapSolver.');
     const fingerprint = browserController.launchContext.fingerprint.fingerprint;
     const playload = {
@@ -70,7 +71,7 @@ const handleCapSolver = async (context: PlaywrightCrawlingContext): Promise<void
         task: {
             type: 'DatadomeSliderTask',
             websiteURL: request.url,
-            captchaUrl: captchaUrl,
+            captchaUrl: captcha_detection,
             proxy: `${proxyInfo.hostname}:${proxyInfo.port}`,
             userAgent: fingerprint.navigator.userAgent
         }
@@ -88,7 +89,7 @@ const handleCapSolver = async (context: PlaywrightCrawlingContext): Promise<void
                 log.info('Solved dataDome CAPTCHA using CapSolver');
                 const cookie = parseCookieString(taskRes.data.solution.cookie);
                 await page.context().addCookies([cookie]);
-                await page.reload({ waitUntil: 'domcontentloaded' });
+                await page.reload({ waitUntil: 'networkidle' });
                 return;
             }
             if (status === "failed" || taskRes.data.errorId) throw new Error(taskRes.data.errorMessage);
@@ -99,51 +100,33 @@ const handleCapSolver = async (context: PlaywrightCrawlingContext): Promise<void
 
 }
 
-const detect_captcha = async (context: PlaywrightCrawlingContext): Promise<string | boolean> => {
+const detect_captcha = async (context: PlaywrightCrawlingContext, { proxy_rotation }: { proxy_rotation: boolean }): Promise<string | boolean> => {
     const { page, session, log, waitForSelector } = context;
     log.info('Detecting CAPTCHA...');
+    const cursor = await createCursor(page);
+    await cursor.actions.randomMove();
     return waitForSelector('body > iframe[src*="https://geo.captcha-delivery.com"]').then(async () => {
         const captchaElement = await page.$("body > iframe[src*='https://geo.captcha-delivery.com']");
         const captchaUrl = await captchaElement.getAttribute('src');
         const captchaFrame = await captchaElement.contentFrame();
-        if (!captchaFrame) throw new Error('Failed to get captcha frame');
-        log.info('CAPTCHA detected. Captcha URL: ' + captchaUrl);
+        await cursor.actions.randomMove();
+        log.info('CAPTCHA detected.');
+        if (!proxy_rotation) return true;
+        await cursor.actions.randomMove();
         log.info('Checking if session is flagged...');
-        const isFlagged = await captchaFrame.$('#captcha-container > div.captcha__human > div > p');
-        if (!isFlagged) return captchaUrl;
-        const textContent = await isFlagged.textContent();
-        if (textContent && textContent.match(/blocked/i)) {
-            log.info('Session flagged. Switching to new session');
-            session.retire();
+        await captchaFrame.waitForSelector('#captcha-container > div.captcha__human > div > p');
+        const isFlaggedElement = await captchaFrame.$('#captcha-container > div.captcha__human > div > p');
+        const isFlaggedText = (await isFlaggedElement.textContent()).trim();
+        if (isFlaggedText.match(/bloqué/i) || isFlaggedText.match(/blocked/i)) {
+            session.markBad();
             return true;
         }
-
+        await cursor.actions.randomMove();
+        return captchaUrl;
     }).catch(async () => {
         log.info('No CAPTCHA detected');
         return false;
-    })
-    // await waitForSelector('body > iframe[src*="https://geo.captcha-delivery.com/captcha"]').then(async () => {
-    //     const captchaElement = await page.$("body > iframe[src*='https://geo.captcha-delivery.com/captcha']");
-    //     const captchaUrl = await captchaElement.getAttribute('src');
-    //     const captchaFrame = await captchaElement.contentFrame();
-    //     if (!captchaFrame) throw new Error('Failed to get captcha frame');
-    //     await waitForSelector('#captcha-container > div.captcha__human > div > p').then(async () => {
-    //         const isFlagged = await captchaFrame.$('#captcha-container > div.captcha__human > div > p');
-    //         if (isFlagged) {
-    //             const textContent = await isFlagged.textContent();
-    //             if (textContent && textContent.match(/blocked/i)) {
-    //                 log.info('Session flagged. Switching to new session');
-    //                 session.retire();
-    //                 throw new Error('Session flagged. Switching to new session');
-    //             }
-    //         }
-    //     }).catch(async () => {
-    //         return captchaUrl;
-    //     })
-    // }).catch(async () => {
-    //     log.info('No CAPTCHA detected');
-    // });
-    // return false;
+    });
 }
 
 const parseCookieString = (cookieString: string): Cookie => {
@@ -180,10 +163,50 @@ const parseCookieString = (cookieString: string): Cookie => {
     return cookie;
 }
 
+const scrollToTargetHumanWay = async (page: Page, target: number) => {
+    let currentScrollY = await page.evaluate(() => window.scrollY);
+    const cursor = await createCursor(page);
+
+    while (currentScrollY < target) {
+        // Random small scroll step to mimic human behavior
+        const scrollStep = Math.floor(Math.random() * 100) + 50;
+
+        // Scroll by a small amount and update the cursor
+        await cursor.actions.randomMove();
+        await page.evaluate((step) => {
+            window.scrollTo({ behavior: 'smooth', top: window.scrollY + step }); // Scroll down by the step amount
+        }, scrollStep);
+
+        // Wait for a short period to simulate human scroll pauses
+        await new Promise((resolve) => setTimeout(resolve, Math.random() * 200 + 200)); // 200 to 400ms pause
+
+        // Update the current scroll position
+        currentScrollY = await page.evaluate(() => window.scrollY);
+
+        // Stop scrolling if we exceed the target
+        if (currentScrollY >= target) {
+            break;
+        }
+    }
+}
+
 const selogerCrawler = new PlaywrightCrawler({
     ...selogerCrawlerOptions,
     proxyConfiguration: new ProxyConfiguration({ proxyUrls }),
-    // postNavigationHooks: [async (context) => await handleCapSolver(context)],
+    preNavigationHooks: [
+        async ({ page }) => {
+            page.on('response', async (response) => {
+                const url = response.url();
+                if (url.match(/^https: \/\/www\.seloger\.com\/search-bff\/api\/externaldata\/.*/)) {
+                    const body = await response.json();
+                    let ads = body['listingData']['cards'];
+                    await page.evaluate((ads) => {
+                        window['crawled_ads'] = ads.filter((card: any) => card['type'] === 0);
+                    }, ads);
+                }
+            });
+        }
+    ],
     requestHandler: router,
     errorHandler: (context, error) => { context.log.error(error.message) },
 
