@@ -10,13 +10,14 @@ import { logicImmoCategoryMapping } from "../models/Category.type";
 import { EstateOptionDocument } from "src/models/estateOption.schema";
 import { lastValueFrom } from "rxjs";
 import { calculateAdAccuracy } from "../utils/ad.utils";
+import { FileProcessingService } from "../file-processing.service";
 
 @Processor({ name: 'data-processing', scope: Scope.DEFAULT })
 export class LogicImmoIngestion {
     private readonly logger = new Logger(LogicImmoIngestion.name);
 
 
-    constructor(@InjectModel(Ad.name) private adModel: Model<Ad>, private configService: ConfigService, private readonly httpService: HttpService) { }
+    constructor(@InjectModel(Ad.name) private adModel: Model<Ad>, private fileProcessingService: FileProcessingService, private readonly httpService: HttpService) { }
 
     @Process('logicimmo-ingestion')
     async ingest(job: Job) {
@@ -51,8 +52,8 @@ export class LogicImmoIngestion {
             },
             description: data.description || '',
             url: `https://www.logic-immo.com/detail-vente-${data.id}.htm`,
-            pictureUrl: data.pictureUrl || '',
-            pictureUrls: data.pictureUrls || [],
+            pictureUrl: await this.fileProcessingService.uploadFilesIntoBucket(data.pictureUrl || null, 'g') as string,
+            pictureUrls: await this.fileProcessingService.uploadFilesIntoBucket(data.pictureUrls || null, 'g') as string[],
             location: {
                 city: data.city || '',
                 postalCode: data.zip_code,
@@ -161,8 +162,8 @@ export class LogicImmoIngestion {
         if (!postal_code || !city_name) return { departmentCode: 'NO DEPARTMENT', regionCode: 'NO REGION' };
         const response = await lastValueFrom(this.httpService.get(`https://geo.api.gouv.fr/communes?nom=${city_name}&codePostal=${postal_code}`));
         return {
-            departmentCode: response.data[0].codeDepartement || 'NO DEPARTMENT',
-            regionCode: response.data[0].codeRegion || 'NO REGION'
+            departmentCode: response.data[0] ? response.data[0].codeDepartement : 'NO DEPARTMENT',
+            regionCode: response.data[0] ? response.data[0].codeRegion : 'NO REGION'
         }
     }
 }   

@@ -6,6 +6,7 @@ services:
       - "6379:6379"
     volumes:
       - ./local-data/redis_data:/data
+      - ./entrypoints/redis/redis.conf:/usr/local/etc/redis/redis.conf
   
   mongodb:
     image: mongo:5.0.28
@@ -17,7 +18,7 @@ services:
     volumes:
       - ./local-data/mongd_data:/data/db
       - type: bind
-        source: ./mongo-entrypoint
+        source: ./entrypoints/mongo
         target: /docker-entrypoint-initdb.d/
   
   backend:

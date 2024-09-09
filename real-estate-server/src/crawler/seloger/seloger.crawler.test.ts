@@ -3,7 +3,9 @@ import { selogerCrawlerOptions } from "../../config/playwright.config";
 import { createCursor } from 'ghost-cursor-playwright';
 import { Page } from "playwright";
 import axios from 'axios';
+import dotenv from 'dotenv';
 
+dotenv.config({ path: 'real-estate.env' });
 
 const proxyUrls = [
     "http://hephaestus.p.shifter.io:11740",
@@ -66,7 +68,7 @@ const handleCapSolver = async (context: PlaywrightCrawlingContext): Promise<void
     log.info('Attempting to solve dataDome CAPTCHA using CapSolver.');
     const fingerprint = browserController.launchContext.fingerprint.fingerprint;
     const playload = {
-        clientKey: 'CAP-B3C6167F83FE22BEC2B7260FC64B03D9',
+        clientKey: process.env.CAPSOLVER_API_KEY,
         task: {
             type: 'DatadomeSliderTask',
             websiteURL: request.url,

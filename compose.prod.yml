@@ -5,6 +5,7 @@ services:
     restart: on-failure
     volumes:
       - real_state_redis:/data
+      - ./entrypoints/redis/redis.conf:/usr/local/etc/redis/redis.conf
 
   mongodb:
     image: mongo:5.0.28
@@ -21,7 +22,7 @@ services:
     volumes:
       - real_state_mongo:/data/db
       - type: bind
-        source: ./mongo-entrypoint
+        source: ./entrypoints/mongo
         target: /docker-entrypoint-initdb.d/
 
   backend:

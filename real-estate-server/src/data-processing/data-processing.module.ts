@@ -10,6 +10,7 @@ import { HttpModule } from '@nestjs/axios';
 import { SelogerIngestion } from './ingestion/seloger.ingestion';
 import { BienIciIngestion } from './ingestion/bienici.ingestion';
 import { LogicImmoIngestion } from './ingestion/logicimmo.ingestion';
+import { FileProcessingService } from './file-processing.service';
 
 @Module({
     imports: [
@@ -28,8 +29,7 @@ import { LogicImmoIngestion } from './ingestion/logicimmo.ingestion';
         MongooseModule.forFeature([{ name: Ad.name, schema: AdSchema }]),
         HttpModule
     ],
-    providers: [DataProcessingService, BoncoinIngestion, SelogerIngestion, BienIciIngestion, LogicImmoIngestion],
-    exports: [DataProcessingService],
-    controllers: [],
+    providers: [DataProcessingService, FileProcessingService, BoncoinIngestion, SelogerIngestion, BienIciIngestion, LogicImmoIngestion],
+    exports: [DataProcessingService, FileProcessingService],
 })
 export class DataProcessingModule { }
