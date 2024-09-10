@@ -4,27 +4,33 @@ import stealthPlugin from 'puppeteer-extra-plugin-stealth';
 
 export const boncoinCrawlerOption: PlaywrightCrawlerOptions = {
     launchContext: {
-        launcher: chromium.use(stealthPlugin()),
-        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        launcher: firefox,
+        launchOptions: {
+            firefoxUserPrefs: {
+                "media.peerconnection.enabled": false
+            },
+            timezoneId: 'Europe/Paris',
+        },
+    },
+    sessionPoolOptions: {
+        blockedStatusCodes: [429],
     },
     browserPoolOptions: {
         useFingerprints: true,
         fingerprintOptions: {
             fingerprintGeneratorOptions: {
-                browsers: [{
-                    name: BrowserName.chrome,
-                }],
+                screen: { maxHeight: 2000, maxWidth: 1920, minWidth: 1920, minHeight: 800 },
+                browsers: [{ name: BrowserName.chrome, httpVersion: '2' }],
                 devices: [DeviceCategory.desktop],
                 operatingSystems: [OperatingSystemsName.windows],
-            }
+                locales: ['fr-FR'],
+            },
         }
     },
     useSessionPool: true,
     persistCookiesPerSession: true,
     maxSessionRotations: 10,
     maxRequestRetries: 10,
-    sameDomainDelaySecs: 0.5,
-    retryOnBlocked: true,
 }
 
 export const selogerCrawlerOptions: PlaywrightCrawlerOptions = {
@@ -56,7 +62,6 @@ export const selogerCrawlerOptions: PlaywrightCrawlerOptions = {
     persistCookiesPerSession: true,
     maxSessionRotations: 10,
     maxRequestRetries: 10,
-    // retryOnBlocked: true,
 }
 
 export const bieniciCrawlerOption: PlaywrightCrawlerOptions = {

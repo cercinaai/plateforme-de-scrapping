@@ -1,4 +1,4 @@
-import { Configuration, Cookie, createPlaywrightRouter, LogLevel, PlaywrightCrawler, PlaywrightCrawlingContext, ProxyConfiguration, Session } from "crawlee";
+import { Configuration, Cookie, createPlaywrightRouter, log, LogLevel, PlaywrightCrawler, PlaywrightCrawlingContext, ProxyConfiguration, Session } from "crawlee";
 import { selogerCrawlerOptions } from "../../config/playwright.config";
 import { createCursor } from 'ghost-cursor-playwright';
 import { Page } from "playwright";
@@ -8,61 +8,67 @@ import dotenv from 'dotenv';
 dotenv.config({ path: 'real-estate.env' });
 
 const proxyUrls = [
-    "http://hephaestus.p.shifter.io:11740",
-    "http://hephaestus.p.shifter.io:11741",
-    "http://hephaestus.p.shifter.io:11742",
-    "http://hephaestus.p.shifter.io:11743",
-    "http://hephaestus.p.shifter.io:11744"
+    "http://hephaestus.p.shifter.io:10065",
+    "http://hephaestus.p.shifter.io:10066",
+    "http://hephaestus.p.shifter.io:10067",
+    "http://hephaestus.p.shifter.io:10068",
+    "http://hephaestus.p.shifter.io:10069"
 ];
 
 const router = createPlaywrightRouter();
 
 router.addDefaultHandler(async (context) => {
-    const { page, closeCookieModals, enqueueLinks, waitForSelector } = context;
+    const { page, closeCookieModals, waitForSelector, pushData } = context;
+    let PAGE = 1;
+    let TOTAL_DATA = 0;
     await handleCapSolver(context);
-    await closeCookieModals();
-    await page.waitForTimeout(1000);
+    await closeCookieModals().catch(() => { });
     const cursor = await createCursor(page);
     await cursor.actions.randomMove();
-    await waitForSelector('.pagination__PagingWrapper-sc-1vi25cj-1');
+    await waitForSelector('a[data-testid="gsl.uilib.Paging.nextButton"]').catch(async () => {
+        await page.goBack({ waitUntil: 'load' });
+        await page.goForward({ waitUntil: 'load' });
+        await waitForSelector('a[data-testid="gsl.uilib.Paging.nextButton"]');
+    });
     const nextButton = await page.$('a[data-testid="gsl.uilib.Paging.nextButton"]');
     const nextButtonPosition = await nextButton.boundingBox();
     let ads = await page.evaluate(() => Array.from(window['initialData']['cards']['list']).filter(card => card['cardType'] === 'classified'));
-    if (ads) {
-        console.log(`ADS GRABBED ${ads.length}`);
-    }
+    TOTAL_DATA += ads.length;
     await scrollToTargetHumanWay(page, nextButtonPosition.y);
     await page.mouse.move(nextButtonPosition.x - 10, nextButtonPosition.y - 10);
     await nextButton.scrollIntoViewIfNeeded();
     await nextButton.click();
-    await page.waitForURL('https://www.seloger.com/**', { waitUntil: 'networkidle' });
-    await enqueueLinks({ urls: [page.url()], label: 'NEXT-PAGE', skipNavigation: true });
-});
-
-
-router.addHandler('NEXT-PAGE', async (context) => {
-    const { page, closeCookieModals, enqueueLinks, waitForSelector } = context;
-    await handleCapSolver(context);
-    await closeCookieModals();
-    const cursor = await createCursor(page);
-    await cursor.actions.randomMove();
-    await waitForSelector('.pagination__PagingWrapper-sc-1vi25cj-1');
-    const nextButton = await page.$('a[data-testid="gsl.uilib.Paging.nextButton"]');
-    const nextButtonPosition = await nextButton.boundingBox();
-    let ads = await page.evaluate(() => window['crawled_ads']);
-    if (ads) {
-        console.log(`ADS GRABBED ${ads.length}`);
+    await page.waitForTimeout(2000);
+    while (PAGE < 3) {
+        log.info(`PAGE ${PAGE}`);
+        await closeCookieModals().catch(() => { });
+        const cursor = await createCursor(page);
+        await cursor.actions.randomMove();
+        await waitForSelector('a[data-testid="gsl.uilib.Paging.nextButton"]').catch(async () => {
+            await page.goBack({ waitUntil: 'load' });
+            await page.goForward({ waitUntil: 'load' });
+            await waitForSelector('a[data-testid="gsl.uilib.Paging.nextButton"]');
+        });
+        const nextButton = await page.$('a[data-testid="gsl.uilib.Paging.nextButton"]');
+        const nextButtonPosition = await nextButton.boundingBox();
+        ads = await page.evaluate(() => window['crawled_ads']);
+        TOTAL_DATA += ads.length;
+        await pushData(ads);
+        await scrollToTargetHumanWay(page, nextButtonPosition.y);
+        await page.mouse.move(nextButtonPosition.x - 10, nextButtonPosition.y - 10);
+        await nextButton.scrollIntoViewIfNeeded();
+        await nextButton.click();
+        await page.waitForTimeout(2000);
+        PAGE++;
     }
-    await scrollToTargetHumanWay(page, nextButtonPosition.y);
-    await page.mouse.move(nextButtonPosition.x - 10, nextButtonPosition.y - 10);
-    await nextButton.scrollIntoViewIfNeeded();
-    await nextButton.click();
-    await enqueueLinks({ urls: [page.url()], label: 'NEXT-PAGE', skipNavigation: true });
+    console.log(TOTAL_DATA);
+    console.log(PAGE);
 });
 
-const handleCapSolver = async (context: PlaywrightCrawlingContext): Promise<void> => {
+
+const handleCapSolver = async (context: PlaywrightCrawlingContext, firstTime = true): Promise<void> => {
     const { page, request, proxyInfo, log, browserController } = context;
-    await page.waitForLoadState('networkidle');
+    if (firstTime) await page.waitForLoadState('networkidle');
     const captcha_detection = await detect_captcha(context, { proxy_rotation: true });
     if (typeof captcha_detection === 'boolean' && captcha_detection === false) return;
     if (typeof captcha_detection === 'boolean' && captcha_detection === true) throw new Error('Session flagged. Switching to new session');
@@ -84,7 +90,7 @@ const handleCapSolver = async (context: PlaywrightCrawlingContext): Promise<void
         if (!task_id) throw new Error('Failed to create CapSolver task');
         while (true) {
             await new Promise(resolve => setTimeout(resolve, 1000));
-            const getResultPayload = { clientKey: 'CAP-B3C6167F83FE22BEC2B7260FC64B03D9', taskId: task_id };
+            const getResultPayload = { clientKey: process.env.CAPSOLVER_API_KEY, taskId: task_id };
             const taskRes = await axios.post("https://api.capsolver.com/getTaskResult", getResultPayload, { headers: { "Content-Type": "application/json" } });
             const status = taskRes.data.status;
             if (status === "ready") {
@@ -94,10 +100,13 @@ const handleCapSolver = async (context: PlaywrightCrawlingContext): Promise<void
                 await page.reload({ waitUntil: 'networkidle' });
                 return;
             }
-            if (status === "failed" || taskRes.data.errorId) throw new Error(taskRes.data.errorMessage);
+            if (status === "failed" || taskRes.data.errorId) {
+                console.log(taskRes.data);
+                throw new Error(taskRes.data.errorMessage)
+            };
         }
     } catch (error) {
-        log.error(error);
+        console.log(error);
     }
 
 }
@@ -166,6 +175,9 @@ const parseCookieString = (cookieString: string): Cookie => {
 }
 
 const scrollToTargetHumanWay = async (page: Page, target: number) => {
+    if (!target) {
+        target = await page.evaluate(() => window.innerHeight);
+    };
     let currentScrollY = await page.evaluate(() => window.scrollY);
     const cursor = await createCursor(page);
 
@@ -194,12 +206,14 @@ const scrollToTargetHumanWay = async (page: Page, target: number) => {
 
 const selogerCrawler = new PlaywrightCrawler({
     ...selogerCrawlerOptions,
+    requestHandlerTimeoutSecs: 1800,
     proxyConfiguration: new ProxyConfiguration({ proxyUrls }),
     preNavigationHooks: [
-        async ({ page }) => {
+        async ({ page, log }) => {
             page.on('response', async (response) => {
                 const url = response.url();
-                if (url.match(/^https: \/\/www\.seloger\.com\/search-bff\/api\/externaldata\/.*/)) {
+                if (url.includes('https://www.seloger.com/search-bff/api/externaldata')) {
+                    log.info('DETECTED RESPONSE');
                     const body = await response.json();
                     let ads = body['listingData']['cards'];
                     await page.evaluate((ads) => {
@@ -220,7 +234,7 @@ const selogerCrawler = new PlaywrightCrawler({
         persistStorage: false,
         writeMetadata: false,
     },
-    headless: false,
+    headless: true,
 }));
 
 
