@@ -21,7 +21,7 @@
     "test:crawler:bienici": "npx ts-node src/crawler/bienici/bienici.crawler.test.ts",
     "test:crawler:logicimmo": "npx ts-node src/crawler/logic-immo/logicimmo.crawler.test.ts",
     "test:crawler:boncoin": "npx ts-node src/crawler/boncoin/boncoin.crawler.test.ts",
-    "test:crawler:seloger": "npx ts-node src/crawler/seloger/seloger.crawler.test.ts"
+    "test:crawler:seloger": "npx ts-node src/crawler/seloger/test/seloger.crawler.test.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.645.0",

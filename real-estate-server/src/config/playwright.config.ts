@@ -15,6 +15,7 @@ export const boncoinCrawlerOption: PlaywrightCrawlerOptions = {
     sessionPoolOptions: {
         blockedStatusCodes: [429],
     },
+    requestHandlerTimeoutSecs: 86400,
     browserPoolOptions: {
         useFingerprints: true,
         fingerprintOptions: {
@@ -43,6 +44,7 @@ export const selogerCrawlerOptions: PlaywrightCrawlerOptions = {
             timezoneId: 'Europe/Paris',
         },
     },
+    requestHandlerTimeoutSecs: 86400,
     sessionPoolOptions: {
         blockedStatusCodes: [429],
     },

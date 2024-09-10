@@ -37,38 +37,30 @@ export class SelogerIngestion {
     }
 
     private async clean_data(data: any): Promise<Partial<AdDocument>> {
-
-
-        const missingFields: string[] = [];
-
         const cleanedData: Partial<AdDocument> = {
             origin: "seloger",
-            adId: data.id ? data.id.toString() : missingFields.push("adId"),
-            reference: data.publicationId ? data.publicationId.toString() : '',
+            adId: data.id.toString() || 'N/A',
+            reference: data.publicationId.toString() || 'N/A',
             creationDate: new Date(), // assuming the current date since it's not provided
             lastCheckDate: new Date(), // assuming the current date since it's not provided
-            title: data.title || '',
-            type: data.transactionTypeId === 8 ? 'sale' : 'rent', // Assuming the mapping logic
+            title: data.title || 'N/A',
+            type: 'sale',
             category: selogerCategoryMapping[data.estateTypeId] || 'Autre',
             publisher: {
                 name: data.contact?.contactName || '',
                 storeUrl: data.contact?.agencyLink || `https://www.seloger.com${data.contact?.agencyPage}`,
                 phoneNumber: data.contact?.phoneNumber || ''
             },
-            description: data.description || '',
+            description: data.description || 'N/A',
             url: `https://www.seloger.com${data.classifiedURL}`,
-            pictureUrl: await this.fileProcessingService.uploadFilesIntoBucket(`https://photos.seloger.com/photos/${data.photos[0]}` || null, 's') as string,
-            pictureUrls: await this.fileProcessingService.uploadFilesIntoBucket(data.photos.map((photo: string) => `https://photos.seloger.com/photos/${photo}` || null), 's') as string[],
+            pictureUrl: await this.fileProcessingService.uploadFilesIntoBucket(this.extractImageUrl(data.photos[0]), 's') as string,
+            pictureUrls: await this.fileProcessingService.uploadFilesIntoBucket(data.photos.map((photo: string) => this.extractImageUrl(photo)), 's') as string[],
             location: {
                 city: data.cityLabel,
                 postalCode: data.zipCode,
                 ...await this.extract_location_code(data.cityLabel, data.zipCode),
-                coordinates: {
-                    lat: 46.2276,
-                    lon: 2.2137
-                }
             },
-            price: data.pricing.rawPrice ? parseFloat(data.pricing.rawPrice) : missingFields.push("price"),
+            price: parseFloat(data.pricing.rawPrice) || 0,
             rooms: data.rooms || 0,
             bedrooms: data.bedroomCount || 0,
             surface: data.surface || null,
@@ -89,6 +81,13 @@ export class SelogerIngestion {
         return floorTag ? parseInt(floorTag.split(' ')[1].split('/')[0]) : null;
     }
 
+    private extractImageUrl(url: string): string {
+        if (!url) return null;
+        if (url.includes('https://v.seloger.com')) {
+            return url;
+        }
+        return `https://v.seloger.com/s/width/800/visuels${url}`
+    }
 
     private async process_data(data: any) {
         const existingAd = await this.adModel.findOne({ origin: data.origin, adId: data.adId });
@@ -104,12 +103,21 @@ export class SelogerIngestion {
         }
     }
 
-    private async extract_location_code(city_name: string, postal_code: string): Promise<{ departmentCode: string, regionCode: string }> {
-        if (!postal_code || !city_name) return { departmentCode: 'NO DEPARTMENT', regionCode: 'NO REGION' };
-        const response = await lastValueFrom(this.httpService.get(`https://geo.api.gouv.fr/communes?nom=${city_name}&codePostal=${postal_code}`));
+    private async extract_location_code(city_name: string, postal_code: string): Promise<{
+        departmentCode: string, regionCode: string, coordinates: {
+            lat: number,
+            lon: number
+        }
+    }> {
+        if (!postal_code || !city_name) return { departmentCode: 'NO DEPARTMENT', regionCode: 'NO REGION', coordinates: { lat: 0, lon: 0 } };
+        const response = await lastValueFrom(this.httpService.get(`https://geo.api.gouv.fr/communes?nom=${city_name}&codePostal=${postal_code}&fields=centre,codeDepartement,codeRegion`));
         return {
             departmentCode: response.data[0] ? response.data[0].codeDepartement : 'NO DEPARTMENT',
-            regionCode: response.data[0] ? response.data[0].codeRegion : 'NO REGION'
+            regionCode: response.data[0] ? response.data[0].codeRegion : 'NO REGION',
+            coordinates: {
+                lon: response.data[0] ? response.data[0].centre.coordinates[0] : 0,
+                lat: response.data[0] ? response.data[0].centre.coordinates[1] : 0
+            }
         }
     }
 
