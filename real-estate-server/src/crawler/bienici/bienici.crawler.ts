@@ -13,6 +13,7 @@ export class BieniciCrawler {
     private readonly logger = new Logger(BieniciCrawler.name);
     protected readonly targetUrl = "https://www.bienici.com/recherche/achat/france/maisonvilla,appartement,parking,terrain,loft,commerce,batiment,chateau,local,bureau,hotel,autres?mode=liste&tri=publication-desc";
     private checkDate!: Date;
+    private LIMIT_REACHED: number = 1500;
     constructor(protected readonly dataProcessingService: DataProcessingService, protected readonly httpService: HttpService) { }
 
     @Process({ name: 'bienici-crawler' })
@@ -41,39 +42,6 @@ export class BieniciCrawler {
             status: 'running',
             total_data_grabbed: 0,
             attempts_count: 0,
-            localite_index: 0,
-            list_page: 1,
-            LIMIT_REACHED: false,
-            // france_localities: [
-            //     { link: 'ile-de-france,1_0', limit: 563, data_grabbed: 0 },
-            //     { link: 'aquitaine,15_0', limit: 303, data_grabbed: 0 },
-            //     { link: 'Auvergne,19_0', limit: 357, data_grabbed: 0 },
-            //     { link: 'Bretagne,13_0', limit: 134, data_grabbed: 0 },
-            //     { link: 'centre,5_0', limit: 85, data_grabbed: 0 },
-            //     { link: 'Bourgogne,7_0', limit: 89, data_grabbed: 0 },
-            //     { link: 'corse,22_0', limit: 23, data_grabbed: 0 },
-            //     { link: 'franche-comte,11_0', limit: 89, data_grabbed: 0 },
-            //     { link: 'basse-normandie,6_0', limit: 52, data_grabbed: 0 },
-            //     { link: 'pays-de-la-loire,12_0', limit: 146, data_grabbed: 0 },
-            //     { link: 'provence-alpes-cote-d-azur,21_0', limit: 398, data_grabbed: 0 },
-            //     { link: 'haute-normandie,4_0', limit: 55, data_grabbed: 0 },
-            //     // HAUTS DE FRANCE
-            //     { link: 'picardie,3_0', limit: 75, data_grabbed: 0 },
-            //     { link: 'nord-pas-de-calais,8_0', limit: 75, data_grabbed: 0 },
-            //     // Occitanie
-            //     { link: 'midi-pyrenees,16_0', limit: 153, data_grabbed: 0 },
-            //     { link: 'languedoc-roussillon,20_0', limit: 153, data_grabbed: 0 },
-            //     // GRAND EST
-            //     { link: 'champagne-ardenne,2_0', limit: 56, data_grabbed: 0 },
-            //     { link: 'lorraine,9_0', limit: 56, data_grabbed: 0 },
-            //     { link: 'alsace,10_0', limit: 56, data_grabbed: 0 },
-            //     // GUADELOUPE
-            //     { link: 'guadeloupe-97,40266_1', limit: 18, data_grabbed: 0 },
-            //     // GUYANE
-            //     { link: 'guyane-973,40267_1', limit: 5, data_grabbed: 0 },
-            //     { link: 'la-reunion-97,40270_1', limit: 24, data_grabbed: 0 },
-            //     { link: 'martinique-97,40269_1', limit: 13, data_grabbed: 0 }
-            // ]
         })
     }
 
@@ -85,7 +53,7 @@ export class BieniciCrawler {
             requestHandlerTimeoutSecs: 1800,
             preNavigationHooks: [async (context) => await this.preNavigationHook(context, job)],
             errorHandler: (_, error) => this.logger.error(error),
-            requestHandler: this.createRequestHandler(),
+            requestHandler: this.createRequestHandler(job),
             failedRequestHandler: (context, error) => this.handleFailedRequest(job, context, error)
         }, bieniciConfig);
     }
@@ -116,16 +84,20 @@ export class BieniciCrawler {
         })
     }
 
-    protected createRequestHandler(): RouterHandler<PlaywrightCrawlingContext<Dictionary>> {
+    protected createRequestHandler(job: Job): RouterHandler<PlaywrightCrawlingContext<Dictionary>> {
         const router = createPlaywrightRouter();
-        router.addDefaultHandler(async (context) => await this.listHandler(context));
+        router.addDefaultHandler(async (context) => await this.listHandler(context, job));
         router.addHandler('ad-single-url', async (context) => await this.handleSingleAd(context));
         return router
     }
 
-    protected async listHandler(context: PlaywrightCrawlingContext) {
+    protected async listHandler(context: PlaywrightCrawlingContext, job: Job) {
         const { page, enqueueLinks } = context;
         await page.waitForLoadState('domcontentloaded');
+        if (job.data.total_data_grabbed >= this.LIMIT_REACHED) {
+            this.logger.log("Limit reached. Stopping the crawler.");
+            return;
+        }
         const ads = await this.filterAds(page);
         if (ads.length === 0) {
             this.logger.log("Found ads older than check_date. Stopping the crawler.");

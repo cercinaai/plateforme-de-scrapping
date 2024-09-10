@@ -71,6 +71,10 @@ deploy:
         export MONGO_USER=\"$MONGO_USER\" &&
         export MONGO_PASSWORD=\"$MONGO_PASSWORD\" &&
         export MONGO_DATABASE=\"$MONGO_DATABASE\" &&
+        export AWS_S3_BUCKET_NAME=\"$AWS_S3_BUCKET_NAME\" &&
+        export AWS_S3_ENDPOINT=\"$AWS_S3_ENDPOINT\" &&
+        export AWS_S3_ACCESS_KEY=\"$AWS_S3_ACCESS_KEY\" &&
+        export AWS_S3_SECRET_KEY=\"$AWS_S3_SECRET_KEY\" &&
         export REAL_ESTATE_API_KEY=\"$REAL_ESTATE_API_KEY\" &&
         export JWT_SECRET=\"$JWT_SECRET\" &&
         export REDIS_HOST=\"$REDIS_HOST\" &&

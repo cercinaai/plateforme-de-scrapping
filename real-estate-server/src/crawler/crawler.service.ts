@@ -13,10 +13,10 @@ export class CrawlerService {
 
     async populate_database() {
         this.logger.log('Populating Crawler Queues...');
-        await this.addJobAndWaitForCompletion('boncoin-crawler');
         await this.addJobAndWaitForCompletion('seloger-crawler');
-        await this.addJobAndWaitForCompletion('bienici-crawler');
+        await this.addJobAndWaitForCompletion('boncoin-crawler');
         await this.addJobAndWaitForCompletion('logicimmo-crawler');
+        await this.addJobAndWaitForCompletion('bienici-crawler');
         this.logger.log('Crawler Queues Populated');
     }
     private async addJobAndWaitForCompletion(jobName: string): Promise<void> {
@@ -26,7 +26,7 @@ export class CrawlerService {
 
     private async waitForJobCompletion(job: Job, interval: number = 5000): Promise<void> {
         while (true) {
-            if ((await job.isCompleted() === true) || (await job.isFailed() === true)) return;
+            if ((await job.isActive()) === false) return;
             await new Promise(resolve => setTimeout(resolve, interval));
         }
     }
