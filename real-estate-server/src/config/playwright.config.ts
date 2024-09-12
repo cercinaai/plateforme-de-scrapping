@@ -13,7 +13,7 @@ export const boncoinCrawlerOption: PlaywrightCrawlerOptions = {
         },
     },
     sessionPoolOptions: {
-        blockedStatusCodes: [429],
+        blockedStatusCodes: [],
     },
     requestHandlerTimeoutSecs: 86400,
     browserPoolOptions: {
