@@ -6,8 +6,6 @@ export type EstateOptionDocument = HydratedDocument<EstateOption>;
 @Schema()
 export class EstateOption {
 
-
-
     @Prop({ required: true, default: false })
     hasTerrace: boolean;
 

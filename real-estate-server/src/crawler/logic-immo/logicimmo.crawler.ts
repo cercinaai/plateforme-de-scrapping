@@ -9,6 +9,7 @@ import { DataProcessingService } from "../../data-processing/data-processing.ser
 import { logicimmoConfig } from "../../config/crawler.config";
 import { logicimmoCrawlerOption } from "../../config/playwright.config";
 import { Page } from "playwright";
+import { CRAWLER_ORIGIN } from "../utils/enum";
 
 @Processor('crawler')
 export class LogicImmoCrawler {
@@ -153,7 +154,7 @@ export class LogicImmoCrawler {
             const safeJobData = Object.fromEntries(
                 Object.entries(ad).filter(([key, value]) => value !== undefined)
             );
-            await this.dataProcessingService.process([safeJobData], 'logicimmo-crawler');
+            await this.dataProcessingService.process([safeJobData], CRAWLER_ORIGIN.LOGICIMMO);
             const france_localities = job.data['france_localities'];
             france_localities[job.data.localite_index].data_grabbed = data_grabbed + 1
             await job.update({

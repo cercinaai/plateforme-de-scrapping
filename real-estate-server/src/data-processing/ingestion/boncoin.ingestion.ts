@@ -82,7 +82,7 @@ export class BoncoinIngestion {
             buildingFloors: parseInt(getValue(data.attributes, 'nb_floors_building')) || null,
             energyGrade: getValueLabel(data.attributes, 'energy_rate') || '',
             gasGrade: getValueLabel(data.attributes, 'ges') || '',
-            options: {} as EstateOptionDocument,
+            options: this.extractOptions(data) as EstateOptionDocument,
             history: [],
             duplicates: [],
         };
@@ -121,6 +121,41 @@ export class BoncoinIngestion {
                 }
             }
         }).exec();
+    }
+
+    private extractOptions(data: any): Partial<EstateOptionDocument> {
+        let estateOption: Partial<EstateOptionDocument> = {};
+        const attributes = data.attributes || [];
+        for (let attribute of attributes) {
+            const key = attribute.key;
+            const value = attribute.value;
+            const values = attribute.values || [];
+            switch (key) {
+                case "immo_sell_type":
+                    if (value === "new") {
+                        estateOption.isNew = true; // Indicates new construction
+                    } else {
+                        estateOption.isNew = false;
+                    }
+                case "outside_access":
+                    if (values.includes("terrace")) {
+                        estateOption.hasTerrace = true;
+                    }
+                    if (values.includes("garden")) {
+                        estateOption.hasGarden = true;
+                    }
+                    break;
+                case "elevator":
+                    if (attribute.value === "1") {
+                        estateOption.hasElevator = true;
+                    }
+                    break;
+                case "nb_parkings":
+                    estateOption.parkingPlacesQuantity = parseInt(attribute.value, 10) || null;
+                    break;
+            }
+        }
+        return estateOption
     }
 
     private async extract_location_code(city_name: string, postal_code: string): Promise<{ departmentCode: string, regionCode: string }> {
