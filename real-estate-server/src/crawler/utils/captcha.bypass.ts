@@ -1,22 +1,17 @@
 import { PlaywrightCrawlingContext } from "crawlee"
-import { detectDataDomeCaptcha } from "./captcha.detect";
 import { parseCookieString } from './cookies.util';
 import axios from "axios";
 
-export const bypassDataDomeCaptchaByCapSolver = async (context: PlaywrightCrawlingContext) => {
+export const bypassDataDomeCaptchaByCapSolver = async (context: PlaywrightCrawlingContext, captchaUrl: string) => {
     const { page, request, proxyInfo, log, browserController } = context;
-    await page.waitForLoadState('networkidle');
-    const captcha_detection = await detectDataDomeCaptcha(context, { proxy_rotation: true });
-    if (typeof captcha_detection === 'boolean' && captcha_detection === false) return;
-    if (typeof captcha_detection === 'boolean' && captcha_detection === true) throw new Error('Session flagged. Switching to new session');
-    log.info('Attempting to solve dataDome CAPTCHA using CapSolver.');
     const fingerprint = browserController.launchContext.fingerprint.fingerprint;
+    log.info('Attempting to solve dataDome CAPTCHA using CapSolver.');
     const playload = {
         clientKey: process.env.CAPSOLVER_API_KEY,
         task: {
             type: 'DatadomeSliderTask',
             websiteURL: request.url,
-            captchaUrl: captcha_detection,
+            captchaUrl,
             proxy: `${proxyInfo.hostname}:${proxyInfo.port}`,
             userAgent: fingerprint.navigator.userAgent
         }
@@ -31,7 +26,7 @@ export const bypassDataDomeCaptchaByCapSolver = async (context: PlaywrightCrawli
             const taskRes = await axios.post("https://api.capsolver.com/getTaskResult", getResultPayload, { headers: { "Content-Type": "application/json" } });
             const status = taskRes.data.status;
             if (status === "ready") {
-                log.info('Solved dataDome CAPTCHA using CapSolver');
+                log.info('CAPTCHA bypassed. Reloading page.');
                 const cookie = parseCookieString(taskRes.data.solution.cookie);
                 await page.context().addCookies([cookie]);
                 await page.reload({ waitUntil: 'networkidle' });
@@ -43,7 +38,7 @@ export const bypassDataDomeCaptchaByCapSolver = async (context: PlaywrightCrawli
             };
         }
     } catch (error) {
-        console.log(error);
+        log.error(error.message);
     }
 }
 

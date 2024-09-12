@@ -1,16 +1,12 @@
-import { Cookie, Dictionary, FinalStatistics, PlaywrightCrawler, PlaywrightCrawlingContext, ProxyConfiguration, ProxyInfo, Request, RequestQueue, Session } from 'crawlee';
+import { FinalStatistics, PlaywrightCrawler, PlaywrightCrawlingContext, ProxyConfiguration, ProxyInfo, Request, RequestQueue, Session } from 'crawlee';
 import { Processor, Process } from '@nestjs/bull';
 import { Job } from 'bull';
-import { Inject, Logger, Scope } from '@nestjs/common';
 import { DataProcessingService } from '../../data-processing/data-processing.service';
 import { boncoinConfig } from './../../config/crawler.config';
 import { boncoinCrawlerOption } from './../../config/playwright.config';
 import { ProxyService } from '../proxy.service';
-import { ConfigService } from '@nestjs/config';
-import { HttpService } from '@nestjs/axios';
-import { Page } from 'playwright';
 import { CrawlerInterface } from '../crawler.interface';
-import { handleCrawlerState } from '../utils/handleCrawlerState.util';
+import { handleCrawlerError, handleCrawlerState } from '../utils/handleCrawlerState.util';
 import { createBoncoinRouter } from './router/boncoin.router';
 import { preBoncoinHooksRegister } from './preNavigation/preHooks.register';
 
@@ -28,6 +24,7 @@ export class BoncoinCrawler implements CrawlerInterface {
     async initialize(job: Job): Promise<void> {
         await job.update({
             crawler_origin: 'boncoin',
+            check_date: new Date(),
             status: 'running',
             total_data_grabbed: 0,
             attempts_count: 0,
@@ -68,26 +65,13 @@ export class BoncoinCrawler implements CrawlerInterface {
             requestQueue: boncoinQueue,
             preNavigationHooks: preBoncoinHooksRegister,
             requestHandler: await createBoncoinRouter(job, this.dataProcessingService),
-            failedRequestHandler: async (context, error) => await this.handleCrawlerError(error, job, context),
             proxyConfiguration: new ProxyConfiguration({ proxyUrls: this.proxyService.get_proxy_list() }),
+            failedRequestHandler: async (context, error) => await handleCrawlerError(error, job, context),
             errorHandler: async ({ log }, error) => log.error(error.message),
         }, boncoinConfig);
     }
 
-    async handleCrawlerError(error: Error, job: Job, ctx: PlaywrightCrawlingContext): Promise<void> {
-        const { request, proxyInfo } = ctx;
-        await job.update({
-            ...job.data,
-            attempts_count: job.data['attempts_count'] + 1,
-            status: 'failed',
-            error: {
-                failed_date: new Date(),
-                failedReason: request.errorMessages[-1] || error.message || 'Unknown error',
-                failed_request_url: request.url || 'N/A',
-                proxy_used: proxyInfo ? proxyInfo.url : 'N/A',
-            }
-        })
-    }
+
 
     private _build_url(job: Job): string {
         const { link } = job.data.france_locality[job.data.REGION_REACHED]

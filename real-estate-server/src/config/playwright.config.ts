@@ -46,7 +46,7 @@ export const selogerCrawlerOptions: PlaywrightCrawlerOptions = {
     },
     requestHandlerTimeoutSecs: 86400,
     sessionPoolOptions: {
-        blockedStatusCodes: [429],
+        blockedStatusCodes: [],
     },
     browserPoolOptions: {
         useFingerprints: true,

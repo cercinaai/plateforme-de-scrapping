@@ -19,7 +19,6 @@ export const selogerConfig = new Configuration({
     storageClientOptions: {
         persistStorage: false,
         writeMetadata: false,
-        writeContent: false,
     },
     memoryMbytes: 14000,
     availableMemoryRatio: 1,

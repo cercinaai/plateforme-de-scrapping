@@ -1,5 +1,5 @@
 import { Configuration, createPlaywrightRouter, LogLevel, PlaywrightCrawler } from "crawlee";
-import { bieniciCrawlerOption } from "../../config/playwright.config";
+import { bieniciCrawlerOption } from "../../../config/playwright.config";
 import axios from "axios";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import dotenv from 'dotenv';

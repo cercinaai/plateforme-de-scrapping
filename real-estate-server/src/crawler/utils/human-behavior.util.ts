@@ -1,7 +1,10 @@
+import { PlaywrightCrawlingContext } from "crawlee";
 import { createCursor } from "ghost-cursor-playwright";
 import { Page } from "playwright";
 
-export const scrollToTargetHumanWay = async (page: Page, target: number) => {
+export const scrollToTargetHumanWay = async (context: PlaywrightCrawlingContext, target: number) => {
+    // BEGIN SCROLL ONLY IF COOKIE MODAL IS CLOSED
+    let { page } = context;
     if (!target) {
         target = await page.evaluate(() => window.innerHeight);
     };

@@ -2,9 +2,9 @@ import { Configuration, Cookie, createPlaywrightRouter, log, LogLevel, Playwrigh
 import { boncoinCrawlerOption, selogerCrawlerOptions } from "../../../config/playwright.config";
 import { createCursor } from 'ghost-cursor-playwright';
 import dotenv from 'dotenv';
-import { bypassDataDomeCaptchaByCapSolver } from "../../../crawler/utils/captcha.bypass";
 import { isSameDayOrBefore } from "../../../crawler/utils/date.util";
 import { scrollToTargetHumanWay } from "../../../crawler/utils/human-behavior.util";
+import { detectDataDomeCaptcha } from "../../../crawler/utils/captcha.detect";
 
 dotenv.config({ path: 'real-estate.env' });
 
@@ -43,13 +43,14 @@ const check_date = new Date();
 
 router.addDefaultHandler(async (context) => {
     const { page, closeCookieModals, waitForSelector, enqueueLinks } = context;
-    await bypassDataDomeCaptchaByCapSolver(context);
+    await detectDataDomeCaptcha(context);
     await closeCookieModals();
     await waitForSelector("a[title='Page suivante']");
+    const cursor = await createCursor(page);
     let { limit, data_grabbed } = france_locality[REGION_REACHED];
     // PAGE LOOP
+
     while (data_grabbed < limit) {
-        const cursor = await createCursor(page);
         await cursor.actions.randomMove();
         let ads: any;
         if (PAGE_REACHED === 1) {
@@ -71,8 +72,7 @@ router.addDefaultHandler(async (context) => {
         data_grabbed += date_filter_content.length;
         const nextButton = await page.$("a[title='Page suivante']");
         const nextButtonPosition = await nextButton.boundingBox();
-        await scrollToTargetHumanWay(page, nextButtonPosition.y);
-        await waitForSelector("a[title='Page suivante']");
+        await scrollToTargetHumanWay(context, nextButtonPosition.y);
         await page.click("a[title='Page suivante']");
         await page.waitForTimeout(2000);
         log.info(`Scraped ${data_grabbed} ads from ${france_locality[REGION_REACHED].name}.`);
@@ -91,6 +91,15 @@ const build_url = (): string => {
 const boncoinCrawler = new PlaywrightCrawler({
     ...boncoinCrawlerOption,
     preNavigationHooks: [
+        async ({ page }) => {
+            // page.on('frameattached', async (frame) => {
+            //     await frame.waitForLoadState('load');
+            //     const isCaptchaFrame = await page.evaluate(() => window['captchaDetected'])
+            //     console.log(isCaptchaFrame)
+            //     if (!frame.url().includes('https://geo.captcha-delivery.com')) return;
+            //     if (!isCaptchaFrame) await page.reload();
+            // })
+        },
         async ({ page, log }) => {
             page.on('response', async (response) => {
                 const url = response.url();

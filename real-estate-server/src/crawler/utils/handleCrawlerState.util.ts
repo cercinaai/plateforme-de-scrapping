@@ -1,5 +1,5 @@
 import { Job } from "bull";
-import { FinalStatistics } from "crawlee";
+import { FinalStatistics, PlaywrightCrawlingContext } from "crawlee";
 
 export const handleCrawlerState = async (job: Job, stat: FinalStatistics) => {
     if (job.data.error || stat.requestsTotal === 0) {
@@ -9,7 +9,22 @@ export const handleCrawlerState = async (job: Job, stat: FinalStatistics) => {
     await handleSuccess(job, stat);
 }
 
-export const handleFailure = async (job: Job, stat: FinalStatistics) => {
+export const handleCrawlerError = async (error: Error, job: Job, ctx: PlaywrightCrawlingContext) => {
+    const { request, proxyInfo } = ctx;
+    await job.update({
+        ...job.data,
+        attempts_count: job.data['attempts_count'] + 1,
+        status: 'failed',
+        error: {
+            failed_date: new Date(),
+            failedReason: request.errorMessages[-1] || error.message || 'Unknown error',
+            failed_request_url: request.url || 'N/A',
+            proxy_used: proxyInfo ? proxyInfo.url : 'N/A',
+        }
+    })
+}
+
+const handleFailure = async (job: Job, stat: FinalStatistics) => {
     if (stat.requestsTotal === 0 && !job.data.error) {
         await job.update({
             ...job.data,
@@ -37,7 +52,7 @@ export const handleFailure = async (job: Job, stat: FinalStatistics) => {
     await job.moveToFailed(job.data.error['failedReason']);
 }
 
-export const handleSuccess = async (job: Job, stat: FinalStatistics) => {
+const handleSuccess = async (job: Job, stat: FinalStatistics) => {
     await job.update({
         ...job.data,
         status: 'success',
@@ -46,3 +61,5 @@ export const handleSuccess = async (job: Job, stat: FinalStatistics) => {
         failed_requests: stat.requestsFailed
     });
 }
+
+

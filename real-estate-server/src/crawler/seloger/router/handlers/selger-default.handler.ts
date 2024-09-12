@@ -3,6 +3,7 @@ import { PlaywrightCrawlingContext } from "crawlee";
 import { createCursor } from "ghost-cursor-playwright";
 import { Page } from "playwright";
 import { bypassDataDomeCaptchaByCapSolver } from "src/crawler/utils/captcha.bypass";
+import { detectDataDomeCaptcha } from "src/crawler/utils/captcha.detect";
 import { CRAWLER_ORIGIN } from "src/crawler/utils/enum";
 import { scrollToTargetHumanWay } from "src/crawler/utils/human-behavior.util";
 import { DataProcessingService } from "src/data-processing/data-processing.service";
@@ -11,14 +12,15 @@ import { DataProcessingService } from "src/data-processing/data-processing.servi
 
 export const selogerDefaultHandler = async (context: PlaywrightCrawlingContext, dataProcessingService: DataProcessingService, job: Job, stopCrawler: Function) => {
     const { page, closeCookieModals, waitForSelector, enqueueLinks, log } = context;
-    await bypassDataDomeCaptchaByCapSolver(context);
-    await closeCookieModals().catch(() => { });
+    await detectDataDomeCaptcha(context);
     const cursor = await createCursor(page);
     await cursor.actions.randomMove();
-    await waitForSelector('a[data-testid="gsl.uilib.Paging.nextButton"]').catch(async () => {
+    await closeCookieModals().catch(() => { });
+    await waitForSelector('a[data-testid="gsl.uilib.Paging.nextButton"]', 10000).catch(async () => {
         await page.goBack({ waitUntil: 'load' });
         await page.goForward({ waitUntil: 'load' });
         await waitForSelector('a[data-testid="gsl.uilib.Paging.nextButton"]');
+        await closeCookieModals().catch(() => { });
     });
     let { data_grabbed, limit } = job.data.france_locality[job.data.REGION_REACHED];
     const nextButton = await page.$('a[data-testid="gsl.uilib.Paging.nextButton"]');
@@ -29,7 +31,7 @@ export const selogerDefaultHandler = async (context: PlaywrightCrawlingContext, 
         data_grabbed += ads.length;
         log.info(`Data grabbed: ${data_grabbed} of ${limit}`);
     }
-    await scrollToTargetHumanWay(page, nextButtonPosition.y);
+    await scrollToTargetHumanWay(context, nextButtonPosition.y);
     await page.mouse.move(nextButtonPosition.x - 10, nextButtonPosition.y - 10);
     await nextButton.scrollIntoViewIfNeeded();
     await nextButton.click();
@@ -42,6 +44,7 @@ export const selogerDefaultHandler = async (context: PlaywrightCrawlingContext, 
             await page.goBack({ waitUntil: 'load' });
             await page.goForward({ waitUntil: 'load' });
             await waitForSelector('a[data-testid="gsl.uilib.Paging.nextButton"]');
+            await closeCookieModals().catch(() => { });
         });
         const nextButton = await page.$('a[data-testid="gsl.uilib.Paging.nextButton"]');
         const nextButtonPosition = await nextButton.boundingBox();
@@ -50,7 +53,7 @@ export const selogerDefaultHandler = async (context: PlaywrightCrawlingContext, 
         if ((await stopCrawler(ads)) === true) break;
         await dataProcessingService.process(ads, CRAWLER_ORIGIN.SELOGER);
         data_grabbed += ads.length;
-        await scrollToTargetHumanWay(page, nextButtonPosition.y);
+        await scrollToTargetHumanWay(context, nextButtonPosition.y);
         await page.mouse.move(nextButtonPosition.x - 10, nextButtonPosition.y - 10);
         await nextButton.scrollIntoViewIfNeeded();
         await nextButton.click();
