@@ -17,6 +17,7 @@ import { createSelogerRouter } from './router/seloger.router';
 import { handleCrawlerState } from "../utils/handleCrawlerState.util";
 import { preSelogerHooksRegister } from "./preNavigation/preHooks.register";
 import { postSelogerHooksRegister } from "./postNavigation/postHooks.register";
+import { CRAWLER_ORIGIN } from "../utils/enum";
 
 @Processor('crawler')
 export class SelogerCrawler implements CrawlerInterface {
@@ -352,7 +353,7 @@ export class SelogerCrawler implements CrawlerInterface {
         if (!existingAds || existingAds.length === 0) return false;
         if (existingAds.length < ids.length) {
             const newAds = ads.filter(ad => !existingAds.find(existingAd => existingAd.adId === ad.id.toString()));
-            await this.dataProcessingService.process(newAds, 'seloger-crawler');
+            await this.dataProcessingService.process(newAds, CRAWLER_ORIGIN.SELOGER);
             return true;
         }
         if (existingAds.length === ids.length) return true;

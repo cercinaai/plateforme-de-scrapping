@@ -3,6 +3,7 @@ import { PlaywrightCrawlingContext } from "crawlee";
 import { createCursor } from "ghost-cursor-playwright";
 import { Page } from "playwright";
 import { bypassDataDomeCaptchaByCapSolver } from "src/crawler/utils/captcha.bypass";
+import { CRAWLER_ORIGIN } from "src/crawler/utils/enum";
 import { scrollToTargetHumanWay } from "src/crawler/utils/human-behavior.util";
 import { DataProcessingService } from "src/data-processing/data-processing.service";
 
@@ -24,7 +25,7 @@ export const selogerDefaultHandler = async (context: PlaywrightCrawlingContext, 
     const nextButtonPosition = await nextButton.boundingBox();
     let ads = await page.evaluate(() => Array.from(window['initialData']['cards']['list']).filter(card => card['cardType'] === 'classified'));
     if (ads.length > 0) {
-        await dataProcessingService.process(ads, 'seloger-crawler');
+        await dataProcessingService.process(ads, CRAWLER_ORIGIN.SELOGER);
         data_grabbed += ads.length;
         log.info(`Data grabbed: ${data_grabbed} of ${limit}`);
     }
@@ -47,7 +48,7 @@ export const selogerDefaultHandler = async (context: PlaywrightCrawlingContext, 
         ads = await page.evaluate(() => window['crawled_ads']);
         if (!ads) continue;
         if ((await stopCrawler(ads)) === true) break;
-        await dataProcessingService.process(ads, 'seloger-crawler');
+        await dataProcessingService.process(ads, CRAWLER_ORIGIN.SELOGER);
         data_grabbed += ads.length;
         await scrollToTargetHumanWay(page, nextButtonPosition.y);
         await page.mouse.move(nextButtonPosition.x - 10, nextButtonPosition.y - 10);

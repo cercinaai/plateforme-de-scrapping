@@ -41,8 +41,8 @@ export class SelogerIngestion {
             origin: "seloger",
             adId: data.id.toString() || 'N/A',
             reference: data.publicationId.toString() || 'N/A',
-            creationDate: new Date(), // assuming the current date since it's not provided
-            lastCheckDate: new Date(), // assuming the current date since it's not provided
+            creationDate: new Date(),
+            lastCheckDate: new Date(),
             title: data.title || 'N/A',
             type: 'sale',
             category: selogerCategoryMapping[data.estateTypeId] || 'Autre',
@@ -64,12 +64,12 @@ export class SelogerIngestion {
             rooms: data.rooms || 0,
             bedrooms: data.bedroomCount || 0,
             surface: data.surface || null,
-            landSurface: null,
+            landSurface: this.extractLandSurfaceFromTags(data.tags) || null,
             floor: this.extractFloorFromTags(data.tags) || null,
             buildingFloors: null,
             energyGrade: data.epc || '',
             gasGrade: null,
-            options: {} as EstateOptionDocument,
+            options: this.extractOptions(data) as EstateOptionDocument,
             history: [],
             duplicates: [],
         };
@@ -79,6 +79,43 @@ export class SelogerIngestion {
     private extractFloorFromTags(tags: string[]): number | null {
         const floorTag = tags.find(tag => tag.includes('Étage'));
         return floorTag ? parseInt(floorTag.split(' ')[1].split('/')[0]) : null;
+    }
+
+    private extractLandSurfaceFromTags(tags: string[]): number | null {
+        const landSurfaceTag = tags.find(tag => tag.includes('Terrain'));
+        return landSurfaceTag ? parseInt(landSurfaceTag.split(' ')[1]) : null;
+    }
+    private extractOptions(data: any): Partial<EstateOptionDocument> {
+        let estateOption: Partial<EstateOptionDocument> = {};
+        const tags = data.tags || [];
+        if (tags.includes('Terrasse')) {
+            estateOption.hasTerrace = true;
+        }
+        if (tags.includes('Balcon')) {
+            estateOption.hasBalcony = true;
+        }
+        if (tags.includes('Jardin')) {
+            estateOption.hasGarden = true;
+        }
+        if (tags.includes('Cave')) {
+            estateOption.hasCellar = true;
+        }
+        if (tags.includes('Garage')) {
+            estateOption.hasGarage = true;
+        }
+        if (tags.includes('Ascenseur')) {
+            estateOption.hasElevator = true;
+        }
+        if (tags.includes('Piscine')) {
+            estateOption.hasPool = true;
+        }
+        if (tags.includes('Box') || tags.includes('Parking')) {
+            estateOption.parkingPlacesQuantity = 1;
+        }
+
+        estateOption.isRecent = data.isNew || null;
+        estateOption.exposition = null; // Not mentioned in the data provided
+        return estateOption;
     }
 
     private extractImageUrl(url: string): string {

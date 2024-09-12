@@ -14,7 +14,7 @@ export class CrawlerService {
     async populate_database() {
         this.logger.log('Populating Crawler Queues...');
         await this.addJobAndWaitForCompletion('seloger-crawler');
-        // await this.addJobAndWaitForCompletion('boncoin-crawler');
+        await this.addJobAndWaitForCompletion('boncoin-crawler');
         // await this.addJobAndWaitForCompletion('logicimmo-crawler');
         // await this.addJobAndWaitForCompletion('bienici-crawler');
         this.logger.log('Crawler Queues Populated');

@@ -7,6 +7,7 @@ import { bieniciCrawlerOption } from './../../config/playwright.config';
 import { createPlaywrightRouter, Dictionary, FinalStatistics, PlaywrightCrawler, PlaywrightCrawlingContext, RequestQueue, RouterHandler } from "crawlee";
 import { Page } from "playwright";
 import { HttpService } from "@nestjs/axios";
+import { CRAWLER_ORIGIN } from "../utils/enum";
 
 @Processor('crawler')
 export class BieniciCrawler {
@@ -66,7 +67,7 @@ export class BieniciCrawler {
                 // SINGLE AD PAGE
                 let body = await response.json();
                 if (body) {
-                    await this.dataProcessingService.process([{ ...body, url: page.url() }], 'bienici-crawler');
+                    await this.dataProcessingService.process([{ ...body, url: page.url() }], CRAWLER_ORIGIN.BIENICI);
                     await job.update({
                         ...job.data,
                         total_data_grabbed: job.data['total_data_grabbed'] + 1,
