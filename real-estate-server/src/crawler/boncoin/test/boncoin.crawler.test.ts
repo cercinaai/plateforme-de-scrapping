@@ -47,7 +47,7 @@ router.addDefaultHandler(async (context) => {
     await page.waitForLoadState('domcontentloaded');
     await detectDataDomeCaptcha(context);
     await closeCookieModals().catch(() => { });
-    await waitForSelector("a[title='Page suivante']");
+    await waitForSelector("a[title='Page suivante']", 10000);
     const cursor = await createCursor(page);
     let { limit, data_grabbed } = france_locality[REGION_REACHED];
     // PAGE LOOP

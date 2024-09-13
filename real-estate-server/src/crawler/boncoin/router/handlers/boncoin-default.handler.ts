@@ -15,7 +15,7 @@ export const boncoinDefaultHandler = async (context: PlaywrightCrawlingContext, 
     await page.waitForLoadState('domcontentloaded');
     await detectDataDomeCaptcha(context);
     await closeCookieModals().catch(() => { });
-    await waitForSelector("a[title='Page suivante']");
+    await waitForSelector("a[title='Page suivante']", 10000);
     // PAGE LOOP
     while (data_grabbed < limit) {
         const cursor = await createCursor(page);
@@ -48,7 +48,6 @@ export const boncoinDefaultHandler = async (context: PlaywrightCrawlingContext, 
         await page.click("a[title='Page suivante']");
         await page.waitForTimeout(2000);
         log.info(`Scraped ${data_grabbed} ads from ${name}.`);
-
         PAGE_REACHED++;
     }
     if (REGION_REACHED >= job.data.france_locality.length - 1) return;
