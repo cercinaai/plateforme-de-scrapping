@@ -15,11 +15,9 @@ import { createBienIciRouter } from "./router/bienici.router";
 
 @Processor('crawler')
 export class BieniciCrawler implements CrawlerInterface {
-    // private readonly logger = new Logger(BieniciCrawler.name);
     protected readonly targetUrl = "https://www.bienici.com/recherche/achat/france/maisonvilla,appartement,parking,terrain,loft,commerce,batiment,chateau,local,bureau,hotel,autres?mode=liste&tri=publication-desc";
-    // private checkDate!: Date;
-    // private LIMIT_REACHED: number = 1500;
-    constructor(protected readonly dataProcessingService: DataProcessingService, protected readonly httpService: HttpService) { }
+
+    constructor(protected readonly dataProcessingService: DataProcessingService) { }
 
     @Process({ name: 'bienici-crawler' })
     async start(job: Job) {
@@ -36,6 +34,7 @@ export class BieniciCrawler implements CrawlerInterface {
             AD_LIMIT: 1500,
             total_data_grabbed: 0,
             attempts_count: 0,
+            PAGE_REACHED: 1
         })
     }
     async crawl(job: Job): Promise<FinalStatistics> {
@@ -55,8 +54,6 @@ export class BieniciCrawler implements CrawlerInterface {
             requestHandler: await createBienIciRouter(job, this.dataProcessingService),
             failedRequestHandler: async (context, error) => await handleCrawlerError(error, job, context),
             errorHandler: async ({ log }, error) => log.error(error.message),
-        })
+        }, bieniciConfig)
     }
-
-
 }

@@ -3,14 +3,17 @@ import { PlaywrightCrawlingContext, PlaywrightHook } from "crawlee";
 
 
 const interceptBieniciHttpResponse = async (context: PlaywrightCrawlingContext) => {
-    const { page } = context;
+    const { page, log } = context;
     page.on('response', async (response) => {
         const url = response.url();
         if (url.match(/realEstateAd\.json\?id=.*$/)) {
             // SINGLE AD PAGE
             let body = await response.json();
             if (body) {
-                await page.evaluate((body) => window['single_ad'] = { ...body, url: page.url() }, body);
+                const url = page.url();
+                await page.evaluate((ad) => {
+                    window['single_ad'] = ad;
+                }, { url, ...body });
             }
         }
         if (url.match(/realEstateAds\.json\?filters=.*$/)) {

@@ -5,8 +5,8 @@ import { DataProcessingService } from "src/data-processing/data-processing.servi
 
 export const bieniciAdHandler = async (context: PlaywrightCrawlingContext, dataProcessingService: DataProcessingService, job: Job) => {
     const { page } = context;
-    await page.waitForLoadState('networkidle');
-    const ad = await page.evaluate(() => window['sigle_ad']);
+    await page.waitForLoadState('load');
+    const ad = await page.evaluate(() => window['single_ad']);
     if (!ad) return;
     await dataProcessingService.process([ad], CRAWLER_ORIGIN.BIENICI);
     await job.update({

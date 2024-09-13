@@ -2,11 +2,12 @@ import { Job } from "bull";
 import { PlaywrightCrawlingContext } from "crawlee";
 import { Page } from "playwright";
 import { isSameDayOrBefore } from "src/crawler/utils/date.util";
-import { DataProcessingService } from "src/data-processing/data-processing.service";
 
-export const bieniciDefaultHandler = async (context: PlaywrightCrawlingContext, dataProcessingService: DataProcessingService, job: Job) => {
-    const { page, enqueueLinks, log } = context;
+export const bieniciDefaultHandler = async (context: PlaywrightCrawlingContext, job: Job) => {
+    const { page, enqueueLinks, log, waitForSelector, request } = context;
     await page.waitForLoadState('networkidle');
+    log.info(`STARTING PAGE => ${job.data.PAGE_REACHED}`);
+    await waitForSelector('#searchResultsContainer > div.vue-pagination.pagination > div.pagination__nav-buttons > a.pagination__go-forward-button').catch(() => { });
     if (job.data.total_data_grabbed >= job.data.AD_LIMIT) {
         log.info("Limit reached. Stopping the crawler.");
         return;
@@ -16,7 +17,7 @@ export const bieniciDefaultHandler = async (context: PlaywrightCrawlingContext, 
         log.info("Found ads older than check_date. Stopping the crawler.");
         return;
     }
-    const links_urls = await extract_links(ads, page);
+    const links_urls = (await extract_links(ads, page)).filter((link) => link);
     await enqueueLinks({ urls: links_urls, label: 'ad-single-url' });
     const nextPageHtml = await page.$("#searchResultsContainer > div.vue-pagination.pagination > div.pagination__nav-buttons > a.pagination__go-forward-button");
     const nextPage = await nextPageHtml?.getAttribute('href');
@@ -38,6 +39,6 @@ const extract_links = (ads: any[], page: Page): Promise<string[]> => {
     return Promise.all(ads.map(async (ad: any) => {
         const adLinkHtml = await page.$(`article[data-id="${ad.id}"]  a`);
         const adLink = await adLinkHtml?.getAttribute('href');
-        return adLink ? `${baseUrl}${adLink}` : ''
+        return adLink ? `${baseUrl}${adLink}` : null;
     }));
 }
