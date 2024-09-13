@@ -1,8 +1,6 @@
 import { Job } from "bull";
 import { PlaywrightCrawlingContext } from "crawlee";
 import { createCursor } from "ghost-cursor-playwright";
-import { Page } from "playwright";
-import { bypassDataDomeCaptchaByCapSolver } from "src/crawler/utils/captcha.bypass";
 import { detectDataDomeCaptcha } from "src/crawler/utils/captcha.detect";
 import { CRAWLER_ORIGIN } from "src/crawler/utils/enum";
 import { scrollToTargetHumanWay } from "src/crawler/utils/human-behavior.util";
@@ -12,6 +10,7 @@ import { DataProcessingService } from "src/data-processing/data-processing.servi
 
 export const selogerDefaultHandler = async (context: PlaywrightCrawlingContext, dataProcessingService: DataProcessingService, job: Job, stopCrawler: Function) => {
     const { page, closeCookieModals, waitForSelector, enqueueLinks, log } = context;
+    await page.waitForLoadState('domcontentloaded');
     await detectDataDomeCaptcha(context);
     const cursor = await createCursor(page);
     await cursor.actions.randomMove();

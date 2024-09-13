@@ -13,9 +13,10 @@ export const boncoinDefaultHandler = async (context: PlaywrightCrawlingContext, 
     const { page, closeCookieModals, log, waitForSelector, enqueueLinks } = context;
     let { name, limit, data_grabbed } = job.data.france_locality[job.data.REGION_REACHED];
     let { REGION_REACHED, PAGE_REACHED } = job.data;
+    await page.waitForLoadState('domcontentloaded');
     await detectDataDomeCaptcha(context);
-    await closeCookieModals();
-    await waitForSelector("a[title='Page suivante']", 10000);
+    await closeCookieModals().catch(() => { });
+    await waitForSelector("a[title='Page suivante']");
     // PAGE LOOP
     while (data_grabbed < limit) {
         const cursor = await createCursor(page);

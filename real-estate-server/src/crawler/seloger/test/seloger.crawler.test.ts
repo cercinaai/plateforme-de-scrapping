@@ -41,6 +41,7 @@ router.addDefaultHandler(async (context) => {
     const { page, closeCookieModals, waitForSelector } = context;
     let PAGE = 1;
     let TOTAL_DATA = 0;
+    await page.waitForLoadState('domcontentloaded');
     await detectDataDomeCaptcha(context);
     const cursor = await createCursor(page);
     await cursor.actions.randomMove();
@@ -64,7 +65,7 @@ router.addDefaultHandler(async (context) => {
         log.info(`PAGE ${PAGE}`);
         const cursor = await createCursor(page);
         await cursor.actions.randomMove();
-        await waitForSelector('a[data-testid="gsl.uilib.Paging.nextButton"]').catch(async () => {
+        await waitForSelector('a[data-testid="gsl.uilib.Paging.nextButton"]', 10000).catch(async () => {
             await page.goBack({ waitUntil: 'load' });
             await page.goForward({ waitUntil: 'load' });
             await waitForSelector('a[data-testid="gsl.uilib.Paging.nextButton"]');
@@ -116,7 +117,7 @@ const selogerCrawler = new PlaywrightCrawler({
         persistStorage: false,
         writeMetadata: false,
     },
-    headless: false,
+    headless: true,
 }));
 
 const build_link = (): string => {
