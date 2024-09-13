@@ -1,5 +1,5 @@
 import { Configuration, createPlaywrightRouter, LogLevel, PlaywrightCrawler, PlaywrightCrawlingContext, RequestQueue } from "crawlee";
-import { logicimmoCrawlerOption } from "../../config/playwright.config";
+import { logicimmoCrawlerOption } from "../../../config/playwright.config";
 import { EstateOptionDocument } from "src/models/estateOption.schema";
 
 const logicImmoRouter = createPlaywrightRouter();
@@ -35,7 +35,6 @@ logicImmoRouter.addDefaultHandler(async (context) => {
             log.info('FINISH TEST');
             return;
         }
-
     }
     list_page++;
     log.info(`PAGE ${list_page} INSIDE LOCALITY ${franceLocality[localite_index]}`);

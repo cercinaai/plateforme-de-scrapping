@@ -1,6 +1,5 @@
 import { BrowserName, DeviceCategory, OperatingSystemsName, PlaywrightCrawlerOptions } from "crawlee";
-import { chromium } from "playwright-extra";
-import { firefox } from "playwright";
+import { firefox, chromium } from "playwright";
 import stealthPlugin from 'puppeteer-extra-plugin-stealth';
 
 export const boncoinCrawlerOption: PlaywrightCrawlerOptions = {
@@ -31,8 +30,8 @@ export const boncoinCrawlerOption: PlaywrightCrawlerOptions = {
     },
     useSessionPool: true,
     persistCookiesPerSession: true,
-    maxSessionRotations: 10,
-    maxRequestRetries: 10,
+    maxSessionRotations: Infinity,
+    maxRequestRetries: 100,
 }
 
 export const selogerCrawlerOptions: PlaywrightCrawlerOptions = {
@@ -63,54 +62,46 @@ export const selogerCrawlerOptions: PlaywrightCrawlerOptions = {
     },
     useSessionPool: true,
     persistCookiesPerSession: true,
-    maxSessionRotations: 10,
-    maxRequestRetries: 10,
+    maxSessionRotations: Infinity,
+    maxRequestRetries: 100,
 }
 
 export const bieniciCrawlerOption: PlaywrightCrawlerOptions = {
-    launchContext: {
-        launcher: chromium.use(stealthPlugin()),
-    },
     browserPoolOptions: {
         useFingerprints: true,
         fingerprintOptions: {
             fingerprintGeneratorOptions: {
-                browsers: [{
-                    name: BrowserName.chrome,
-                }],
+                screen: { maxHeight: 2000, maxWidth: 1920, minWidth: 1920, minHeight: 800 },
+                browsers: [{ name: BrowserName.chrome, httpVersion: '2' }],
                 devices: [DeviceCategory.desktop],
                 operatingSystems: [OperatingSystemsName.windows],
+                locales: ['fr-FR'],
             }
         }
     },
+
     useSessionPool: true,
     persistCookiesPerSession: true,
-    maxSessionRotations: 10,
-    maxRequestRetries: 10,
+    maxRequestRetries: 100,
     retryOnBlocked: true,
 }
 
 export const logicimmoCrawlerOption: PlaywrightCrawlerOptions = {
-    launchContext: {
-        launcher: chromium.use(stealthPlugin()),
-    },
     browserPoolOptions: {
         useFingerprints: true,
         fingerprintOptions: {
             fingerprintGeneratorOptions: {
-                browsers: [{
-                    name: BrowserName.chrome,
-                }],
+                screen: { maxHeight: 2000, maxWidth: 1920, minWidth: 1920, minHeight: 800 },
+                browsers: [{ name: BrowserName.chrome, httpVersion: '2' }],
                 devices: [DeviceCategory.desktop],
                 operatingSystems: [OperatingSystemsName.windows],
+                locales: ['fr-FR'],
             }
         }
     },
-    // maxConcurrency: 7,
     useSessionPool: true,
     persistCookiesPerSession: true,
-    maxSessionRotations: 10,
-    maxRequestRetries: 10,
-    // sameDomainDelaySecs: 0.5,
+    maxRequestRetries: 100,
     retryOnBlocked: true,
+    maxSessionRotations: Infinity
 }

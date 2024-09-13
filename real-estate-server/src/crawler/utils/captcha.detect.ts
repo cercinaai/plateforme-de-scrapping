@@ -10,7 +10,7 @@ export const detectDataDomeCaptcha = async (context: PlaywrightCrawlingContext) 
     log.info('Detecting if there is a CAPTCHA...');
     await page.waitForEvent('frameattached', { timeout: 5000 }).catch(() => { });
     await waitForSelector('iframe[src*="https://geo.captcha-delivery.com"]').then(async () => {
-        const captchaElement = await page.$("body > iframe[src*='https://geo.captcha-delivery.com']");
+        const captchaElement = await page.$("iframe[src*='https://geo.captcha-delivery.com']");
         const captchaUrl = await captchaElement.getAttribute('src');
         const captchaFrame = await captchaElement.contentFrame();
         await cursor.actions.randomMove();

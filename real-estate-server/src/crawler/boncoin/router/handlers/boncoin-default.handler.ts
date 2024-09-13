@@ -1,7 +1,6 @@
 import { Job } from "bull";
 import { PlaywrightCrawlingContext } from "crawlee";
 import { createCursor } from "ghost-cursor-playwright";
-import { bypassDataDomeCaptchaByCapSolver } from "src/crawler/utils/captcha.bypass";
 import { detectDataDomeCaptcha } from "src/crawler/utils/captcha.detect";
 import { isSameDayOrBefore } from "src/crawler/utils/date.util";
 import { CRAWLER_ORIGIN } from "src/crawler/utils/enum";
@@ -35,18 +34,21 @@ export const boncoinDefaultHandler = async (context: PlaywrightCrawlingContext, 
         }
         if (ads.length > date_filter_content.length) {
             await dataProcessingService.process(date_filter_content, CRAWLER_ORIGIN.BONCOIN);
-            await job.update({ ...job.data, data_grabbed: data_grabbed + date_filter_content.length });
+            data_grabbed += ads.length;
+            await job.update({ ...job.data, total_data_grabbed: job.data.total_data_grabbed + data_grabbed });
             log.info("Found ads older than check_date. Passing Into Next Region.");
             break;
         }
         await dataProcessingService.process(date_filter_content, CRAWLER_ORIGIN.BONCOIN);
-        await job.update({ ...job.data, data_grabbed: data_grabbed + date_filter_content.length });
+        data_grabbed += ads.length;
+        await job.update({ ...job.data, total_data_grabbed: job.data.total_data_grabbed + data_grabbed });
         const nextButton = await page.$("a[title='Page suivante']");
         const nextButtonPosition = await nextButton.boundingBox();
         await scrollToTargetHumanWay(context, nextButtonPosition.y);
         await page.click("a[title='Page suivante']");
         await page.waitForTimeout(2000);
         log.info(`Scraped ${data_grabbed} ads from ${name}.`);
+
         PAGE_REACHED++;
     }
     if (REGION_REACHED >= job.data.france_locality.length - 1) return;

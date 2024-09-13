@@ -13,10 +13,10 @@ export class CrawlerService {
 
     async populate_database() {
         this.logger.log('Populating Crawler Queues...');
-        await this.addJobAndWaitForCompletion('seloger-crawler');
         await this.addJobAndWaitForCompletion('boncoin-crawler');
-        // await this.addJobAndWaitForCompletion('logicimmo-crawler');
-        // await this.addJobAndWaitForCompletion('bienici-crawler');
+        await this.addJobAndWaitForCompletion('seloger-crawler');
+        await this.addJobAndWaitForCompletion('logicimmo-crawler');
+        await this.addJobAndWaitForCompletion('bienici-crawler');
         this.logger.log('Crawler Queues Populated');
     }
     private async addJobAndWaitForCompletion(jobName: string): Promise<void> {
@@ -47,9 +47,9 @@ export class CrawlerService {
         const jobData = job.data;
         if (status === 'success') {
             return {
+                status: 'success',
                 success_date: jobData.success_date,
                 crawler_origin: jobData.crawler_origin,
-                status: 'success',
                 total_data_grabbed: jobData.total_data_grabbed,
                 total_request: jobData.total_request,
                 success_requests: jobData.success_requests,
@@ -58,27 +58,27 @@ export class CrawlerService {
             };
         } else {
             return {
-                error_date: jobData.error_date,
                 crawler_origin: jobData.crawler_origin,
                 status: 'failed',
                 total_data_grabbed: jobData.total_data_grabbed,
-                failedReason: jobData.failedReason,
-                failed_request_url: jobData.failed_request_url,
-                proxy_used: jobData.proxy_used,
                 attempts_count: jobData.attempts_count,
                 total_request: jobData.total_request,
                 success_requests: jobData.success_requests,
                 failed_requests: jobData.failed_requests,
+                error_date: jobData.error.failed_date,
+                failedReason: jobData.error.failedReason,
+                failed_request_url: jobData.error.failed_request_url,
+                proxy_used: jobData.error.proxy_used,
             };
         }
     }
     private async saveCrawlerSession(jobsData: any[]) {
         const sessionData: Partial<CrawlerSession> = {
             session_date: new Date(),
-            boncoin: jobsData.find(job => job.crawler_origin === 'boncoin') || {},
-            bienici: jobsData.find(job => job.crawler_origin === 'bienici') || {},
-            logicimmo: jobsData.find(job => job.crawler_origin === 'logic-immo') || {},
-            seloger: jobsData.find(job => job.crawler_origin === 'seloger') || {},
+            boncoin: jobsData.find(job => job.crawler_origin === 'boncoin'),
+            bienici: jobsData.find(job => job.crawler_origin === 'bienici'),
+            logicimmo: jobsData.find(job => job.crawler_origin === 'logic-immo'),
+            seloger: jobsData.find(job => job.crawler_origin === 'seloger'),
         };
         let session = new this.crawlerSession(sessionData);
         await session.save()

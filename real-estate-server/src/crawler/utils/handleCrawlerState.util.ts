@@ -45,6 +45,7 @@ const handleFailure = async (job: Job, stat: FinalStatistics) => {
     }
     await job.update({
         ...job.data,
+        attempts_count: job.data.attempts_count + 1,
         total_request: stat.requestsTotal,
         success_requests: stat.requestsFinished,
         failed_requests: stat.requestsFailed
