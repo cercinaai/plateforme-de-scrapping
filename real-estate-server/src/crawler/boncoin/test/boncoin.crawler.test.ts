@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import { isSameDayOrBefore } from "../../../crawler/utils/date.util";
 import { scrollToTargetHumanWay } from "../../../crawler/utils/human-behavior.util";
 import { detectDataDomeCaptcha } from "../../../crawler/utils/captcha.detect";
+import { bypassDataDomeCaptchaByCapSolver } from "../../../crawler/utils/captcha.bypass";
 
 dotenv.config({ path: 'real-estate.env' });
 
@@ -43,13 +44,13 @@ const check_date = new Date();
 
 router.addDefaultHandler(async (context) => {
     const { page, closeCookieModals, waitForSelector, enqueueLinks } = context;
+    await page.waitForLoadState('domcontentloaded');
     await detectDataDomeCaptcha(context);
-    await closeCookieModals();
+    await closeCookieModals().catch(() => { });
     await waitForSelector("a[title='Page suivante']");
     const cursor = await createCursor(page);
     let { limit, data_grabbed } = france_locality[REGION_REACHED];
     // PAGE LOOP
-
     while (data_grabbed < limit) {
         await cursor.actions.randomMove();
         let ads: any;
@@ -92,15 +93,6 @@ const boncoinCrawler = new PlaywrightCrawler({
     ...boncoinCrawlerOption,
     preNavigationHooks: [
         async ({ page }) => {
-            // page.on('frameattached', async (frame) => {
-            //     await frame.waitForLoadState('load');
-            //     const isCaptchaFrame = await page.evaluate(() => window['captchaDetected'])
-            //     console.log(isCaptchaFrame)
-            //     if (!frame.url().includes('https://geo.captcha-delivery.com')) return;
-            //     if (!isCaptchaFrame) await page.reload();
-            // })
-        },
-        async ({ page, log }) => {
             page.on('response', async (response) => {
                 const url = response.url();
                 if (url.includes('https://api.leboncoin.fr/finder/search')) {
@@ -125,7 +117,7 @@ const boncoinCrawler = new PlaywrightCrawler({
         persistStorage: false,
         writeMetadata: false,
     },
-    headless: false,
+    headless: true,
 }))
 
 const test = async () => {
