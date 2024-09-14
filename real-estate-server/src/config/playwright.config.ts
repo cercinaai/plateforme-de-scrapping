@@ -1,6 +1,5 @@
 import { BrowserName, DeviceCategory, OperatingSystemsName, PlaywrightCrawlerOptions } from "crawlee";
-import { firefox, chromium } from "playwright";
-import stealthPlugin from 'puppeteer-extra-plugin-stealth';
+import { firefox } from "playwright";
 
 export const boncoinCrawlerOption: PlaywrightCrawlerOptions = {
     launchContext: {
