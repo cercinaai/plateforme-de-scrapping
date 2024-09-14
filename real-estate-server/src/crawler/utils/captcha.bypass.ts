@@ -30,6 +30,7 @@ export const bypassDataDomeCaptchaByCapSolver = async (context: PlaywrightCrawli
                 const cookie = parseCookieString(taskRes.data.solution.cookie);
                 await page.context().addCookies([cookie]);
                 await page.reload({ waitUntil: 'networkidle' });
+                await page.waitForTimeout(2000);
                 return;
             }
             if (status === "failed" || taskRes.data.errorId) {

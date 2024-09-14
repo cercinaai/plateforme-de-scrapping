@@ -46,8 +46,8 @@ router.addDefaultHandler(async (context) => {
     const { page, closeCookieModals, waitForSelector, enqueueLinks } = context;
     await page.waitForLoadState('domcontentloaded');
     await detectDataDomeCaptcha(context);
-    await closeCookieModals().catch(() => { });
-    await waitForSelector("a[title='Page suivante']", 10000);
+    await closeCookieModals();
+    await waitForSelector("a[title='Page suivante']");
     const cursor = await createCursor(page);
     let { limit, data_grabbed } = france_locality[REGION_REACHED];
     // PAGE LOOP
@@ -117,7 +117,7 @@ const boncoinCrawler = new PlaywrightCrawler({
         persistStorage: false,
         writeMetadata: false,
     },
-    headless: true,
+    headless: false,
 }))
 
 const test = async () => {
