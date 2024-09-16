@@ -9,8 +9,9 @@ import { Ad, AdDocument } from "../../models/ad.schema";
 import { selogerCategoryMapping } from "../models/Category.type";
 import { EstateOptionDocument } from "src/models/estateOption.schema";
 import { lastValueFrom } from "rxjs";
-import { calculateAdAccuracy } from "../utils/ad.utils";
+import { calculateAdAccuracy, extractLocation } from "../utils/ad.utils";
 import { FileProcessingService } from "../file-processing.service";
+import { LocationDocument } from "src/models/location.schema";
 
 
 @Processor({ name: 'data-processing', scope: Scope.DEFAULT })
@@ -58,7 +59,7 @@ export class SelogerIngestion {
             location: {
                 city: data.cityLabel,
                 postalCode: data.zipCode,
-                ...await this.extract_location_code(data.cityLabel, data.zipCode),
+                ...await extractLocation(data.cityLabel, data.zipCode, true) as LocationDocument,
             },
             price: parseFloat(data.pricing.rawPrice) || 0,
             rooms: data.rooms || 0,
@@ -140,23 +141,7 @@ export class SelogerIngestion {
         }
     }
 
-    private async extract_location_code(city_name: string, postal_code: string): Promise<{
-        departmentCode: string, regionCode: string, coordinates: {
-            lat: number,
-            lon: number
-        }
-    }> {
-        if (!postal_code || !city_name) return { departmentCode: 'NO DEPARTMENT', regionCode: 'NO REGION', coordinates: { lat: 0, lon: 0 } };
-        const response = await lastValueFrom(this.httpService.get(`https://geo.api.gouv.fr/communes?nom=${city_name}&codePostal=${postal_code}&fields=centre,codeDepartement,codeRegion`));
-        return {
-            departmentCode: response.data[0] ? response.data[0].codeDepartement : 'NO DEPARTMENT',
-            regionCode: response.data[0] ? response.data[0].codeRegion : 'NO REGION',
-            coordinates: {
-                lon: response.data[0] ? response.data[0].centre.coordinates[0] : 0,
-                lat: response.data[0] ? response.data[0].centre.coordinates[1] : 0
-            }
-        }
-    }
+
 
 
 }

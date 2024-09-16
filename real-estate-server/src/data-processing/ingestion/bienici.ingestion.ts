@@ -9,7 +9,7 @@ import { Ad, AdDocument } from "../../models/ad.schema";
 import { BienIciCategoryMapping } from "../models/Category.type";
 import { EstateOptionDocument } from "src/models/estateOption.schema";
 import { lastValueFrom } from "rxjs";
-import { calculateAdAccuracy } from "../utils/ad.utils";
+import { calculateAdAccuracy, extractLocation } from "../utils/ad.utils";
 import { FileProcessingService } from "../file-processing.service";
 
 
@@ -65,7 +65,7 @@ export class BienIciIngestion {
             location: {
                 city: data.city || 'NO CITY',
                 postalCode: data.postalCode,
-                ...await this.extract_location_code(data.city, data.postalCode),
+                ...await extractLocation(data.city, data.postalCode),
                 coordinates: {
                     lat: data.blurInfo?.position?.lat || 0,
                     lon: data.blurInfo?.position?.lon || 0,
@@ -142,15 +142,6 @@ export class BienIciIngestion {
                 }
             }
         }).exec();
-    }
-
-    private async extract_location_code(city_name: string, postal_code: string): Promise<{ departmentCode: string, regionCode: string }> {
-        if (!postal_code || !city_name) return { departmentCode: 'NO DEPARTMENT', regionCode: 'NO REGION' };
-        const response = await lastValueFrom(this.httpService.get(`https://geo.api.gouv.fr/communes?nom=${city_name}&codePostal=${postal_code}`));
-        return {
-            departmentCode: response.data[0] ? response.data[0].codeDepartement : 'NO DEPARTMENT',
-            regionCode: response.data[0] ? response.data[0].codeRegion : 'NO REGION'
-        }
     }
 
 }
