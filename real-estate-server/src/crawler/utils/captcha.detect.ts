@@ -3,13 +3,17 @@ import { createCursor } from "ghost-cursor-playwright";
 import { bypassDataDomeCaptchaByCapSolver } from "./captcha.bypass";
 
 
-export const detectDataDomeCaptcha = async (context: PlaywrightCrawlingContext) => {
+export const detectDataDomeCaptcha = async (context: PlaywrightCrawlingContext, startByCaptcha = false) => {
     const { page, session, log, waitForSelector } = context;
     const cursor = await createCursor(page);
     await cursor.actions.randomMove();
     log.info('Detecting if there is a CAPTCHA...');
     await page.waitForEvent('frameattached', { timeout: 5000 }).catch(() => { });
     return waitForSelector('iframe[src*="https://geo.captcha-delivery.com"]').then(async () => await handleCaptchaDetection(context)).catch(() => {
+        if (!startByCaptcha) {
+            log.info('No CAPTCHA detected.');
+            return;
+        };
         throw new Error('No CAPTCHA detected');
     });
 }

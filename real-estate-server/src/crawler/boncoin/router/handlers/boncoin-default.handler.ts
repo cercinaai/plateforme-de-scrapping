@@ -13,7 +13,7 @@ export const boncoinDefaultHandler = async (context: PlaywrightCrawlingContext, 
     let { name, limit, data_grabbed } = job.data.france_locality[job.data.REGION_REACHED];
     let { REGION_REACHED, PAGE_REACHED } = job.data;
     await page.waitForLoadState('domcontentloaded');
-    await detectDataDomeCaptcha(context);
+    await detectDataDomeCaptcha(context, true);
     await closeCookieModals().catch(() => { });
     await waitForSelector("a[title='Page suivante']", 10000);
     // PAGE LOOP
