@@ -86,6 +86,19 @@ export const bieniciCrawlerOption: PlaywrightCrawlerOptions = {
 }
 
 export const logicimmoCrawlerOption: PlaywrightCrawlerOptions = {
+    launchContext: {
+        launcher: firefox,
+        launchOptions: {
+            firefoxUserPrefs: {
+                "media.peerconnection.enabled": false
+            },
+            timezoneId: 'Europe/Paris',
+        },
+    },
+    requestHandlerTimeoutSecs: 1600,
+    sessionPoolOptions: {
+        blockedStatusCodes: [],
+    },
     browserPoolOptions: {
         useFingerprints: true,
         fingerprintOptions: {
@@ -95,15 +108,11 @@ export const logicimmoCrawlerOption: PlaywrightCrawlerOptions = {
                 devices: [DeviceCategory.desktop],
                 operatingSystems: [OperatingSystemsName.windows],
                 locales: ['fr-FR'],
-            }
+            },
         }
-    },
-    sessionPoolOptions: {
-        blockedStatusCodes: [],
     },
     useSessionPool: true,
     persistCookiesPerSession: true,
+    maxSessionRotations: Infinity,
     maxRequestRetries: 100,
-    retryOnBlocked: true,
-    maxSessionRotations: Infinity
 }

@@ -5,11 +5,12 @@ import { detectDataDomeCaptcha } from "src/crawler/utils/captcha.detect";
 
 export const logicImmoDefaultHandler = async (context: PlaywrightCrawlingContext, job: Job) => {
     const { page, enqueueLinks, closeCookieModals, log } = context;
-    await closeCookieModals();
-    await detectDataDomeCaptcha(context, false);
     await page.waitForLoadState('domcontentloaded');
+    await detectDataDomeCaptcha(context, false);
+    await closeCookieModals();
     await page.waitForTimeout(1200);
     const ads = await page.evaluate(() => window['thor']['dataLayer']['av_items']);
+    if (!ads) throw new Error('No ads found');
     const ads_links = ads.map((ad: any) => `https://www.logic-immo.com/detail-vente-${ad.id}.htm`);
     if (job.data['LIMIT_REACHED'] === false) {
         log.info(`STARTING PAGE ${job.data.list_page} FOR ${job.data.localite_index} - ${job.data.france_localities[job.data.localite_index].link}`);
