@@ -95,6 +95,7 @@ export const calculateAdAccuracy = (ad: Partial<AdDocument>): Partial<AdDocument
 }
 
 
-export const uploadFileIntoBucket = (s3Client: S3Client, fileBuffer: Buffer) => {
-
-}
+export const urlWithoutQueryParams = (url: string) => {
+    const urlObj = new URL(url);
+    return urlObj.origin + urlObj.pathname;
+};

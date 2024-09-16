@@ -1,11 +1,11 @@
-import { Configuration, Cookie, createPlaywrightRouter, log, LogLevel, PlaywrightCrawler, PlaywrightCrawlingContext, ProxyConfiguration } from "crawlee";
-import { boncoinCrawlerOption, selogerCrawlerOptions } from "../../../config/playwright.config";
+import { Configuration, createPlaywrightRouter, log, LogLevel, PlaywrightCrawler, ProxyConfiguration } from "crawlee";
+import { boncoinCrawlerOption } from "../../../config/playwright.config";
 import { createCursor } from 'ghost-cursor-playwright';
 import dotenv from 'dotenv';
 import { isSameDayOrBefore } from "../../../crawler/utils/date.util";
 import { scrollToTargetHumanWay } from "../../../crawler/utils/human-behavior.util";
 import { detectDataDomeCaptcha } from "../../../crawler/utils/captcha.detect";
-import { bypassDataDomeCaptchaByCapSolver } from "../../../crawler/utils/captcha.bypass";
+import { save_files } from "../../../data-processing/test/save-file.test";
 
 dotenv.config({ path: 'real-estate.env' });
 
@@ -71,6 +71,8 @@ router.addDefaultHandler(async (context) => {
             break;
         }
         data_grabbed += date_filter_content.length;
+        const images_to_upload = date_filter_content.map((ad: any) => ad.images.thumb_url);
+        await save_files(images_to_upload[0]);
         const nextButton = await page.$("a[title='Page suivante']");
         const nextButtonPosition = await nextButton.boundingBox();
         await scrollToTargetHumanWay(context, nextButtonPosition.y);
