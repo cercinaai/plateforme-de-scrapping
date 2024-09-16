@@ -104,6 +104,5 @@ export const logicimmoCrawlerOption: PlaywrightCrawlerOptions = {
     useSessionPool: true,
     persistCookiesPerSession: true,
     maxRequestRetries: 100,
-    retryOnBlocked: true,
     maxSessionRotations: Infinity
 }
