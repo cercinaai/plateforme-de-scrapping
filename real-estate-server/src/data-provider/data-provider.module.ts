@@ -4,6 +4,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { Ad, AdSchema } from '../models/ad.schema';
 import { CrawlerSession, CrawlerSessionSchema } from '../models/crawlerSession.schema';
 import { AuthModule } from '../auth/auth.module';
+import { DataProviderService } from './data-provider.service';
 
 @Module({
     imports: [
@@ -11,5 +12,6 @@ import { AuthModule } from '../auth/auth.module';
         AuthModule
     ],
     controllers: [DataProviderController],
+    providers: [DataProviderService],
 })
 export class DataProviderModule { }
