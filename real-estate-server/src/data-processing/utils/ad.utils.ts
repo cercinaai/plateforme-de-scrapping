@@ -1,4 +1,4 @@
-import { S3Client } from "@aws-sdk/client-s3";
+import axios from "axios";
 import { AdDocument } from "src/models/ad.schema"
 
 // Define importance percentages for each field in Ad_Model
@@ -99,3 +99,29 @@ export const urlWithoutQueryParams = (url: string) => {
     const urlObj = new URL(url);
     return urlObj.origin + urlObj.pathname;
 };
+
+
+export const extractLocation = async (city: string, postalCode: string, withCoordinates = false):
+    Promise<{
+        departmentCode: string, regionCode: string, coordinates?: { lat: number, lon: number }
+    }> => {
+    if (!city || !postalCode) return { departmentCode: 'NO DEPARTMENT', regionCode: 'NO REGION' };
+    let response = await axios.get(`https://geo.api.gouv.fr/communes?nom=${city}&codePostal=${postalCode}&fields=centre,codeDepartement,codeRegion`);
+    if (!response.data || response.data.length === 0) {
+        response = await axios.get(`https://geo.api.gouv.fr/communes?codePostal=${postalCode}&fields=centre,codeDepartement,codeRegion`);
+    }
+    if (withCoordinates) {
+        return {
+            departmentCode: response.data[0] ? response.data[0].codeDepartement : 'NO DEPARTMENT',
+            regionCode: response.data[0] ? response.data[0].codeRegion : 'NO REGION',
+            coordinates: {
+                lat: response.data[0] ? response.data[0].centre.coordinates[1] : 0,
+                lon: response.data[0] ? response.data[0].centre.coordinates[0] : 0
+            }
+        }
+    }
+    return {
+        departmentCode: response.data[0] ? response.data[0].codeDepartement : 'NO DEPARTMENT',
+        regionCode: response.data[0] ? response.data[0].codeRegion : 'NO REGION'
+    }
+}

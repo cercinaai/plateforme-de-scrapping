@@ -28,7 +28,7 @@ export const selogerDefaultHandler = async (context: PlaywrightCrawlingContext, 
     if (ads.length > 0) {
         await dataProcessingService.process(ads, CRAWLER_ORIGIN.SELOGER);
         data_grabbed += ads.length;
-        log.info(`Data grabbed: ${data_grabbed} of ${limit}`);
+        log.info(`Data grabbed: ${data_grabbed} of ${limit} for (${job.data.france_locality[job.data.REGION_REACHED].name})`);
     }
     await scrollToTargetHumanWay(context, nextButtonPosition.y);
     await page.mouse.move(nextButtonPosition.x - 10, nextButtonPosition.y - 10);
@@ -57,7 +57,7 @@ export const selogerDefaultHandler = async (context: PlaywrightCrawlingContext, 
         await nextButton.scrollIntoViewIfNeeded();
         await nextButton.click();
         await page.waitForTimeout(2000);
-        log.info(`Data grabbed: ${data_grabbed} of ${limit}`);
+        log.info(`Data grabbed: ${data_grabbed} of ${limit} for (${job.data.france_locality[job.data.REGION_REACHED].name})`);
     }
     // NEXT LOCALITY
     if (job.data.REGION_REACHED >= job.data.france_locality.length - 1) return;

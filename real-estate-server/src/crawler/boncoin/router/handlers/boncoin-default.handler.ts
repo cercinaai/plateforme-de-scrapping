@@ -13,7 +13,7 @@ export const boncoinDefaultHandler = async (context: PlaywrightCrawlingContext, 
     let { name, limit, data_grabbed } = job.data.france_locality[job.data.REGION_REACHED];
     let { REGION_REACHED, PAGE_REACHED } = job.data;
     await page.waitForLoadState('domcontentloaded');
-    await detectDataDomeCaptcha(context);
+    await detectDataDomeCaptcha(context, true);
     await closeCookieModals().catch(() => { });
     await waitForSelector("a[title='Page suivante']", 10000);
     // PAGE LOOP
@@ -34,13 +34,13 @@ export const boncoinDefaultHandler = async (context: PlaywrightCrawlingContext, 
         }
         if (ads.length > date_filter_content.length) {
             await dataProcessingService.process(date_filter_content, CRAWLER_ORIGIN.BONCOIN);
-            data_grabbed += ads.length;
+            data_grabbed += date_filter_content.length;
             await job.update({ ...job.data, total_data_grabbed: job.data.total_data_grabbed + data_grabbed });
             log.info("Found ads older than check_date. Passing Into Next Region.");
             break;
         }
         await dataProcessingService.process(date_filter_content, CRAWLER_ORIGIN.BONCOIN);
-        data_grabbed += ads.length;
+        data_grabbed += date_filter_content.length;
         await job.update({ ...job.data, total_data_grabbed: job.data.total_data_grabbed + data_grabbed });
         const nextButton = await page.$("a[title='Page suivante']");
         const nextButtonPosition = await nextButton.boundingBox();

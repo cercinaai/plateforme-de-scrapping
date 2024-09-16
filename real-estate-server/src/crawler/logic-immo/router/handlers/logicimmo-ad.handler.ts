@@ -15,6 +15,7 @@ export const logicImmoAdHandler = async (context: PlaywrightCrawlingContext, dat
         }).catch(() => { })
     } catch (error) {
         if (error.message === 'Ad not found') return;
+        throw error;
     }
     try {
         let ad_date_brute_element = await page.$('.offer-description-notes');

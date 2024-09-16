@@ -10,7 +10,7 @@ import { HttpService } from "@nestjs/axios";
 import { first, lastValueFrom } from "rxjs";
 import { boncoinCategoryMapping } from "../models/Category.type";
 import { EstateOptionDocument } from "src/models/estateOption.schema";
-import { calculateAdAccuracy } from "../utils/ad.utils";
+import { calculateAdAccuracy, extractLocation } from "../utils/ad.utils";
 import { FileProcessingService } from "../file-processing.service";
 
 @Processor({ name: 'data-processing', scope: Scope.DEFAULT })
@@ -67,7 +67,7 @@ export class BoncoinIngestion {
             location: {
                 city: data.location.city,
                 postalCode: data.location.zipcode,
-                ...await this.extract_location_code(data.location.city, data.location.zipcode),
+                ...await extractLocation(data.location.city, data.location.zipcode),
                 coordinates: {
                     lat: data.location.lat,
                     lon: data.location.lng,
@@ -156,14 +156,5 @@ export class BoncoinIngestion {
             }
         }
         return estateOption
-    }
-
-    private async extract_location_code(city_name: string, postal_code: string): Promise<{ departmentCode: string, regionCode: string }> {
-        if (!postal_code || !city_name) return { departmentCode: 'NO DEPARTMENT', regionCode: 'NO REGION' };
-        const response = await lastValueFrom(this.httpService.get(`https://geo.api.gouv.fr/communes?nom=${city_name}&codePostal=${postal_code}`));
-        return {
-            departmentCode: response.data[0] ? response.data[0].codeDepartement : 'NO DEPARTMENT',
-            regionCode: response.data[0] ? response.data[0].codeRegion : 'NO REGION'
-        }
     }
 }
