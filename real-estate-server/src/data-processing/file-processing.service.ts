@@ -3,6 +3,7 @@ import { HttpService } from "@nestjs/axios";
 import { Injectable, OnModuleInit } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { first, lastValueFrom } from "rxjs";
+import { urlWithoutQueryParams } from "./utils/ad.utils";
 
 @Injectable()
 export class FileProcessingService implements OnModuleInit {
@@ -16,10 +17,10 @@ export class FileProcessingService implements OnModuleInit {
     }
 
     public async uploadFilesIntoBucket(files: string | string[], target: string): Promise<string | string[]> {
-        const result: string[] = [];
         if (!files) return 'Image Not Found';
         if (typeof files === 'string') {
-            const fileName = files.split('/').pop();
+            const url = urlWithoutQueryParams(files);
+            const fileName = url.split('/').pop();
             const targetName = `${target}/${fileName}`;
             const file_download = await lastValueFrom(this.httpService.get(files, { responseType: 'arraybuffer' }).pipe(first()));
             if (file_download.status !== 200) return 'Image not found';
@@ -32,9 +33,11 @@ export class FileProcessingService implements OnModuleInit {
             await this.s3.send(command);
             return `https://f003.backblazeb2.com/file/${this.configService.get<string>('AWS_S3_BUCKET_NAME')}/${targetName}`;
         }
+        const result: string[] = [];
         for (let file of files) {
             if (!file) continue;
-            const fileName = file.split('/').pop();
+            const url = urlWithoutQueryParams(file);
+            const fileName = url.split('/').pop();
             const targetName = `${target}/${fileName}`;
             const file_download = await lastValueFrom(this.httpService.get(file, { responseType: 'arraybuffer' }).pipe(first()));
             if (file_download.status !== 200) continue;

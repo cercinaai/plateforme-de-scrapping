@@ -135,17 +135,12 @@ export class DataProviderController {
         if (!_id && !adId) {
             throw new BadRequestException('Either _id or adId must be provided');
         }
-        let ad: Ad | null = null;
-
         if (_id) {
-            ad = await this.adModel.findById(_id);
-        } else if (adId) {
-            ad = await this.adModel.findOne({ adId });
+            return await this.adModel.findById(_id).catch(() => { throw new NotFoundException('Ad not found') });
         }
-        if (!ad) {
-            throw new NotFoundException('Ad not found');
+        if (adId) {
+            return await this.adModel.findOne({ adId }).catch(() => { throw new NotFoundException('Ad not found') });
         }
-        return ad;
     }
 
     @Throttle({ short: { limit: 2, ttl: 1000 }, long: { limit: 5, ttl: 60000 } })
