@@ -8,7 +8,7 @@ export class FilterAdsDto {
     limit: number;
 
     @IsBoolean()
-    showTotal: boolean = false;
+    showTotal: boolean;
 
     @IsArray()
     @IsOptional()

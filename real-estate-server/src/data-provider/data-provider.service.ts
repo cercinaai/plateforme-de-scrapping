@@ -12,13 +12,9 @@ export class DataProviderService {
     constructor(@InjectModel(Ad.name) private adModel: Model<Ad>) { }
 
 
-    async filterAdsList(query: FilterAdsDto, withPagination = true): Promise<Ad[] | { ads: Ad[], total: number }> {
+    async filterAdsList(query: FilterAdsDto): Promise<Ad[] | { ads: Ad[], total: number }> {
         let filters: any = {};
         let sort: any = {};
-        if (withPagination) {
-            query.page = query.page || 1;
-            query.limit = query.limit || 20;
-        }
         if (query.origin && query.origin.length > 0) filters.origin = { $in: query.origin };
         if (query.category && query.category.length > 0) filters.category = { $in: query.category };
         if (query.minPrice || query.maxPrice) filters.price = {};
@@ -78,9 +74,13 @@ export class DataProviderService {
         if (typeof query.hasGarage !== 'undefined') filters['options.hasGarage'] = query.hasGarage;
         if (query.exposition) filters['options.exposition'] = query.exposition;
         if (typeof query.parkingPlacesQuantity !== 'undefined') filters['options.parkingPlacesQuantity'] = query.parkingPlacesQuantity;
-
+        let ads: Ad[];
         // FIRE THE QUERY
-        const ads = await this.adModel.find(filters).sort(sort).skip(withPagination ? (query.page - 1) * query.limit : 0).limit(withPagination ? query.limit : 0);
+        if (query.page && query.limit) {
+            ads = await this.adModel.find(filters).sort(sort).skip((query.page - 1) * query.limit).limit(query.limit);
+        } else {
+            ads = await this.adModel.find(filters).sort(sort);
+        }
         if (query.showTotal) {
             const total = await this.adModel.countDocuments(filters);
             return { ads, total };

@@ -1,4 +1,4 @@
-import { BadRequestException, Controller, Get, NotFoundException, Query, StreamableFile, UseGuards } from "@nestjs/common";
+import { BadRequestException, Controller, Get, NotFoundException, Query, Res, StreamableFile, UseGuards } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Throttle } from "@nestjs/throttler";
 import { Model } from "mongoose";
@@ -7,11 +7,42 @@ import { Ad } from "../models/ad.schema";
 import { CrawlerSession } from "../models/crawlerSession.schema";
 import { DataProviderService } from "./data-provider.service";
 import { FilterAdsDto } from "./utils/adsFilterDTO";
-import { createReadStream } from "fs";
-import { json2csv } from 'json-2-csv';
-
+import { AsyncParser } from '@json2csv/node';
+import type { Response } from 'express';
 @Controller('data-provider')
 export class DataProviderController {
+    private readonly csvParser = new AsyncParser({
+        delimiter: ',', header: true, fields: [
+            { label: 'Origin', value: 'origin' },
+            { label: 'Ad ID', value: 'adId' },
+            { label: 'Reference', value: 'reference' }, // Optional field
+            { label: 'Creation Date', value: 'creationDate' }, // Format the date
+            { label: 'Last Check Date', value: 'lastCheckDate' },
+            { label: 'Title', value: 'title' },
+            { label: 'Type', value: 'type', },
+            { label: 'Category', value: 'category', },
+            { label: 'Publisher Name', value: 'publisher.name', }, // Nested publisher name
+            { label: 'Publisher Store URL', value: 'publisher.storeUrl', },
+            { label: 'Publisher Phone Number', value: 'publisher.phoneNumber', },
+            { label: 'Description', value: 'description', },
+            { label: 'URL', value: 'url' },
+            { label: 'Picture URL', value: 'pictureUrl', },
+            { label: 'Location City', value: 'location.city' },             // Nested location city
+            { label: 'Location Postal Code', value: 'location.postalCode' },
+            { label: 'Coordinates Latitude', value: 'location.coordinates.lat' }, // Nested coordinates
+            { label: 'Coordinates Longitude', value: 'location.coordinates.lon' },
+            { label: 'Price', value: 'price', },
+            { label: 'Original Price', value: 'originalPrice', },
+            { label: 'Price Per Square Meter', value: 'pricePerSquareMeter', },
+            { label: 'Property Charges', value: 'propertyCharges', },
+            { label: 'Rooms', value: 'rooms', },
+            { label: 'Bedrooms', value: 'bedrooms', },
+            { label: 'Surface', value: 'surface', },
+            { label: 'Construction Year', value: 'constructionYear', },
+            { label: 'Energy Grade', value: 'energyGrade', },
+            { label: 'Gas Grade', value: 'gasGrade', }],
+        defaultValue: 'EMPTY'
+    });
 
     constructor(@InjectModel(CrawlerSession.name) private crawlerSessionModel: Model<CrawlerSession>, @InjectModel(Ad.name) private adModel: Model<Ad>, private dataProviderService: DataProviderService) { }
 
@@ -101,12 +132,12 @@ export class DataProviderController {
     @Throttle({ short: { limit: 2, ttl: 1000 }, long: { limit: 5, ttl: 60000 } })
     @UseGuards(RealEstateAuthGuard)
     @Get('export-ads-csv')
-    async export_ads_csv(@Query() query: FilterAdsDto): Promise<StreamableFile> {
-        const ads_to_export = await this.dataProviderService.filterAdsList(query, false);
-        const file_content = json2csv(ads_to_export as object[], { checkSchemaDifferences: true });
-        const filename = `ads-${Date.now()}.csv`;
-        const file = Buffer.from(file_content, 'utf-8');
-        return new StreamableFile(file, { type: 'text/csv', disposition: `attachment; filename=${filename}` });
+    async export_ads_csv(@Query() query: FilterAdsDto, @Res() res: Response) {
+        if (query.showTotal) delete query.showTotal;
+        if (query.page) delete query.page;
+        if (query.limit) delete query.limit;
+        const ads_to_export = await this.dataProviderService.filterAdsList(query);
+        return this.csvParser.parse(ads_to_export).pipe(res);
     }
 
 }

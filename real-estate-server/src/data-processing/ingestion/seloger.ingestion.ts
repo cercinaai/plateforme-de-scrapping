@@ -1,20 +1,18 @@
 import { HttpService } from "@nestjs/axios";
 import { Process, Processor } from "@nestjs/bull";
-import { Logger, Scope } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
+import { Logger } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Job } from "bull";
 import { Model } from "mongoose";
 import { Ad, AdDocument } from "../../models/ad.schema";
 import { selogerCategoryMapping } from "../models/Category.type";
 import { EstateOptionDocument } from "src/models/estateOption.schema";
-import { lastValueFrom } from "rxjs";
 import { calculateAdAccuracy, extractLocation } from "../utils/ad.utils";
 import { FileProcessingService } from "../file-processing.service";
 import { LocationDocument } from "src/models/location.schema";
 
 
-@Processor({ name: 'data-processing', scope: Scope.DEFAULT })
+@Processor('data-processing')
 export class SelogerIngestion {
 
     private readonly logger = new Logger(SelogerIngestion.name);
@@ -30,7 +28,7 @@ export class SelogerIngestion {
                 await this.process_data(accuracy_data);
             }
             this.logger.log(`Job ${job.id} has been processed successfully`);
-            await job.moveToCompleted(`job-${job.id}-boncoin-ingestion-completed`)
+            await job.moveToCompleted(`job-${job.id}-seloger-ingestion-completed`)
         } catch (error) {
             this.logger.error(error);
             await job.moveToFailed(error, false);

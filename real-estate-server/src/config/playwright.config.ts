@@ -98,6 +98,9 @@ export const logicimmoCrawlerOption: PlaywrightCrawlerOptions = {
             }
         }
     },
+    sessionPoolOptions: {
+        blockedStatusCodes: [],
+    },
     useSessionPool: true,
     persistCookiesPerSession: true,
     maxRequestRetries: 100,

@@ -1,10 +1,12 @@
 import { Job } from "bull";
 import { PlaywrightCrawlingContext } from "crawlee";
+import { detectDataDomeCaptcha } from "src/crawler/utils/captcha.detect";
 
 
 export const logicImmoDefaultHandler = async (context: PlaywrightCrawlingContext, job: Job) => {
     const { page, enqueueLinks, closeCookieModals, log } = context;
     await closeCookieModals();
+    await detectDataDomeCaptcha(context, false);
     await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(1200);
     const ads = await page.evaluate(() => window['thor']['dataLayer']['av_items']);
