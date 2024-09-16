@@ -24,21 +24,19 @@ logicImmoRouter.addDefaultHandler(async (context) => {
     const ads = await page.evaluate(() => window['thor']['dataLayer']['av_items']);
     const ads_links = ads.map((ad: any) => `https://www.logic-immo.com/detail-vente-${ad.id}.htm`);
     await enqueueLinks({ urls: ads_links, label: 'ad-single-url' });
-    if (LIMIT_REACHED) {
-        if (localite_index < franceLocality.length - 1) {
-            log.info('NEXT LOCALITY');
-            localite_index++;
-            list_page = 1;
-            LIMIT_REACHED = false;
-            await enqueueLinks({ urls: [build_link()] });
-        } else {
-            log.info('FINISH TEST');
-            return;
-        }
+    if (!LIMIT_REACHED) {
+        list_page++;
+        log.info(`PAGE ${list_page} INSIDE LOCALITY ${franceLocality[localite_index]}`);
+        await enqueueLinks({ urls: [build_link()] });
     }
-    list_page++;
-    log.info(`PAGE ${list_page} INSIDE LOCALITY ${franceLocality[localite_index]}`);
-    await enqueueLinks({ urls: [build_link()] });
+    if (localite_index < franceLocality.length - 1) {
+        log.info('NEXT LOCALITY');
+        localite_index++;
+        list_page = 1;
+        LIMIT_REACHED = false;
+        await enqueueLinks({ urls: [build_link()] });
+    }
+
 });
 
 logicImmoRouter.addHandler('ad-single-url', async (context) => {
@@ -156,7 +154,7 @@ const createCrawler = async (): Promise<PlaywrightCrawler> => {
             persistStorage: false,
             writeMetadata: false,
         },
-        headless: true,
+        headless: false,
     }));
 }
 

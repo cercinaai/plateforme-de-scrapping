@@ -18,8 +18,8 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "test:crawler:bienici": "npx ts-node src/crawler/bienici/bienici.crawler.test.ts",
-    "test:crawler:logicimmo": "npx ts-node src/crawler/logic-immo/logicimmo.crawler.test.ts",
+    "test:crawler:bienici": "npx ts-node src/crawler/bienici/test/bienici.crawler.test.ts",
+    "test:crawler:logicimmo": "npx ts-node src/crawler/logic-immo/test/logicimmo.crawler.test.ts",
     "test:crawler:boncoin": "npx ts-node src/crawler/boncoin/test/boncoin.crawler.test.ts",
     "test:crawler:seloger": "npx ts-node src/crawler/seloger/test/seloger.crawler.test.ts"
   },

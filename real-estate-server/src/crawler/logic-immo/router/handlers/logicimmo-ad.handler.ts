@@ -6,8 +6,9 @@ import { CRAWLER_ORIGIN } from "src/crawler/utils/enum";
 import { DataProcessingService } from "src/data-processing/data-processing.service";
 
 export const logicImmoAdHandler = async (context: PlaywrightCrawlingContext, dataProcessingService: DataProcessingService, job: Job) => {
-    const { page, waitForSelector, log } = context;
+    const { page, waitForSelector, log, closeCookieModals } = context;
     await page.waitForLoadState('domcontentloaded');
+    await closeCookieModals();
     try {
         await waitForSelector('body > main > .errorPageBox').then(() => {
             log.info('Ad not found');
@@ -61,6 +62,7 @@ export const logicImmoAdHandler = async (context: PlaywrightCrawlingContext, dat
             france_localities
         });
     } catch (error) {
+        log.error(error);
         return;
     }
 }
