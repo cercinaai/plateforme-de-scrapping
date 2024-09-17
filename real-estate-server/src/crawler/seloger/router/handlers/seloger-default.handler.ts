@@ -8,7 +8,7 @@ import { DataProcessingService } from "src/data-processing/data-processing.servi
 
 
 
-export const selogerDefaultHandler = async (context: PlaywrightCrawlingContext, dataProcessingService: DataProcessingService, job: Job, stopCrawler: Function) => {
+export const selogerDefaultHandler = async (context: PlaywrightCrawlingContext, dataProcessingService: DataProcessingService, job: Job) => {
     const { page, closeCookieModals, waitForSelector, enqueueLinks, log } = context;
     await page.waitForLoadState('domcontentloaded');
     await detectDataDomeCaptcha(context);
@@ -49,7 +49,7 @@ export const selogerDefaultHandler = async (context: PlaywrightCrawlingContext, 
         const nextButtonPosition = await nextButton.boundingBox();
         ads = await page.evaluate(() => window['crawled_ads']);
         if (!ads) continue;
-        if ((await stopCrawler(ads)) === true) break;
+        // if ((await stopCrawler(ads)) === true) break;
         await dataProcessingService.process(ads, CRAWLER_ORIGIN.SELOGER);
         data_grabbed += ads.length;
         await scrollToTargetHumanWay(context, nextButtonPosition.y);

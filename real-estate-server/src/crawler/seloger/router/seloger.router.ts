@@ -4,8 +4,8 @@ import { DataProcessingService } from "src/data-processing/data-processing.servi
 import { selogerDefaultHandler } from "./handlers/seloger-default.handler";
 
 
-export const createSelogerRouter = async (job: Job, dataProcessingService: DataProcessingService, stopCrawler: Function): Promise<RouterHandler<PlaywrightCrawlingContext<Dictionary>>> => {
+export const createSelogerRouter = async (job: Job, dataProcessingService: DataProcessingService): Promise<RouterHandler<PlaywrightCrawlingContext<Dictionary>>> => {
     const router = createPlaywrightRouter();
-    router.addDefaultHandler(async (context) => await selogerDefaultHandler(context, dataProcessingService, job, stopCrawler));
+    router.addDefaultHandler(async (context) => await selogerDefaultHandler(context, dataProcessingService, job));
     return router;
 }

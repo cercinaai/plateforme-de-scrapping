@@ -44,7 +44,7 @@ export class SelogerCrawler implements CrawlerInterface {
             requestQueue: selogerQueue,
             preNavigationHooks: preSelogerHooksRegister,
             postNavigationHooks: postSelogerHooksRegister,
-            requestHandler: await createSelogerRouter(job, this.dataProcessingService, this.shouldStopCrawler.bind(this)),
+            requestHandler: await createSelogerRouter(job, this.dataProcessingService),
             failedRequestHandler: async (context, error) => await handleCrawlerError(error, job, context),
             proxyConfiguration: new ProxyConfiguration({ proxyUrls: this.proxyService.get_proxy_list() }),
             errorHandler: async ({ log }, error) => log.error(error.message),
