@@ -13,10 +13,10 @@ export const bieniciDefaultHandler = async (context: PlaywrightCrawlingContext, 
         return;
     }
     const ads = await filterAds(page, job.data.check_date);
-    if (ads.length === 0) {
-        log.info("Found ads older than check_date. Stopping the crawler.");
-        return;
-    }
+    // if (ads.length === 0) {
+    //     log.info("Found ads older than check_date. Stopping the crawler.");
+    //     return;
+    // }
     const links_urls = (await extract_links(ads, page)).filter((link) => link);
     await enqueueLinks({ urls: links_urls, label: 'ad-single-url' });
     const nextPageHtml = await page.$("#searchResultsContainer > div.vue-pagination.pagination > div.pagination__nav-buttons > a.pagination__go-forward-button");
@@ -31,7 +31,8 @@ const filterAds = async (page: Page, check_date: Date) => {
     if (!ads || ads.length === 0) {
         throw new Error('No ads found');
     }
-    return ads.filter((ad: any) => isSameDayOrBefore({ target_date: new Date(ad.modificationDate), check_date, returnDays: 1 }));
+    // return ads.filter((ad: any) => isSameDayOrBefore({ target_date: new Date(ad.modificationDate), check_date, returnDays: 1 }));
+    return ads
 }
 
 const extract_links = (ads: any[], page: Page): Promise<string[]> => {

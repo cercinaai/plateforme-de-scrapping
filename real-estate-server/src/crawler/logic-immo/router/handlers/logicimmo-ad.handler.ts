@@ -25,7 +25,7 @@ export const logicImmoAdHandler = async (context: PlaywrightCrawlingContext, dat
         const extracted_date_match = ad_date_brute.match(/Mis à jour:\s*(\d{2}\/\d{2}\/\d{4})/);
         const ad_date = new Date(extracted_date_match[1].toString().split('/').reverse().join('-'))
         const { data_grabbed, limit } = job.data['france_localities'][job.data.localite_index];
-        if (!isSameDayOrBefore({ target_date: ad_date, check_date: job.data.check_date, returnDays: 1 })) return;
+        // if (!isSameDayOrBefore({ target_date: ad_date, check_date: job.data.check_date, returnDays: 1 })) return;
         if (data_grabbed >= limit) return job.update({ ...job.data, LIMIT_REACHED: true });
         const ad_list = await page.evaluate(() => window['thor']['dataLayer']['av_items']);
         if (!ad_list || !ad_list[0]) return;

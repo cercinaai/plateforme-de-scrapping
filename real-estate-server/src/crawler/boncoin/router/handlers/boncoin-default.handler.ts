@@ -27,20 +27,21 @@ export const boncoinDefaultHandler = async (context: PlaywrightCrawlingContext, 
         } else {
             ads = await page.evaluate(() => window['crawled_ads']);
         }
-        let date_filter_content = Array.from(ads).filter((ad) => isSameDayOrBefore({ target_date: new Date(ad["index_date"]), check_date: job.data.check_date, returnDays: 1 }));
-        if (date_filter_content.length === 0) {
-            log.info("Found ads older than check_date. Passing Into Next Region.");
-            break;
-        }
-        if (ads.length > date_filter_content.length) {
-            await dataProcessingService.process(date_filter_content, CRAWLER_ORIGIN.BONCOIN);
-            data_grabbed += date_filter_content.length;
-            await job.update({ ...job.data, total_data_grabbed: job.data.total_data_grabbed + data_grabbed });
-            log.info("Found ads older than check_date. Passing Into Next Region.");
-            break;
-        }
-        await dataProcessingService.process(date_filter_content, CRAWLER_ORIGIN.BONCOIN);
-        data_grabbed += date_filter_content.length;
+        // let date_filter_content = Array.from(ads).filter((ad) => isSameDayOrBefore({ target_date: new Date(ad["index_date"]), check_date: job.data.check_date, returnDays: 1 }));
+        // if (date_filter_content.length === 0) {
+
+        //     log.info("Found ads older than check_date. Passing Into Next Region.");
+        //     break;
+        // }
+        // if (ads.length > date_filter_content.length) {
+        //     await dataProcessingService.process(date_filter_content, CRAWLER_ORIGIN.BONCOIN);
+        //     data_grabbed += date_filter_content.length;
+        //     await job.update({ ...job.data, total_data_grabbed: job.data.total_data_grabbed + data_grabbed });
+        //     log.info("Found ads older than check_date. Passing Into Next Region.");
+        //     break;
+        // }
+        await dataProcessingService.process(ads, CRAWLER_ORIGIN.BONCOIN);
+        data_grabbed += ads.length;
         await job.update({ ...job.data, total_data_grabbed: job.data.total_data_grabbed + data_grabbed });
         const nextButton = await page.$("a[title='Page suivante']");
         const nextButtonPosition = await nextButton.boundingBox();
