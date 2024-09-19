@@ -15,7 +15,7 @@ export const boncoinCrawlerOption: PlaywrightCrawlerOptions = {
     sessionPoolOptions: {
         blockedStatusCodes: [],
     },
-    requestHandlerTimeoutSecs: 86400,
+    requestHandlerTimeoutSecs: 7200,
     browserPoolOptions: {
         useFingerprints: true,
         fingerprintOptions: {
@@ -48,7 +48,7 @@ export const selogerCrawlerOptions: PlaywrightCrawlerOptions = {
     sessionPoolOptions: {
         blockedStatusCodes: [],
     },
-    requestHandlerTimeoutSecs: 86400,
+    requestHandlerTimeoutSecs: 7200,
     browserPoolOptions: {
         useFingerprints: true,
         fingerprintOptions: {

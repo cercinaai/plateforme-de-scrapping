@@ -40,12 +40,11 @@ const france_locality = [
 let REGION_REACHED = 0;
 let PAGE_REACHED = 1;
 const router = createPlaywrightRouter();
-const check_date = new Date();
 
 router.addDefaultHandler(async (context) => {
     const { page, closeCookieModals, waitForSelector, enqueueLinks } = context;
     await page.waitForLoadState('domcontentloaded');
-    await detectDataDomeCaptcha(context);
+    await detectDataDomeCaptcha(context, true);
     await closeCookieModals();
     await waitForSelector("a[title='Page suivante']");
     const cursor = await createCursor(page);
@@ -60,19 +59,17 @@ router.addDefaultHandler(async (context) => {
         } else {
             ads = await page.evaluate(() => window['crawled_ads']);
         }
-        let date_filter_content = Array.from(ads).filter((ad) => isSameDayOrBefore({ target_date: new Date(ad["index_date"]), check_date, returnDays: 1 }));
-        if (date_filter_content.length === 0) {
+        // let date_filter_content = Array.from(ads).filter((ad) => isSameDayOrBefore({ target_date: new Date(ad["index_date"]), check_date, returnDays: 1 }));
+        if (ads.length === 0) {
             log.info("Found ads older than check_date. Passing Into Next Region.");
             break;
         }
-        if (ads.length > date_filter_content.length) {
-            data_grabbed += date_filter_content.length;
+        if (ads.length > ads.length) {
+            data_grabbed += ads.length;
             log.info("Found ads older than check_date. Passing Into Next Region.");
             break;
         }
-        data_grabbed += date_filter_content.length;
-        const images_to_upload = date_filter_content.map((ad: any) => ad.images.thumb_url);
-        await save_files(images_to_upload[0]);
+        data_grabbed += ads.length;
         const nextButton = await page.$("a[title='Page suivante']");
         const nextButtonPosition = await nextButton.boundingBox();
         await scrollToTargetHumanWay(context, nextButtonPosition.y);
@@ -110,7 +107,11 @@ const boncoinCrawler = new PlaywrightCrawler({
     ],
     proxyConfiguration: new ProxyConfiguration({ proxyUrls }),
     requestHandler: router,
-    errorHandler: (context, error) => { context.log.error(error.message) },
+    errorHandler: (context, error) => {
+        const { session } = context;
+        session.markBad();
+        context.log.error(error.message)
+    },
 }, new Configuration({
     logLevel: LogLevel.INFO,
     purgeOnStart: true,
