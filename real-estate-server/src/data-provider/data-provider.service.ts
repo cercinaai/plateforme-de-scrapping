@@ -53,6 +53,10 @@ export class DataProviderService {
             query.sortOrder = query.sortOrder || 'ASC';
             if (query.sortOrder === 'ASC') sort.surface = 1;
             if (query.sortOrder === 'DESC') sort.surface = -1;
+        } else if (query.sortBy === 'ACCURACY') {
+            query.sortOrder = query.sortOrder || 'ASC';
+            if (query.sortOrder === 'ASC') sort.adAccuracy = 1;
+            if (query.sortOrder === 'DESC') sort.adAccuracy = -1;
         }
         if (typeof query.isRecent !== 'undefined') filters['options.isRecent'] = query.isRecent;
         if (typeof query.hasTerrace !== 'undefined') filters['options.hasTerrace'] = query.hasTerrace;
