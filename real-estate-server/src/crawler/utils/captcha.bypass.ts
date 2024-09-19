@@ -40,6 +40,7 @@ export const bypassDataDomeCaptchaByCapSolver = async (context: PlaywrightCrawli
         }
     } catch (error) {
         log.error(error.message);
+        throw new Error(error.message);
     }
 }
 

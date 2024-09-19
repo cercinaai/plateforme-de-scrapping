@@ -5,6 +5,7 @@ export const boncoinCrawlerOption: PlaywrightCrawlerOptions = {
     launchContext: {
         launcher: firefox,
         launchOptions: {
+            ignoreHTTPSErrors: true,
             firefoxUserPrefs: {
                 "media.peerconnection.enabled": false
             },
@@ -37,16 +38,17 @@ export const selogerCrawlerOptions: PlaywrightCrawlerOptions = {
     launchContext: {
         launcher: firefox,
         launchOptions: {
+            ignoreHTTPSErrors: true,
             firefoxUserPrefs: {
                 "media.peerconnection.enabled": false
             },
             timezoneId: 'Europe/Paris',
         },
     },
-    requestHandlerTimeoutSecs: 86400,
     sessionPoolOptions: {
         blockedStatusCodes: [],
     },
+    requestHandlerTimeoutSecs: 86400,
     browserPoolOptions: {
         useFingerprints: true,
         fingerprintOptions: {
