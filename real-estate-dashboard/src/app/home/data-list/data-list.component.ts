@@ -15,11 +15,13 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatSelectModule } from '@angular/material/select';
 @Component({
   selector: 'app-data-list',
   standalone: true,
   imports: [ToastModule, CommonModule, FormsModule, MatSliderModule, MatTableModule, MatPaginatorModule,
-    MatSortModule, MatDatepickerModule, MatIconModule, MatExpansionModule, MatSlideToggleModule, MatRadioModule],
+    MatSortModule, MatDatepickerModule, MatIconModule, MatExpansionModule, MatSlideToggleModule, MatRadioModule, MatDividerModule, MatSelectModule],
   providers: [MessageService],
   templateUrl: './data-list.component.html',
   styleUrl: './data-list.component.scss'
@@ -90,39 +92,36 @@ export class DataListComponent implements OnInit {
           filter_key: 'city'
           value: string
         },
-        postalCode: {
-          filter_key: 'postalCode'
-          value: string
-        }
       }
       ByExtactLocation?: {
-        lat: {
+        lat?: {
           filter_key: 'lat'
           value: number
         },
-        lon: {
+        lon?: {
           filter_key: 'lon'
           value: number
         }
-        radius: {
+        radius?: {
           filter_key: 'radius'
           value: number
         }
       }
-    }
-  } = {}
-  displayedColumns: string[] = ['title', 'origin', 'price', 'surface', 'category'];
+    },
+    sortBy: 'DATE' | 'PRICE' | 'SURFACE' | 'ACCURACY'
+    sortOrder: 'ASC' | 'DESC'
+  } = { sortBy: 'DATE', sortOrder: 'ASC' }
+  displayedColumns: string[] = ['title', 'origin', 'price', 'surface', 'category', 'adAccuracy', "creationDate"];
   dataSource = new MatTableDataSource<Ad_Model>([]);
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
-  selectedAd!: Ad_Model | null;
-  viewMode = 'interface';
+  expend_filters = false;
   ngOnInit(): void {
     this._getData();
   }
 
   private _getData(): void {
-    this.dataListService.getAds({}).pipe(first()).subscribe({
+    this.dataListService.getAds({ page: 1, limit: 20 }).pipe(first()).subscribe({
       next: (ads) => {
         this.dataSource.data = ads;
         this.dataSource.paginator = this.paginator;
@@ -134,7 +133,11 @@ export class DataListComponent implements OnInit {
 
   public filterAds(): void {
     const filter = this._extract_filters();
+    console.log(filter);
+    filter.page = 1;
+    filter.limit = 20;
     this.paginator.firstPage();
+    this.expend_filters = false;
     this.dataListService.getAds(filter).pipe(first()).subscribe({
       next: (ads) => {
         this.dataSource.data = ads;
@@ -147,9 +150,11 @@ export class DataListComponent implements OnInit {
 
   public pageChange(event: PageEvent): void {
     // NEXT PAGE CLICKED
-    if (!event.previousPageIndex || event.pageIndex > event.previousPageIndex) {
+    const pageNumber = this.paginator.getNumberOfPages();
+    if ((pageNumber - event.pageIndex) === 1) {
       let filter = this._extract_filters();
       filter.page = event.pageIndex + 1;
+      filter.limit = 10;
       this.dataListService.getAds(filter).pipe(first()).subscribe({
         next: (ads) => {
           this.dataSource.data = [...this.dataSource.data, ...ads];
@@ -159,17 +164,10 @@ export class DataListComponent implements OnInit {
     }
   }
 
-
   public clearFilters(): void {
-    this.ads_filter = {}
+    this.ads_filter = { sortBy: 'DATE', sortOrder: 'ASC' }
+    this.expend_filters = false;
     this._getData();
-  }
-
-
-  public removeFilter(key: string): void {
-    // this.page = 1
-    // this.limit = 10
-    // this._getData();
   }
 
   public applyDateFilter(value: Event): void {
@@ -182,7 +180,6 @@ export class DataListComponent implements OnInit {
           value: (value.target as any).value,
         }
       }
-      this.filterAds();
       return;
     }
     if ((value.target as any)['id'] === 'end-date') {
@@ -194,7 +191,6 @@ export class DataListComponent implements OnInit {
           value: (value.target as any).value,
         }
       }
-      this.filterAds();
     }
   }
 
@@ -204,7 +200,6 @@ export class DataListComponent implements OnInit {
         ...this.ads_filter.origin,
         value: this.ads_filter.origin?.value.filter((item) => item !== value),
       }
-      this.filterAds();
       return;
     }
     this.ads_filter.origin = {
@@ -213,7 +208,6 @@ export class DataListComponent implements OnInit {
       filter_key: "origin",
       value: [...this.ads_filter.origin?.value || [], value],
     }
-    this.filterAds();
   }
 
   public applyCategoryFilter(value: string): void {
@@ -222,7 +216,6 @@ export class DataListComponent implements OnInit {
         ...this.ads_filter.category,
         value: this.ads_filter.category?.value.filter((item) => item !== value),
       }
-      this.filterAds();
       return;
     }
     this.ads_filter.category = {
@@ -231,7 +224,6 @@ export class DataListComponent implements OnInit {
       filter_key: "category",
       value: [...this.ads_filter.category?.value || [], value],
     }
-    this.filterAds();
   }
   public applyPriceFilter(value: Event): void {
     if ((value.target as any)['id'] === 'min-price') {
@@ -246,7 +238,6 @@ export class DataListComponent implements OnInit {
           value: (value.target as any)['nextElementSibling'].value,
         }
       }
-      this.filterAds();
       return;
     }
     if ((value.target as any)['id'] === 'max-price') {
@@ -261,7 +252,6 @@ export class DataListComponent implements OnInit {
           value: (value.target as any).value,
         }
       }
-      this.filterAds();
     }
   }
 
@@ -278,7 +268,6 @@ export class DataListComponent implements OnInit {
           value: (value.target as any)['nextElementSibling'].value,
         }
       }
-      this.filterAds();
       return;
     }
     if ((value.target as any)['id'] === 'max-surface') {
@@ -293,7 +282,6 @@ export class DataListComponent implements OnInit {
           value: (value.target as any).value,
         }
       }
-      this.filterAds();
     }
   }
 
@@ -310,7 +298,6 @@ export class DataListComponent implements OnInit {
           value: (value.target as any)['nextElementSibling'].value,
         }
       }
-      this.filterAds();
       return;
     }
     if ((value.target as any)['id'] === 'max-rooms') {
@@ -325,18 +312,66 @@ export class DataListComponent implements OnInit {
           value: (value.target as any).value,
         }
       }
-      this.filterAds();
     }
   }
 
-  public applyLocationFilter(value: any): void { }
-
-  public applyOrderByFilter(value: string): void { }
-
-
-  public selectAd(ad: Ad_Model): void {
-    this.selectedAd = ad;
+  public applyLocationFilter(value: any, type: 'CITY' | 'LAT' | 'LON' | 'RADIUS'): void {
+    if (!value) return;
+    if (!this.findByCoordinates && type === 'CITY') {
+      this.ads_filter.location = {
+        key_display: 'Localisation',
+        byCity: {
+          city: {
+            filter_key: 'city',
+            value: value
+          }
+        }
+      }
+      return;
+    }
+    if (this.findByCoordinates && type === 'LAT') {
+      this.ads_filter.location = {
+        key_display: 'Localisation',
+        ByExtactLocation: {
+          lat: {
+            filter_key: 'lat',
+            value: value
+          }
+        }
+      }
+      return
+    }
+    if (this.findByCoordinates && type === 'LON') {
+      this.ads_filter.location = {
+        key_display: 'Localisation',
+        ByExtactLocation: {
+          lon: {
+            filter_key: 'lon',
+            value: value
+          }
+        }
+      }
+      return
+    }
+    if (this.findByCoordinates && type === 'RADIUS') {
+      this.ads_filter.location = {
+        key_display: 'Localisation',
+        ByExtactLocation: {
+          radius: {
+            filter_key: 'radius',
+            value: value
+          }
+        }
+      }
+    }
   }
+
+  public applyOrderByFilter(value: "DATE" | "PRICE" | "SURFACE" | "ACCURACY"): void {
+    this.ads_filter.sortBy = value
+  }
+
+
+
 
   public priceFormat(value: number): string {
     return `${value}K`
@@ -345,9 +380,14 @@ export class DataListComponent implements OnInit {
     return `${value}m`
   }
 
+  public changePanelExpend(value: any) {
+    this.expend_filters = value
+  }
   private _extract_filters(): any {
-    const { date, origin, category, price, surface, romms, location } = this.ads_filter;
+    const { date, origin, category, price, surface, romms, location, sortBy, sortOrder } = this.ads_filter;
     const filter: any = {}
+    filter.sortBy = sortBy
+    filter.sortOrder = sortOrder
     if (date) {
       filter.startDate = date.startDate?.value
       filter.endDate = date.endDate?.value
@@ -359,8 +399,8 @@ export class DataListComponent implements OnInit {
       filter.category = category.value
     }
     if (price) {
-      filter.minPrice = price.min.value
-      filter.maxPrice = price.max.value
+      filter.minPrice = price.min.value * 1000
+      filter.maxPrice = price.max.value * 1000
     }
     if (surface) {
       filter.minSurface = surface.min.value
@@ -373,9 +413,12 @@ export class DataListComponent implements OnInit {
     if (location) {
       if (location.byCity) {
         filter.city = location.byCity.city.value
-        filter.postalCode = location.byCity.postalCode.value
-      }
-      if (location.ByExtactLocation) {
+
+      } else if (location.ByExtactLocation) {
+        if (!location.ByExtactLocation.lat || !location.ByExtactLocation.lon || !location.ByExtactLocation.radius) {
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'latitude, longitude and radius are required' })
+          throw new Error('latitude, longitude and radius are required')
+        }
         filter.lat = location.ByExtactLocation.lat.value
         filter.lon = location.ByExtactLocation.lon.value
         filter.radius = location.ByExtactLocation.radius.value

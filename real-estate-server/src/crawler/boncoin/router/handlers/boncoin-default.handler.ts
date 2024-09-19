@@ -42,7 +42,7 @@ export const boncoinDefaultHandler = async (context: PlaywrightCrawlingContext, 
         // }
         await dataProcessingService.process(ads, CRAWLER_ORIGIN.BONCOIN);
         data_grabbed += ads.length;
-        await job.update({ ...job.data, total_data_grabbed: job.data.total_data_grabbed + data_grabbed });
+        await job.update({ ...job.data, total_data_grabbed: job.data.total_data_grabbed + ads.length });
         const nextButton = await page.$("a[title='Page suivante']");
         const nextButtonPosition = await nextButton.boundingBox();
         await scrollToTargetHumanWay(context, nextButtonPosition.y);

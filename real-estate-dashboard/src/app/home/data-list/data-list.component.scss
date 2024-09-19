@@ -9,84 +9,66 @@ $border-color: #444;
 $label-color: #ffffff; // Bright white for better visibility
 $label-font-size: 16px; // Slightly larger font size
 
-.ads-list-container {
+.filters-container {
+    width: 100%;
+    height: 100%;
     display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 10px;
+    gap: 10px;
+    background-color: $dark-bg;
 
-    .sidebar {
-        width: 25%;
-        display: flex;
-        flex-direction: column;
-        padding: 10px;
-        background-color: $dark-bg;
-        height: 100vh;
-        overflow-y: auto;
+    .navigation-buttons {
+        margin-right: 5px;
+        height: 100%;
 
-        .filter-section {
+        .filter-button {
             display: flex;
-            flex-direction: column;
-            margin-bottom: 20px;
-            background-color: $dark-bg;
-            color: $light-text;
+            align-items: center;
+            background-color: $label-color;
+            color: $darker-bg;
+            border: none;
             padding: 10px;
-            border-bottom: 1px solid $border-color;
-            overflow-y: auto;
-            overflow-x: hidden;
+            border-radius: 10px;
+            font-size: 14px;
+            margin: 3px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
 
-            &::-webkit-scrollbar {
-                width: 6px;
+            &:hover {
+                background-color: darken($highlight-color, 10%);
             }
 
-            &::-webkit-scrollbar-thumb {
-                background: $highlight-color;
-                border-radius: 3px;
+            &:focus {
+                outline: none;
             }
 
-            .filter-buttons {
-                display: flex;
-                justify-content: space-between;
-                margin-bottom: 20px;
-                flex-wrap: wrap;
-
-                .filter-button {
-                    display: flex;
-                    align-items: center;
-                    background-color: $highlight-color;
-                    color: $light-text;
-                    border: none;
-                    padding: 10px;
-                    border-radius: 4px;
-                    font-size: 14px;
-                    margin: 3px;
-                    cursor: pointer;
-                    transition: background-color 0.3s ease;
-
-                    &:hover {
-                        background-color: darken($highlight-color, 10%);
-                    }
-
-                    &:focus {
-                        outline: none;
-                    }
-
-                    mat-icon {
-                        margin-right: 5px;
-                    }
-                }
-
-                .clear-button {
-                    background-color: $debit-color;
-
-                    &:hover {
-                        background-color: darken($debit-color, 10%);
-                    }
-                }
+            mat-icon {
+                margin-right: 5px;
             }
+        }
+
+
+    }
+
+    .filter-section {
+        display: flex;
+        flex-direction: row;
+        align-items: start;
+        justify-content: center;
+        margin-right: 5px;
+        margin-left: 5px;
+        flex-wrap: wrap;
+        gap: 8px;
+
+        .date-filter-section {
 
             .filter-expansion-panel {
                 background-color: $darker-bg;
                 border-radius: 10px;
                 box-shadow: none;
-                margin-bottom: 10px;
 
                 mat-expansion-panel-header {
                     background-color: $darker-bg;
@@ -104,49 +86,10 @@ $label-font-size: 16px; // Slightly larger font size
                     }
                 }
 
-                .origin-chips {
-                    display: flex;
-                    justify-content: space-around;
-                    margin-bottom: 15px;
-                    flex-wrap: wrap;
-
-                    .chip {
-                        background-color: $dark-bg;
-                        color: $light-text;
-                        padding: 8px 12px;
-                        margin: 2px;
-                        border-radius: 20px;
-                        font-size: 14px;
-                        cursor: pointer;
-                        transition: background-color 0.3s ease;
-
-                        &:hover {
-                            background-color: $highlight-color;
-                        }
-
-                        &.active {
-                            background-color: $highlight-color;
-                        }
-                    }
-                }
-
-                .range-section {
+                .date-filter-content {
                     display: flex;
                     flex-direction: column;
-                    width: 100%;
 
-                    label {
-                        color: $light-text;
-                        font-size: $label-font-size;
-                        font-weight: bold;
-                    }
-
-                    mat-slider {
-                        width: 80%;
-                    }
-                }
-
-                .date-filter-section {
                     label {
                         margin-bottom: 5px;
                         color: $light-text;
@@ -167,41 +110,284 @@ $label-font-size: 16px; // Slightly larger font size
                         }
                     }
                 }
+            }
+        }
 
-                .location-filter {
-                    label {
-                        display: block;
-                        color: $light-text;
+        .origin-filter-section {
+
+            .filter-expansion-panel {
+                background-color: $darker-bg;
+                border-radius: 10px;
+                box-shadow: none;
+
+                mat-expansion-panel-header {
+                    background-color: $darker-bg;
+                    padding: 10px;
+                    border-radius: 10px;
+
+                    mat-panel-title {
                         font-size: $label-font-size;
                         font-weight: bold;
-                        margin-top: 10px;
+                        color: $light-text;
                     }
 
-                    input[type="text"],
-                    input[type="number"] {
-                        background-color: $darker-bg;
-                        border: 1px solid $border-color;
+                    ::ng-deep svg {
+                        fill: $light-text;
+                    }
+                }
+
+                .origin-filter-content {
+                    display: flex;
+                    flex-direction: column;
+
+                    .origin-chips {
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: space-around;
+                        margin-bottom: 15px;
+                        flex-wrap: wrap;
+
+                        .chip {
+                            background-color: $dark-bg;
+                            color: $light-text;
+                            padding: 8px 12px;
+                            margin: 2px;
+                            border-radius: 20px;
+                            font-size: 14px;
+                            cursor: pointer;
+                            transition: background-color 0.3s ease;
+
+                            &:hover {
+                                background-color: $highlight-color;
+                            }
+
+                            &.active {
+                                background-color: $highlight-color;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        .category-filter-section {
+
+            .filter-expansion-panel {
+                background-color: $darker-bg;
+                border-radius: 10px;
+                box-shadow: none;
+
+                mat-expansion-panel-header {
+                    background-color: $darker-bg;
+                    padding: 10px;
+                    border-radius: 10px;
+
+                    mat-panel-title {
+                        font-size: $label-font-size;
+                        font-weight: bold;
                         color: $light-text;
-                        padding: 5px;
-                        border-radius: 4px;
-                        margin-bottom: 10px;
+                    }
+
+                    ::ng-deep svg {
+                        fill: $light-text;
+                    }
+                }
+
+                .category-filter-content {
+                    display: flex;
+                    flex-direction: column;
+
+                    .category-chips {
+                        display: flex;
+                        flex-direction: column;
+                        margin-bottom: 15px;
+                        flex-wrap: wrap;
+
+                        .chip {
+                            background-color: $dark-bg;
+                            color: $light-text;
+                            padding: 8px 12px;
+                            margin: 2px;
+                            border-radius: 20px;
+                            font-size: 14px;
+                            cursor: pointer;
+                            transition: background-color 0.3s ease;
+
+                            &:hover {
+                                background-color: $highlight-color;
+                            }
+
+                            &.active {
+                                background-color: $highlight-color;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        .price-filter-section {
+
+            .filter-expansion-panel {
+                background-color: $darker-bg;
+                border-radius: 10px;
+                box-shadow: none;
+
+                mat-expansion-panel-header {
+                    background-color: $darker-bg;
+                    padding: 10px;
+                    border-radius: 10px;
+
+                    mat-panel-title {
+                        font-size: $label-font-size;
+                        font-weight: bold;
+                        color: $light-text;
+                    }
+
+                    ::ng-deep svg {
+                        fill: $light-text;
+                    }
+                }
+
+                .price-filter-content {
+                    display: flex;
+                    flex-direction: column;
+
+                    .range-section {
+                        display: flex;
+                        flex-direction: column;
                         width: 100%;
-                        font-size: 14px;
 
-                        &::placeholder {
-                            color: $lighter-text;
+                        label {
+                            color: $light-text;
+                            font-size: $label-font-size;
+                            font-weight: bold;
                         }
 
-                        &:focus {
-                            border-color: $highlight-color;
-                            outline: none;
+                        mat-slider {
+                            width: 80%;
                         }
                     }
+                }
+            }
+        }
 
-                    .location-radio {
+        .map-filter-section {
+
+            .filter-expansion-panel {
+                background-color: $darker-bg;
+                border-radius: 10px;
+                box-shadow: none;
+
+                mat-expansion-panel-header {
+                    background-color: $darker-bg;
+                    padding: 10px;
+                    border-radius: 10px;
+
+                    mat-panel-title {
+                        font-size: $label-font-size;
+                        font-weight: bold;
+                        color: $light-text;
+                    }
+
+                    ::ng-deep svg {
+                        fill: $light-text;
+                    }
+                }
+
+                .map-filter-content {
+                    display: flex;
+                    flex-direction: column;
+
+                    .location-filter {
+                        label {
+                            display: block;
+                            color: $light-text;
+                            font-size: $label-font-size;
+                            font-weight: bold;
+                            margin-top: 10px;
+                        }
+
+                        input[type="text"],
+                        input[type="number"] {
+                            background-color: $darker-bg;
+                            border: 1px solid $border-color;
+                            color: $light-text;
+                            padding: 5px;
+                            border-radius: 4px;
+                            margin-bottom: 10px;
+                            width: 100%;
+                            font-size: 14px;
+
+                            &::placeholder {
+                                color: $lighter-text;
+                            }
+
+                            &:focus {
+                                border-color: $highlight-color;
+                                outline: none;
+                            }
+                        }
+
+                        .location-radio {
+                            color: $light-text;
+                            margin-bottom: 10px;
+                            display: block;
+
+                            ::ng-deep label {
+                                color: $light-text;
+                            }
+
+                            .mat-radio-outer-circle {
+                                border-color: $highlight-color;
+                            }
+
+                            .mat-radio-inner-circle {
+                                background-color: $highlight-color;
+                            }
+
+                            .mat-radio-button.mat-accent .mat-radio-ripple .mat-ripple-element {
+                                background-color: $highlight-color;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        .order-by-section {
+
+            .filter-expansion-panel {
+                background-color: $darker-bg;
+                border-radius: 10px;
+                box-shadow: none;
+
+                mat-expansion-panel-header {
+                    background-color: $darker-bg;
+                    padding: 10px;
+                    border-radius: 10px;
+
+                    mat-panel-title {
+                        font-size: $label-font-size;
+                        font-weight: bold;
+                        color: $light-text;
+                    }
+
+                    ::ng-deep svg {
+                        fill: $light-text;
+                    }
+                }
+
+                .order-by-content {
+                    display: flex;
+                    flex-direction: column;
+
+                    .order-by-radio {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 10px;
                         color: $light-text;
                         margin-bottom: 10px;
-                        display: block;
 
                         ::ng-deep label {
                             color: $light-text;
@@ -224,128 +410,105 @@ $label-font-size: 16px; // Slightly larger font size
         }
     }
 
-    .ads-list {
-        width: 40%;
+    .search-buttons {
+        margin-left: 5px;
+        display: flex;
+        align-items: start;
+        justify-content: center;
+        flex-wrap: wrap;
+        height: 100%;
 
-        .ads-table {
-            width: 100%;
-            height: 88%;
-            background-color: $darker-bg;
-            padding: 15px;
-            color: #ccc;
+        .filter-button {
+            display: flex;
+            align-items: center;
+            background-color: $highlight-color;
+            color: $light-text;
+            border: none;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 14px;
+            margin: 3px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
 
-            .mat-mdc-row .mat-mdc-cell {
-                border-bottom: 1px solid transparent;
-                border-top: 1px solid transparent;
-                cursor: pointer;
+            &:hover {
+                background-color: darken($highlight-color, 10%);
             }
 
-            .mat-mdc-row:hover .mat-mdc-cell {
-                border-color: currentColor;
+            &:focus {
+                outline: none;
             }
 
-            .demo-row-is-clicked {
-                background-color: $highlight-color;
-            }
-
-            ::ng-deep th {
-                color: $label-color;
-            }
-
-            ::ng-deep td {
-                color: $light-text;
+            mat-icon {
+                margin-right: 5px;
             }
         }
 
-        .ads-paginator {
-            background-color: $darker-bg;
-            padding: 15px;
+        .export-button {
+            background-color: $credit-color;
 
-            ::ng-deep * {
-                color: $light-text;
+            &:hover {
+                background-color: darken($credit-color, 10%);
             }
+        }
 
-            ::ng-deep svg {
-                fill: $light-text;
+        .clear-button {
+            background-color: $debit-color;
+
+            &:hover {
+                background-color: darken($debit-color, 10%);
             }
         }
     }
+}
 
-    .selected-ad {
-        width: 35%;
-        padding: 20px;
-        background-color: $dark-bg;
-        color: $light-text;
-        height: 100vh;
-        overflow-y: auto;
 
-        .view-toggle {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 20px;
 
-            mat-radio-group {
-                display: flex;
-                gap: 15px;
-            }
 
-            mat-radio-button {
-                ::ng-deep label {
-                    color: $light-text;
-                }
 
-                .mat-radio-outer-circle {
-                    border-color: $highlight-color;
-                }
+.ads-list {
+    margin-top: 10px;
+    padding: 20px;
 
-                .mat-radio-inner-circle {
-                    background-color: $highlight-color;
-                }
+    .ads-table {
+        width: 100%;
+        background-color: $darker-bg;
+        padding: 15px;
+        color: #ccc;
 
-                .mat-radio-button.mat-accent .mat-radio-ripple .mat-ripple-element {
-                    background-color: $highlight-color;
-                }
-            }
+        .mat-mdc-row .mat-mdc-cell {
+            border-bottom: 1px solid transparent;
+            border-top: 1px solid transparent;
+            cursor: pointer;
         }
 
-        .ad-card {
-            background-color: $darker-bg;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-
-            .ad-image {
-                width: 100%;
-                height: auto;
-                border-radius: 8px;
-                margin-bottom: 15px;
-            }
-
-            .ad-details {
-                h3 {
-                    color: $label-color;
-                    margin-bottom: 10px;
-                }
-
-                p {
-                    margin-bottom: 8px;
-                    font-size: 14px;
-
-                    strong {
-                        color: $label-color;
-                    }
-                }
-            }
+        .mat-mdc-row:hover .mat-mdc-cell {
+            border-color: currentColor;
         }
 
-        .json-view {
-            background-color: $darker-bg;
-            border-radius: 8px;
-            padding: 20px;
+        .demo-row-is-clicked {
+            background-color: $highlight-color;
+        }
+
+        ::ng-deep th {
+            color: $label-color;
+        }
+
+        ::ng-deep td {
             color: $light-text;
-            font-family: monospace;
-            font-size: 14px;
-            overflow-x: auto;
+        }
+    }
+
+    .ads-paginator {
+        background-color: $darker-bg;
+        padding: 15px;
+
+        ::ng-deep * {
+            color: $light-text;
+        }
+
+        ::ng-deep svg {
+            fill: $light-text;
         }
     }
 }
