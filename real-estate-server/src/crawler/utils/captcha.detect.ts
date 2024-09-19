@@ -14,7 +14,6 @@ export const detectDataDomeCaptcha = async (context: PlaywrightCrawlingContext, 
             log.info('No CAPTCHA detected.');
             return;
         };
-        session.retire();
         throw new Error('No CAPTCHA detected');
     });
 }

@@ -67,7 +67,10 @@ export class BoncoinCrawler implements CrawlerInterface {
             requestHandler: await createBoncoinRouter(job, this.dataProcessingService),
             proxyConfiguration: new ProxyConfiguration({ proxyUrls: this.proxyService.get_proxy_list() }),
             failedRequestHandler: async (context, error) => await handleCrawlerError(error, job, context),
-            errorHandler: async ({ log }, error) => log.error(error.message),
+            errorHandler: async ({ log, session }, error) => {
+                session.markBad();
+                log.error(error.message);
+            },
         }, boncoinConfig);
     }
 

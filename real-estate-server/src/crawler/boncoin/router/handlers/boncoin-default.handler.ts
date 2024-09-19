@@ -14,11 +14,11 @@ export const boncoinDefaultHandler = async (context: PlaywrightCrawlingContext, 
     let { REGION_REACHED, PAGE_REACHED } = job.data;
     await page.waitForLoadState('domcontentloaded');
     await detectDataDomeCaptcha(context, true);
-    await closeCookieModals().catch(() => { });
+    await closeCookieModals()
     await waitForSelector("a[title='Page suivante']", 10000);
+    const cursor = await createCursor(page);
     // PAGE LOOP
     while (data_grabbed < limit) {
-        const cursor = await createCursor(page);
         await cursor.actions.randomMove();
         let ads: any;
         if (PAGE_REACHED === 1) {
@@ -27,19 +27,9 @@ export const boncoinDefaultHandler = async (context: PlaywrightCrawlingContext, 
         } else {
             ads = await page.evaluate(() => window['crawled_ads']);
         }
-        // let date_filter_content = Array.from(ads).filter((ad) => isSameDayOrBefore({ target_date: new Date(ad["index_date"]), check_date: job.data.check_date, returnDays: 1 }));
-        // if (date_filter_content.length === 0) {
-
-        //     log.info("Found ads older than check_date. Passing Into Next Region.");
-        //     break;
-        // }
-        // if (ads.length > date_filter_content.length) {
-        //     await dataProcessingService.process(date_filter_content, CRAWLER_ORIGIN.BONCOIN);
-        //     data_grabbed += date_filter_content.length;
-        //     await job.update({ ...job.data, total_data_grabbed: job.data.total_data_grabbed + data_grabbed });
-        //     log.info("Found ads older than check_date. Passing Into Next Region.");
-        //     break;
-        // }
+        if (!ads) {
+            throw new Error('No ads found');
+        }
         await dataProcessingService.process(ads, CRAWLER_ORIGIN.BONCOIN);
         data_grabbed += ads.length;
         await job.update({ ...job.data, total_data_grabbed: job.data.total_data_grabbed + ads.length });
