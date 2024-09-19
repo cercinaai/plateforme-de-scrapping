@@ -133,7 +133,6 @@ export class DataListComponent implements OnInit {
 
   public filterAds(): void {
     const filter = this._extract_filters();
-    console.log(filter);
     filter.page = 1;
     filter.limit = 20;
     this.paginator.firstPage();
