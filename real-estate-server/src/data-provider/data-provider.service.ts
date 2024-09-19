@@ -95,18 +95,17 @@ export class DataProviderService {
 
 
 
-    private extractFiltersByCity(city: string): object {
+    private extractFiltersByCity(all_city: string[]): object {
         // Clean city name
-        city = city.toLowerCase();
-        // CHECK IF CITY IS A REGION OR A DEPARTMENT
-        const isRegion = FrenshRegions.find(region => region.nom.toLowerCase() === city);
-        if (isRegion) {
-            return { 'location.regionCode': isRegion.code };
+        let region_filter = all_city.filter((city) => FrenshRegions.find(region => region.nom.toLowerCase() === city.toLowerCase()));
+        let department_filter = all_city.filter((city) => FrenshDepartments.find(department => department.nom.toLowerCase() === city.toLowerCase()));
+        let city_filter = all_city.filter((city) => !FrenshRegions.find(region => region.nom.toLowerCase() === city.toLowerCase()) && !FrenshDepartments.find(department => department.nom.toLowerCase() === city.toLowerCase()));
+        return {
+            $or: [
+                { 'location.regionCode': { $in: region_filter } },
+                { 'location.departmentCode': { $in: department_filter } },
+                { 'location.city': { $in: all_city } }
+            ]
         }
-        const isDepartment = FrenshDepartments.find(department => department.nom.toLowerCase() === city);
-        if (isDepartment) {
-            return { 'location.departmentCode': isDepartment.code };
-        }
-        return { 'location.city': city };
     }
 }

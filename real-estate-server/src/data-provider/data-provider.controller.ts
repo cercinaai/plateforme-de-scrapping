@@ -61,14 +61,14 @@ export class DataProviderController {
         return this.crawlerSessionModel.find({ session_date: { $gte: startDate, $lte: endDate } }).sort({ session_date: -1 });
     }
 
-    @Throttle({ short: { limit: 2, ttl: 1000 }, long: { limit: 5, ttl: 60000 } })
+    @Throttle({ short: { limit: 2, ttl: 1000 }, long: { limit: 15, ttl: 60000 } })
     @UseGuards(RealEstateAuthGuard)
     @Get('ad-list')
     async get_ad(@Query() query: FilterAdsDto): Promise<Ad[] | { ads: Ad[], total: number }> {
         return this.dataProviderService.filterAdsList(query);
     }
 
-    @Throttle({ short: { limit: 2, ttl: 1000 }, long: { limit: 5, ttl: 60000 } })
+    @Throttle({ short: { limit: 2, ttl: 1000 }, long: { limit: 10, ttl: 60000 } })
     @UseGuards(RealEstateAuthGuard)
     @Get('single-ad')
     async get_single_ad(@Query('_id') _id?: string, @Query('adId') adId?: string,): Promise<Ad> {

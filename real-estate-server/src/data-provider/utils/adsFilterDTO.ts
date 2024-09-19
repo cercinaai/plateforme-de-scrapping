@@ -50,9 +50,9 @@ export class FilterAdsDto {
     @IsOptional()
     endDate?: string;
 
-    @IsString()
+    @IsArray()
     @IsOptional()
-    city?: string;
+    city?: string[];
 
     @IsNumber()
     @IsOptional()
