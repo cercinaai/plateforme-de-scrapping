@@ -27,9 +27,9 @@ export const boncoinDefaultHandler = async (context: PlaywrightCrawlingContext, 
             let data = await page.$("script[id='__NEXT_DATA__']");
             ads = JSON.parse(await data?.textContent() as string)["props"]["pageProps"]["searchData"]["ads"];
         } else {
-            ads = await page.evaluate(() => window['ads']);
+            ads = await page.evaluate(() => window['crawled_ads']);
         }
-
+        if (!ads) throw new Error('No ads found');
         await dataProcessingService.process(ads, CRAWLER_ORIGIN.BONCOIN);
         data_grabbed += ads.length;
         await job.update({ ...job.data, total_data_grabbed: job.data.total_data_grabbed + ads.length });

@@ -10,9 +10,8 @@ export const detectDataDomeCaptcha = async (context: PlaywrightCrawlingContext, 
     log.info('Detecting if there is a CAPTCHA...');
     await page.waitForEvent('frameattached', { timeout: 5000 }).catch(() => { });
     return waitForSelector('iframe[src*="https://geo.captcha-delivery.com"]')
-        .then(async () => {
-            await handleCaptchaDetection(context).catch((err) => { console.error(err) });
-        }).catch((err) => {
+        .then(async () => await handleCaptchaDetection(context))
+        .catch((err) => {
             if (!err.message.includes('locator.waitFor')) {
                 throw err;
             }

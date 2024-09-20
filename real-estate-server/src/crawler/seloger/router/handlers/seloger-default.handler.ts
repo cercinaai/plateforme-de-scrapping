@@ -10,36 +10,15 @@ import { interceptSelogerHttpResponse } from "../../preNavigation/preHooks.regis
 
 
 export const selogerDefaultHandler = async (context: PlaywrightCrawlingContext, dataProcessingService: DataProcessingService, job: Job) => {
-    const { page, closeCookieModals, waitForSelector, enqueueLinks, log, adsHttpInterceptor } = context;
-    await page.waitForLoadState('load');
-    await detectDataDomeCaptcha(context);
-    const cursor = await createCursor(page);
-    await cursor.actions.randomMove();
-    await closeCookieModals().catch(() => { });
-    await waitForSelector('a[data-testid="gsl.uilib.Paging.nextButton"]', 10000).catch(async () => {
-        await page.goBack({ waitUntil: 'load' });
-        await page.goForward({ waitUntil: 'load' });
-        await waitForSelector('a[data-testid="gsl.uilib.Paging.nextButton"]');
-        await closeCookieModals().catch(() => { });
-    });
+    const { page, closeCookieModals, waitForSelector, enqueueLinks, log } = context;
     let data_grabbed = 0;
     let { name, limit } = job.data.france_locality[job.data.REGION_REACHED];
-    const nextButton = await page.$('a[data-testid="gsl.uilib.Paging.nextButton"]');
-    const nextButtonPosition = await nextButton.boundingBox();
-    let ads = await page.evaluate(() => Array.from(window['initialData']['cards']['list']).filter(card => card['cardType'] === 'classified'));
-    if (ads.length > 0) {
-        await dataProcessingService.process(ads, CRAWLER_ORIGIN.SELOGER);
-        data_grabbed += ads.length;
-        log.info(`Data grabbed: ${data_grabbed} of ${limit} for (${job.data.france_locality[job.data.REGION_REACHED].name})`);
-    }
-    await scrollToTargetHumanWay(context, nextButtonPosition.y);
-    await page.mouse.move(nextButtonPosition.x - 10, nextButtonPosition.y - 10);
-    await nextButton.scrollIntoViewIfNeeded();
-    await nextButton.click();
-    await page.waitForTimeout(2000);
+    let { REGION_REACHED, PAGE_REACHED } = job.data;
+    await page.waitForLoadState('load');
+    await detectDataDomeCaptcha(context);
+    await closeCookieModals();
+    const cursor = await createCursor(page);
     while (data_grabbed < limit) {
-        await closeCookieModals().catch(() => { });
-        const cursor = await createCursor(page);
         await cursor.actions.randomMove();
         await waitForSelector('a[data-testid="gsl.uilib.Paging.nextButton"]').catch(async () => {
             await page.goBack({ waitUntil: 'load' });
@@ -47,22 +26,30 @@ export const selogerDefaultHandler = async (context: PlaywrightCrawlingContext, 
             await waitForSelector('a[data-testid="gsl.uilib.Paging.nextButton"]');
             await closeCookieModals().catch(() => { });
         });
-        const nextButton = await page.$('a[data-testid="gsl.uilib.Paging.nextButton"]');
-        const nextButtonPosition = await nextButton.boundingBox();
-        ads = await page.evaluate(() => window['crawled_ads']);
+        let ads: any;
+        if (PAGE_REACHED === 1) {
+            ads = await page.evaluate(() => Array.from(window['initialData']['cards']['list']).filter(card => card['cardType'] === 'classified'));
+        } else {
+            ads = await page.evaluate(() => window['crawled_ads']);
+        }
+        if (!ads) throw new Error('No ads found');
         await dataProcessingService.process(ads, CRAWLER_ORIGIN.SELOGER);
         data_grabbed += ads.length;
+        await job.update({ ...job.data, total_data_grabbed: job.data.total_data_grabbed + ads.length });
+        const nextButton = await page.$('a[data-testid="gsl.uilib.Paging.nextButton"]');
+        const nextButtonPosition = await nextButton.boundingBox();
         await scrollToTargetHumanWay(context, nextButtonPosition.y);
         await page.mouse.move(nextButtonPosition.x - 10, nextButtonPosition.y - 10);
         await interceptSelogerHttpResponse(context);
         await nextButton.scrollIntoViewIfNeeded();
         await nextButton.click();
         await page.waitForTimeout(2000);
+        PAGE_REACHED++;
         log.info(`Data grabbed: ${data_grabbed} of ${limit} for (${name})`);
     }
     // NEXT LOCALITY
-    if (job.data.REGION_REACHED >= job.data.france_locality.length - 1) return;
-    await job.update({ ...job.data, REGION_REACHED: job.data.REGION_REACHED + 1, total_data_grabbed: job.data.total_data_grabbed + data_grabbed });
+    if (REGION_REACHED >= job.data.france_locality.length - 1) return;
+    await job.update({ ...job.data, REGION_REACHED: REGION_REACHED + 1, PAGE_REACHED: 1 });
     await enqueueLinks({ urls: [build_link(job)] });
 }
 

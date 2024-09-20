@@ -7,7 +7,8 @@ export const interceptBoncoinHttpResponse = async (context: PlaywrightCrawlingCo
         const url = response.url();
         if (!url.includes('https://api.leboncoin.fr/finder/search')) return;
         const body = await response.json();
-        await page.evaluate((body) => { window['ads'] = body['ads']; }, body);
+        if (!body['ads']) return;
+        await page.evaluate((body) => { window['crawled_ads'] = body['ads']; }, body);
     })
 }
 

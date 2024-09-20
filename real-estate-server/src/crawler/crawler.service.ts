@@ -15,14 +15,14 @@ export class CrawlerService {
     async populate_database() {
         this.logger.log('Populating Crawler Queues...');
         const session_id = await this._create_initial_session();
-        await this.crawlerQueue.add('boncoin-crawler', { session_id }, { attempts: 1 });
-        await this.crawlerQueue.add('seloger-crawler', { session_id }, { attempts: 1 });
+        await this.addJobAndWaitForCompletion('boncoin-crawler', { session_id });
+        await this.addJobAndWaitForCompletion('seloger-crawler', { session_id });
         // await this.addJobAndWaitForCompletion('logicimmo-crawler');
         // await this.addJobAndWaitForCompletion('bienici-crawler');
         this.logger.log('Crawler Queues Populated');
     }
-    private async addJobAndWaitForCompletion(jobName: string): Promise<void> {
-        const job = await this.crawlerQueue.add(jobName, {}, { attempts: 1 });
+    private async addJobAndWaitForCompletion(jobName: string, jobData?: any): Promise<void> {
+        const job = await this.crawlerQueue.add(jobName, jobData, { attempts: 1 });
         await this.waitForJobCompletion(job);
     }
     private async waitForJobCompletion(job: Job, interval: number = 5000): Promise<void> {

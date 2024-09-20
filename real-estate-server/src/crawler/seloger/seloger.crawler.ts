@@ -13,13 +13,12 @@ import { createSelogerRouter } from './router/seloger.router';
 import { handleCrawlerError, handleCrawlerState } from "../utils/handleCrawlerState.util";
 import { preSelogerHooksRegister } from "./preNavigation/preHooks.register";
 import { postSelogerHooksRegister } from "./postNavigation/postHooks.register";
-import { CRAWLER_ORIGIN } from "../utils/enum";
 import { CrawlerSession } from "src/models/crawlerSession.schema";
 
 @Processor('crawler')
 export class SelogerCrawler implements CrawlerInterface {
 
-    constructor(private readonly proxyService: ProxyService, private readonly dataProcessingService: DataProcessingService, private crawlerSession: Model<CrawlerSession>) { }
+    constructor(private readonly proxyService: ProxyService, private readonly dataProcessingService: DataProcessingService, @InjectModel(CrawlerSession.name) private crawlerSession: Model<CrawlerSession>) { }
 
     @Process({ name: 'seloger-crawler' })
     async start(job: Job) {
@@ -62,6 +61,7 @@ export class SelogerCrawler implements CrawlerInterface {
             attempts_count: 0,
             status: 'running',
             REGION_REACHED: 0,
+            PAGE_REACHED: 1,
             france_locality: [
                 { name: 'Île-de-France', link: ['2238'], limit: 986 },
                 { name: "Provence-Alpes-Côte d'Azur", link: ['2246'], limit: 697 },

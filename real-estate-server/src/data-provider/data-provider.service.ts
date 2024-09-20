@@ -91,18 +91,35 @@ export class DataProviderService {
 
 
 
-    private extractFiltersByCity(city: string): object {
+    private extractFiltersByCity(all_citys: string[]): object {
+        const region_to_find = FrenshRegions.filter(region => all_citys.find(city => city.toLowerCase() === region.nom.toLowerCase())).map(region => region.code);
+        const department_to_find = FrenshDepartments.filter(department => all_citys.find(city => city.toLowerCase() === department.nom.toLowerCase())).map(department => department.code);
+        const city_to_find = all_citys.filter(city => !FrenshRegions.find(region => region.nom.toLowerCase() === city.toLowerCase()) && !FrenshDepartments.find(department => department.nom.toLowerCase() === city.toLowerCase()));
+        const orConditions = [];
+        if (region_to_find.length > 0) {
+            orConditions.push({ 'location.regionCode': { $in: region_to_find } });
+        }
+
+        if (department_to_find.length > 0) {
+            orConditions.push({ 'location.departmentCode': { $in: department_to_find } });
+        }
+
+        if (city_to_find.length > 0) {
+            orConditions.push({ 'location.city': { $in: city_to_find } });
+        }
+
+        return { $or: orConditions }
         // Clean city name
-        city = city.toLowerCase();
-        // CHECK IF CITY IS A REGION OR A DEPARTMENT
-        const isRegion = FrenshRegions.find(region => region.nom.toLowerCase() === city);
-        if (isRegion) {
-            return { 'location.regionCode': isRegion.code };
-        }
-        const isDepartment = FrenshDepartments.find(department => department.nom.toLowerCase() === city);
-        if (isDepartment) {
-            return { 'location.departmentCode': isDepartment.code };
-        }
-        return { 'location.city': city };
+        // city = city.toLowerCase();
+        // // CHECK IF CITY IS A REGION OR A DEPARTMENT
+        // const isRegion = FrenshRegions.find(region => region.nom.toLowerCase() === city);
+        // if (isRegion) {
+        //     return { 'location.regionCode': isRegion.code };
+        // }
+        // const isDepartment = FrenshDepartments.find(department => department.nom.toLowerCase() === city);
+        // if (isDepartment) {
+        //     return { 'location.departmentCode': isDepartment.code };
+        // }
+        // return { 'location.city': city };
     }
 }

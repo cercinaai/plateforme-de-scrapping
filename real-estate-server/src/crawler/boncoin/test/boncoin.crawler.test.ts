@@ -2,11 +2,9 @@ import { Configuration, createPlaywrightRouter, log, LogLevel, PlaywrightCrawler
 import { boncoinCrawlerOption } from "../../../config/playwright.config";
 import { createCursor } from 'ghost-cursor-playwright';
 import dotenv from 'dotenv';
-import { isSameDayOrBefore } from "../../../crawler/utils/date.util";
 import { scrollToTargetHumanWay } from "../../../crawler/utils/human-behavior.util";
 import { detectDataDomeCaptcha } from "../../../crawler/utils/captcha.detect";
-import { save_files } from "../../../data-processing/test/save-file.test";
-import { Page } from "playwright";
+import { interceptBoncoinHttpResponse } from "../preNavigation/preHooks.register";
 
 dotenv.config({ path: 'real-estate.env' });
 
@@ -59,15 +57,16 @@ router.addDefaultHandler(async (context) => {
             let data = await page.$("script[id='__NEXT_DATA__']");
             ads = JSON.parse(await data?.textContent() as string)["props"]["pageProps"]["searchData"]["ads"];
         } else {
-            ads = await page.evaluate(() => window['ads']);
+            ads = await page.evaluate(() => window['crawled_ads']);
+
         }
+        if (!ads) throw new Error('No ads found');
         data_grabbed += ads.length;
-        // const images_to_upload = date_filter_content.map((ad: any) => ad.images.thumb_url);
-        // await save_files(images_to_upload[0]);
         const nextButton = await page.$("a[title='Page suivante']");
         const nextButtonPosition = await nextButton.boundingBox();
         await scrollToTargetHumanWay(context, nextButtonPosition.y);
-        interceptHttpRequest(context);
+        await interceptBoncoinHttpResponse(context);
+        await page.mouse.move(nextButtonPosition.x - 10, nextButtonPosition.y - 10);
         await page.click("a[title='Page suivante']");
         await page.waitForTimeout(2000);
         log.info(`Scraped ${data_grabbed} ads from ${france_locality[REGION_REACHED].name}.`);
@@ -81,22 +80,6 @@ router.addDefaultHandler(async (context) => {
 const build_url = (): string => {
     const { link } = france_locality[REGION_REACHED];
     return `https://www.leboncoin.fr/recherche?category=9&locations=${link}&real_estate_type=1,2,3,4,5&immo_sell_type=old,new,viager&owner_type=pro`
-}
-
-const interceptHttpRequest = (context: PlaywrightCrawlingContext) => {
-    // context.adsHttpInterceptor = context.page.waitForResponse(async (response) => {
-    //     const url = response.url();
-    //     if (!url.includes('https://api.leboncoin.fr/finder/search')) return false;
-    //     const body = await response.json();
-    //     return body['ads'] ? true : false;
-    // }, { timeout: 0 });
-    const { page } = context;
-    page.on('response', async (response) => {
-        const url = response.url();
-        if (!url.includes('https://api.leboncoin.fr/finder/search')) return;
-        const body = await response.json();
-        await page.evaluate((body) => { window['ads'] = body['ads']; }, body);
-    })
 }
 
 const boncoinCrawler = new PlaywrightCrawler({

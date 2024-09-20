@@ -11,10 +11,11 @@ import { createBoncoinRouter } from './router/boncoin.router';
 import { preBoncoinHooksRegister } from './preNavigation/preHooks.register';
 import { Model } from 'mongoose';
 import { CrawlerSession } from 'src/models/crawlerSession.schema';
+import { InjectModel } from '@nestjs/mongoose';
 
 @Processor('crawler')
 export class BoncoinCrawler implements CrawlerInterface {
-    constructor(private readonly proxyService: ProxyService, private readonly dataProcessingService: DataProcessingService, private crawlerSession: Model<CrawlerSession>) { }
+    constructor(private readonly proxyService: ProxyService, private readonly dataProcessingService: DataProcessingService, @InjectModel(CrawlerSession.name) private crawlerSession: Model<CrawlerSession>) { }
 
     @Process({ name: 'boncoin-crawler' })
     async start(job: Job) {

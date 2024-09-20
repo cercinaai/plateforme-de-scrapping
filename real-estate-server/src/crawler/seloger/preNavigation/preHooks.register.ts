@@ -7,6 +7,7 @@ export const interceptSelogerHttpResponse = async (context: PlaywrightCrawlingCo
         if (url.includes('https://www.seloger.com/search-bff/api/externaldata')) {
             const body = await response.json();
             let ads = body['listingData']['cards'];
+            if (!ads) return;
             ads = ads.filter((card: any) => card['type'] === 0);
             ads = ads.map((card: any) => card['listing'])
             await page.evaluate((transformed_ads) => {

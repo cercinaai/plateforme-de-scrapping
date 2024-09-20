@@ -4,6 +4,7 @@ import { createCursor } from 'ghost-cursor-playwright';
 import dotenv from 'dotenv';
 import { scrollToTargetHumanWay } from "../../../crawler/utils/human-behavior.util";
 import { detectDataDomeCaptcha } from "../../../crawler/utils/captcha.detect";
+import { interceptSelogerHttpResponse } from "../preNavigation/preHooks.register";
 
 dotenv.config({ path: 'real-estate.env' });
 
@@ -39,73 +40,44 @@ const router = createPlaywrightRouter();
 
 router.addDefaultHandler(async (context) => {
     const { page, closeCookieModals, waitForSelector } = context;
-    let PAGE = 1;
+    let PAGE_REACHED = 1;
     let TOTAL_DATA = 0;
-    await page.waitForLoadState('domcontentloaded');
+    await page.waitForLoadState('load');
     await detectDataDomeCaptcha(context);
+    await closeCookieModals();
     const cursor = await createCursor(page);
-    await cursor.actions.randomMove();
-    await closeCookieModals().catch(() => { });
-    await waitForSelector('a[data-testid="gsl.uilib.Paging.nextButton"]', 10000).catch(async () => {
-        await page.goBack({ waitUntil: 'load' });
-        await page.goForward({ waitUntil: 'load' });
-        await waitForSelector('a[data-testid="gsl.uilib.Paging.nextButton"]');
-        await closeCookieModals().catch(() => { });
-    });
-    const nextButton = await page.$('a[data-testid="gsl.uilib.Paging.nextButton"]');
-    const nextButtonPosition = await nextButton.boundingBox();
-    let ads = await page.evaluate(() => Array.from(window['initialData']['cards']['list']).filter(card => card['cardType'] === 'classified'));
-    TOTAL_DATA += ads.length;
-    await scrollToTargetHumanWay(context, nextButtonPosition.y);
-    await page.mouse.move(nextButtonPosition.x - 10, nextButtonPosition.y - 10);
-    await nextButton.scrollIntoViewIfNeeded();
-    await nextButton.click();
-    await page.waitForTimeout(2000);
-    while (PAGE < 3) {
-        log.info(`PAGE ${PAGE}`);
-        const cursor = await createCursor(page);
+    while (TOTAL_DATA < france_locality[REGION_REACHED].limit) {
+        log.info(`PAGE ${PAGE_REACHED}`);
         await cursor.actions.randomMove();
-        await waitForSelector('a[data-testid="gsl.uilib.Paging.nextButton"]', 10000).catch(async () => {
+        await waitForSelector('a[data-testid="gsl.uilib.Paging.nextButton"]').catch(async () => {
             await page.goBack({ waitUntil: 'load' });
             await page.goForward({ waitUntil: 'load' });
             await waitForSelector('a[data-testid="gsl.uilib.Paging.nextButton"]');
             await closeCookieModals().catch(() => { });
         });
+        let ads: any;
+        if (PAGE_REACHED === 1) {
+            ads = await page.evaluate(() => Array.from(window['initialData']['cards']['list']).filter(card => card['cardType'] === 'classified'));
+        } else {
+            ads = await page.evaluate(() => window['crawled_ads']);
+        }
+        TOTAL_DATA += ads.length;
         const nextButton = await page.$('a[data-testid="gsl.uilib.Paging.nextButton"]');
         const nextButtonPosition = await nextButton.boundingBox();
-        ads = await page.evaluate(() => window['crawled_ads']);
-        TOTAL_DATA += ads.length;
         await scrollToTargetHumanWay(context, nextButtonPosition.y);
         await page.mouse.move(nextButtonPosition.x - 10, nextButtonPosition.y - 10);
+        await interceptSelogerHttpResponse(context);
         await nextButton.scrollIntoViewIfNeeded();
         await nextButton.click();
         await page.waitForTimeout(2000);
-        PAGE++;
+        PAGE_REACHED++;
     }
-    console.log(TOTAL_DATA);
-    console.log(PAGE);
 });
 
 const selogerCrawler = new PlaywrightCrawler({
     ...selogerCrawlerOptions,
     proxyConfiguration: new ProxyConfiguration({ proxyUrls }),
-    preNavigationHooks: [
-        async ({ page, log }) => {
-            page.on('response', async (response) => {
-                const url = response.url();
-                if (url.includes('https://www.seloger.com/search-bff/api/externaldata')) {
-                    log.info('DETECTED RESPONSE');
-                    const body = await response.json();
-                    let ads = body['listingData']['cards'];
-                    ads = ads.filter((card: any) => card['type'] === 0);
-                    ads = ads.map((card: any) => card['listing'])
-                    await page.evaluate((transformed_ads) => {
-                        window['crawled_ads'] = transformed_ads;
-                    }, ads);
-                }
-            });
-        }
-    ],
+    preNavigationHooks: [],
     requestHandler: router,
     errorHandler: (context, error) => { context.log.error(error.message) },
 
@@ -117,7 +89,7 @@ const selogerCrawler = new PlaywrightCrawler({
         persistStorage: false,
         writeMetadata: false,
     },
-    headless: true,
+    headless: false,
 }));
 
 const build_link = (): string => {
