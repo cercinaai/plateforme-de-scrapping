@@ -4,7 +4,6 @@ import { InjectQueue } from '@nestjs/bull';
 import { CrawlerSession } from "../models/crawlerSession.schema";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
-import { generateTimeoutCrawlerError } from "./utils/handleCrawlerState.util";
 
 @Injectable()
 export class CrawlerService {
@@ -15,8 +14,9 @@ export class CrawlerService {
 
     async populate_database() {
         this.logger.log('Populating Crawler Queues...');
-        await this.crawlerQueue.add('boncoin-crawler', {}, { attempts: 1 });
-        await this.crawlerQueue.add('seloger-crawler', {}, { attempts: 1 });
+        const session_id = await this._create_initial_session();
+        await this.crawlerQueue.add('boncoin-crawler', { session_id }, { attempts: 1 });
+        await this.crawlerQueue.add('seloger-crawler', { session_id }, { attempts: 1 });
         // await this.addJobAndWaitForCompletion('logicimmo-crawler');
         // await this.addJobAndWaitForCompletion('bienici-crawler');
         this.logger.log('Crawler Queues Populated');
@@ -31,58 +31,71 @@ export class CrawlerService {
             await new Promise(resolve => setTimeout(resolve, interval));
         }
     }
-    async heathCheck(): Promise<boolean> {
-        this.logger.log('Crawler Queues Health Check...');
-        if ((await this.crawlerQueue.getActiveCount()) > 0) return false;
-        this.logger.log('Crawler Queues is Empty now Or Timeout Reached...');
-        const failedJobs = await this.crawlerQueue.getFailed();
-        const completedJobs = await this.crawlerQueue.getCompleted();
-        const failedJobsSchema = failedJobs.map(job => this.mapJobToSchema(job, 'failed'));
-        const completedJobsSchema = completedJobs.map(job => this.mapJobToSchema(job, 'success'));
-        await this.saveCrawlerSession([...failedJobsSchema, ...completedJobsSchema]);
-        await Promise.all([...failedJobs, ...completedJobs].map(async (job) => await job.remove()));
-        this.logger.log('Crawler Session Saved');
-        return true;
-    }
-    private mapJobToSchema(job: Job, status: 'success' | 'failed') {
-        const jobData = job.data;
-        if (status === 'success') {
-            return {
-                status: 'success',
-                success_date: jobData.success_date,
-                crawler_origin: jobData.crawler_origin,
-                total_data_grabbed: jobData.total_data_grabbed,
-                total_request: jobData.total_request,
-                success_requests: jobData.success_requests,
-                failed_requests: jobData.failed_requests,
-                attempts_count: jobData.attempts_count,
-            };
-        } else {
-            return {
-                crawler_origin: jobData.crawler_origin,
-                status: 'failed',
-                total_data_grabbed: jobData.total_data_grabbed,
-                attempts_count: jobData.attempts_count,
-                total_request: jobData.total_request,
-                success_requests: jobData.success_requests,
-                failed_requests: jobData.failed_requests,
-                error_date: jobData.error.failed_date,
-                failedReason: jobData.error.failedReason,
-                failed_request_url: jobData.error.failed_request_url,
-                proxy_used: jobData.error.proxy_used,
-            };
-        }
-    }
-    private async saveCrawlerSession(jobsData: any[]) {
+    // async heathCheck(): Promise<boolean> {
+    //     this.logger.log('Crawler Queues Health Check...');
+    //     if ((await this.crawlerQueue.getActiveCount()) > 0) return false;
+    //     this.logger.log('Crawler Queues is Empty now Or Timeout Reached...');
+    //     const failedJobs = await this.crawlerQueue.getFailed();
+    //     const completedJobs = await this.crawlerQueue.getCompleted();
+    //     const failedJobsSchema = failedJobs.map(job => this.mapJobToSchema(job, 'failed'));
+    //     const completedJobsSchema = completedJobs.map(job => this.mapJobToSchema(job, 'success'));
+    //     await this.saveCrawlerSession([...failedJobsSchema, ...completedJobsSchema]);
+    //     await Promise.all([...failedJobs, ...completedJobs].map(async (job) => await job.remove()));
+    //     this.logger.log('Crawler Session Saved');
+    //     return true;
+    // }
+    // private mapJobToSchema(job: Job, status: 'success' | 'failed') {
+    //     const jobData = job.data;
+    //     if (status === 'success') {
+    //         return {
+    //             status: 'success',
+    //             success_date: jobData.success_date,
+    //             crawler_origin: jobData.crawler_origin,
+    //             total_data_grabbed: jobData.total_data_grabbed,
+    //             total_request: jobData.total_request,
+    //             success_requests: jobData.success_requests,
+    //             failed_requests: jobData.failed_requests,
+    //             attempts_count: jobData.attempts_count,
+    //         };
+    //     } else {
+    //         return {
+    //             crawler_origin: jobData.crawler_origin,
+    //             status: 'failed',
+    //             total_data_grabbed: jobData.total_data_grabbed,
+    //             attempts_count: jobData.attempts_count,
+    //             total_request: jobData.total_request,
+    //             success_requests: jobData.success_requests,
+    //             failed_requests: jobData.failed_requests,
+    //             error_date: jobData.error.failed_date,
+    //             failedReason: jobData.error.failedReason,
+    //             failed_request_url: jobData.error.failed_request_url,
+    //             proxy_used: jobData.error.proxy_used,
+    //         };
+    //     }
+    // }
+    // private async saveCrawlerSession(jobsData: any[]) {
+    //     const sessionData: Partial<CrawlerSession> = {
+    //         session_date: new Date(),
+    //         boncoin: jobsData.find(job => job.crawler_origin === 'boncoin') || null,
+    //         bienici: jobsData.find(job => job.crawler_origin === 'bienici') || null,
+    //         logicimmo: jobsData.find(job => job.crawler_origin === 'logic-immo') || null,
+    //         seloger: jobsData.find(job => job.crawler_origin === 'seloger') || null,
+    //     };
+    //     let session = new this.crawlerSession(sessionData);
+    //     await session.save()
+    // }
 
+    private async _create_initial_session(): Promise<string> {
         const sessionData: Partial<CrawlerSession> = {
             session_date: new Date(),
-            boncoin: jobsData.find(job => job.crawler_origin === 'boncoin') || null,
-            bienici: jobsData.find(job => job.crawler_origin === 'bienici') || null,
-            logicimmo: jobsData.find(job => job.crawler_origin === 'logic-immo') || null,
-            seloger: jobsData.find(job => job.crawler_origin === 'seloger') || null,
-        };
+            status: 'running',
+            boncoin: null,
+            bienici: null,
+            logicimmo: null,
+            seloger: null,
+        }
         let session = new this.crawlerSession(sessionData);
-        await session.save()
+        const { _id } = await session.save();
+        return _id.toString();
     }
 }

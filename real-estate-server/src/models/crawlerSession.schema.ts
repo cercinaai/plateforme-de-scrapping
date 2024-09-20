@@ -1,46 +1,32 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Prop, raw, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 
 export type CrawlerSessionDocument = HydratedDocument<CrawlerStats>;
 
 @Schema()
 class CrawlerStats {
-
-    @Prop()
-    success_date?: Date;
-
-    @Prop()
-    error_date?: Date;
-
     @Prop({ required: true })
-    crawler_origin: string;
-
-    @Prop({ required: true })
-    status: string;
+    status: 'success' | 'failed';
 
     @Prop({ required: true })
     total_data_grabbed: number;
 
-    @Prop()
-    total_request?: number;
+    @Prop(raw({
+        failed_date: { type: Date },
+        failedReason: { type: String },
+        failed_request_url: { type: String },
+        proxy_used: { type: String }
+    }))
+    error?: Record<string, any> | null;
 
-    @Prop()
-    success_requests?: number;
+    @Prop({ required: true })
+    total_request: number;
 
-    @Prop()
-    failed_requests?: number;
+    @Prop({ required: true })
+    success_requests: number;
 
-    @Prop()
-    failedReason?: string;
-
-    @Prop()
-    attempts_count?: number;
-
-    @Prop()
-    failed_request_url?: string;
-
-    @Prop()
-    proxy_used?: string;
+    @Prop({ required: true })
+    failed_requests: number;
 }
 
 
@@ -50,6 +36,10 @@ export const CrawlerStatsSchema = SchemaFactory.createForClass(CrawlerStats);
 export class CrawlerSession {
     @Prop({ isRequired: true })
     session_date: Date;
+
+    @Prop({ isRequired: true })
+    status: 'running' | 'completed';
+
     @Prop({ type: CrawlerStatsSchema, required: false })
     boncoin?: CrawlerStats | null;
 

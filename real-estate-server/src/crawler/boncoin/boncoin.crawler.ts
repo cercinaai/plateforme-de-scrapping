@@ -9,16 +9,21 @@ import { CrawlerInterface } from '../crawler.interface';
 import { handleCrawlerError, handleCrawlerState } from '../utils/handleCrawlerState.util';
 import { createBoncoinRouter } from './router/boncoin.router';
 import { preBoncoinHooksRegister } from './preNavigation/preHooks.register';
+import { Model } from 'mongoose';
+import { CrawlerSession } from 'src/models/crawlerSession.schema';
 
 @Processor('crawler')
 export class BoncoinCrawler implements CrawlerInterface {
-    constructor(private readonly proxyService: ProxyService, private readonly dataProcessingService: DataProcessingService) { }
+    constructor(private readonly proxyService: ProxyService, private readonly dataProcessingService: DataProcessingService, private crawlerSession: Model<CrawlerSession>) { }
 
     @Process({ name: 'boncoin-crawler' })
     async start(job: Job) {
+        const { session_id } = job.data;
         await this.initialize(job);
         const stat = await this.crawl(job);
-        await handleCrawlerState(job, stat);
+        const session_stats = await handleCrawlerState(job, stat);
+        // UPDATE THE SESSION BY THE NEW STATS
+        await this.crawlerSession.findByIdAndUpdate(session_id, { boncoin: session_stats });
     }
 
     async initialize(job: Job): Promise<void> {
@@ -71,8 +76,6 @@ export class BoncoinCrawler implements CrawlerInterface {
             errorHandler: async ({ log }, error) => log.error(error.message),
         }, boncoinConfig);
     }
-
-
 
     private _build_url(job: Job): string {
         const { link } = job.data.france_locality[job.data.REGION_REACHED]

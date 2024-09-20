@@ -14,17 +14,21 @@ import { handleCrawlerError, handleCrawlerState } from "../utils/handleCrawlerSt
 import { preSelogerHooksRegister } from "./preNavigation/preHooks.register";
 import { postSelogerHooksRegister } from "./postNavigation/postHooks.register";
 import { CRAWLER_ORIGIN } from "../utils/enum";
+import { CrawlerSession } from "src/models/crawlerSession.schema";
 
 @Processor('crawler')
 export class SelogerCrawler implements CrawlerInterface {
 
-    constructor(private readonly proxyService: ProxyService, private readonly dataProcessingService: DataProcessingService, @InjectModel(Ad.name) private readonly adModel: Model<Ad>) { }
+    constructor(private readonly proxyService: ProxyService, private readonly dataProcessingService: DataProcessingService, private crawlerSession: Model<CrawlerSession>) { }
 
     @Process({ name: 'seloger-crawler' })
     async start(job: Job) {
+        const { session_id } = job.data;
         await this.initialize(job);
         const stat = await this.crawl(job);
-        await handleCrawlerState(job, stat);
+        const session_stats = await handleCrawlerState(job, stat);
+        // UPDATE THE SESSION BY THE NEW STATS
+        await this.crawlerSession.findByIdAndUpdate(session_id, { seloger: session_stats });
     }
 
 
@@ -91,15 +95,5 @@ export class SelogerCrawler implements CrawlerInterface {
     }
 
 
-    private async shouldStopCrawler(ads: any[]): Promise<boolean> {
-        const ids = ads.map(ad => ad.id.toString());
-        const existingAds = await this.adModel.find({ adId: { $in: ids }, origin: 'seloger' });
-        if (!existingAds || existingAds.length === 0) return false;
-        if (existingAds.length < ids.length) {
-            const newAds = ads.filter(ad => !existingAds.find(existingAd => existingAd.adId === ad.id.toString()));
-            await this.dataProcessingService.process(newAds, CRAWLER_ORIGIN.SELOGER);
-            return true;
-        }
-        if (existingAds.length === ids.length) return true;
-    }
+
 }

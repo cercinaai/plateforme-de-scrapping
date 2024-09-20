@@ -1,20 +1,18 @@
 import { Job } from "bull";
 import { FinalStatistics, PlaywrightCrawlingContext } from "crawlee";
-import { CRAWLER_ORIGIN } from "./enum";
+import { CrawlerSessionDocument } from "src/models/crawlerSession.schema";
 
-export const handleCrawlerState = async (job: Job, stat: FinalStatistics) => {
+export const handleCrawlerState = async (job: Job, stat: FinalStatistics): Promise<CrawlerSessionDocument> => {
     if (job.data.error || stat.requestsTotal === 0) {
-        await handleFailure(job, stat);
-        return;
+        return handleFailure(job, stat) as Promise<CrawlerSessionDocument>;
     }
-    await handleSuccess(job, stat);
+    return handleSuccess(job, stat) as Promise<CrawlerSessionDocument>;
 }
 
 export const handleCrawlerError = async (error: Error, job: Job, ctx: PlaywrightCrawlingContext) => {
     const { request, proxyInfo } = ctx;
     await job.update({
         ...job.data,
-        attempts_count: job.data['attempts_count'] + 1,
         status: 'failed',
         error: {
             failed_date: new Date(),
@@ -25,59 +23,42 @@ export const handleCrawlerError = async (error: Error, job: Job, ctx: Playwright
     })
 }
 
-export const generateTimeoutCrawlerError = async (job: Job, origin?: CRAWLER_ORIGIN) => {
-    await job.update({
-        ...job.data,
-        crawler_origin: origin || job.data.crawler_origin,
-        total_data_grabbed: job.data.total_data_grabbed || 0,
-        status: 'failed',
-        error: {
-            failed_date: new Date(),
-            failedReason: 'Timeout reached',
-            failed_request_url: 'N/A',
-            proxy_used: 'N/A'
-        }
-    })
-    await job.moveToFailed({ message: 'Timeout reached' });
-}
 
-const handleFailure = async (job: Job, stat: FinalStatistics) => {
+
+const handleFailure = async (job: Job, stat: FinalStatistics): Promise<Partial<CrawlerSessionDocument>> => {
     if (stat.requestsTotal === 0 && !job.data.error) {
-        await job.update({
-            ...job.data,
+        return {
+            status: 'failed',
+            total_data_grabbed: job.data.total_data_grabbed,
             total_request: stat.requestsTotal,
             success_requests: stat.requestsFinished,
             failed_requests: stat.requestsFailed,
-            attempts_count: job.data.attempts_count + 1,
-            status: 'failed',
             error: {
                 failed_date: new Date(),
                 failedReason: 'Crawler did not start as expected',
                 failed_request_url: 'N/A',
                 proxy_used: 'N/A'
             }
-        });
-        await job.moveToFailed({ message: 'Crawler did not start as expected' });
-        return;
+        }
     }
-    await job.update({
-        ...job.data,
-        attempts_count: job.data.attempts_count + 1,
+    return {
+        status: 'failed',
+        total_data_grabbed: job.data.total_data_grabbed,
         total_request: stat.requestsTotal,
         success_requests: stat.requestsFinished,
-        failed_requests: stat.requestsFailed
-    });
-    await job.moveToFailed(job.data.error['failedReason']);
+        failed_requests: stat.requestsFailed,
+        error: job.data.error
+    }
 }
 
-const handleSuccess = async (job: Job, stat: FinalStatistics) => {
-    await job.update({
-        ...job.data,
+const handleSuccess = async (job: Job, stat: FinalStatistics): Promise<Partial<CrawlerSessionDocument>> => {
+    return {
         status: 'success',
+        total_data_grabbed: job.data.total_data_grabbed,
         total_request: stat.requestsTotal,
         success_requests: stat.requestsFinished,
-        failed_requests: stat.requestsFailed
-    });
+        failed_requests: stat.requestsFailed,
+    }
 }
 
 
