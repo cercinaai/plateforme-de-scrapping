@@ -2,7 +2,6 @@ import { Job } from "bull";
 import { PlaywrightCrawlingContext } from "crawlee";
 import { createCursor } from "ghost-cursor-playwright";
 import { detectDataDomeCaptcha } from "src/crawler/utils/captcha.detect";
-import { isSameDayOrBefore } from "src/crawler/utils/date.util";
 import { CRAWLER_ORIGIN } from "src/crawler/utils/enum";
 import { scrollToTargetHumanWay } from "src/crawler/utils/human-behavior.util";
 import { DataProcessingService } from "src/data-processing/data-processing.service";

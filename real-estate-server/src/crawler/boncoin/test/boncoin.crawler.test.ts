@@ -39,7 +39,6 @@ const france_locality = [
 let REGION_REACHED = 0;
 let PAGE_REACHED = 1;
 const router = createPlaywrightRouter();
-const check_date = new Date();
 
 router.addDefaultHandler(async (context) => {
     const { page, closeCookieModals, waitForSelector, enqueueLinks, adsHttpInterceptor } = context;
@@ -88,7 +87,11 @@ const boncoinCrawler = new PlaywrightCrawler({
     proxyConfiguration: new ProxyConfiguration({ proxyUrls }),
     sameDomainDelaySecs: 1,
     requestHandler: router,
-    errorHandler: (context, error) => { context.log.error(error.message) },
+    errorHandler: (context, error) => {
+        const { session } = context;
+        session.markBad();
+        context.log.error(error.message)
+    },
 }, new Configuration({
     logLevel: LogLevel.INFO,
     purgeOnStart: true,
