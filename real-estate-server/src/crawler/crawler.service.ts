@@ -11,24 +11,20 @@ export class CrawlerService {
 
     private readonly logger = new Logger(CrawlerService.name);
 
-    private session_timer!: number;
     constructor(@InjectQueue('crawler') private crawlerQueue: Queue, @InjectModel(CrawlerSession.name) private crawlerSession: Model<CrawlerSession>) { }
 
     async populate_database() {
         this.logger.log('Populating Crawler Queues...');
-        this.session_timer = 0;
-        await this.addJobAndWaitForCompletion('boncoin-crawler');
-        await this.addJobAndWaitForCompletion('seloger-crawler');
-        await this.addJobAndWaitForCompletion('logicimmo-crawler');
-        await this.addJobAndWaitForCompletion('bienici-crawler');
+        await this.crawlerQueue.add('boncoin-crawler', {}, { attempts: 1 });
+        await this.crawlerQueue.add('seloger-crawler', {}, { attempts: 1 });
+        // await this.addJobAndWaitForCompletion('logicimmo-crawler');
+        // await this.addJobAndWaitForCompletion('bienici-crawler');
         this.logger.log('Crawler Queues Populated');
     }
     private async addJobAndWaitForCompletion(jobName: string): Promise<void> {
-        if (this.session_timer >= 480) return;
         const job = await this.crawlerQueue.add(jobName, {}, { attempts: 1 });
         await this.waitForJobCompletion(job);
     }
-
     private async waitForJobCompletion(job: Job, interval: number = 5000): Promise<void> {
         while (true) {
             if ((await job.isActive()) === false) return;
@@ -37,13 +33,7 @@ export class CrawlerService {
     }
     async heathCheck(): Promise<boolean> {
         this.logger.log('Crawler Queues Health Check...');
-        this.session_timer += 10;
-        if (this.session_timer < 480 || (await this.crawlerQueue.getActiveCount()) > 0) return false;
-        if (this.session_timer >= 480) {
-            // STOPING ALL ACTIVE JOBS
-            const activeJobs = await this.crawlerQueue.getActive();
-            await Promise.all(activeJobs.map(async (job) => await generateTimeoutCrawlerError(job)));
-        }
+        if ((await this.crawlerQueue.getActiveCount()) > 0) return false;
         this.logger.log('Crawler Queues is Empty now Or Timeout Reached...');
         const failedJobs = await this.crawlerQueue.getFailed();
         const completedJobs = await this.crawlerQueue.getCompleted();
@@ -84,12 +74,13 @@ export class CrawlerService {
         }
     }
     private async saveCrawlerSession(jobsData: any[]) {
+
         const sessionData: Partial<CrawlerSession> = {
             session_date: new Date(),
-            boncoin: jobsData.find(job => job.crawler_origin === 'boncoin'),
-            bienici: jobsData.find(job => job.crawler_origin === 'bienici'),
-            logicimmo: jobsData.find(job => job.crawler_origin === 'logic-immo'),
-            seloger: jobsData.find(job => job.crawler_origin === 'seloger'),
+            boncoin: jobsData.find(job => job.crawler_origin === 'boncoin') || null,
+            bienici: jobsData.find(job => job.crawler_origin === 'bienici') || null,
+            logicimmo: jobsData.find(job => job.crawler_origin === 'logic-immo') || null,
+            seloger: jobsData.find(job => job.crawler_origin === 'seloger') || null,
         };
         let session = new this.crawlerSession(sessionData);
         await session.save()
