@@ -9,10 +9,11 @@ import { DataProcessingService } from "src/data-processing/data-processing.servi
 
 
 export const boncoinDefaultHandler = async (context: PlaywrightCrawlingContext, dataProcessingService: DataProcessingService, job: Job) => {
-    const { page, closeCookieModals, log, waitForSelector, enqueueLinks } = context;
-    let { name, limit, data_grabbed } = job.data.france_locality[job.data.REGION_REACHED];
+    const { page, closeCookieModals, log, waitForSelector, enqueueLinks, adsHttpInterceptor } = context;
+    let data_grabbed = 0;
+    let { name, limit } = job.data.france_locality[job.data.REGION_REACHED];
     let { REGION_REACHED, PAGE_REACHED } = job.data;
-    await page.waitForLoadState('domcontentloaded');
+    await page.waitForLoadState('load');
     await detectDataDomeCaptcha(context, true);
     await closeCookieModals().catch(() => { });
     await waitForSelector("a[title='Page suivante']", 10000);
@@ -25,21 +26,11 @@ export const boncoinDefaultHandler = async (context: PlaywrightCrawlingContext, 
             let data = await page.$("script[id='__NEXT_DATA__']");
             ads = JSON.parse(await data?.textContent() as string)["props"]["pageProps"]["searchData"]["ads"];
         } else {
-            ads = await page.evaluate(() => window['crawled_ads']);
+            const intercepted_ads: any = await adsHttpInterceptor;
+            const transformed_ads = await intercepted_ads.json();
+            ads = transformed_ads['ads'];
         }
-        // let date_filter_content = Array.from(ads).filter((ad) => isSameDayOrBefore({ target_date: new Date(ad["index_date"]), check_date: job.data.check_date, returnDays: 1 }));
-        // if (date_filter_content.length === 0) {
 
-        //     log.info("Found ads older than check_date. Passing Into Next Region.");
-        //     break;
-        // }
-        // if (ads.length > date_filter_content.length) {
-        //     await dataProcessingService.process(date_filter_content, CRAWLER_ORIGIN.BONCOIN);
-        //     data_grabbed += date_filter_content.length;
-        //     await job.update({ ...job.data, total_data_grabbed: job.data.total_data_grabbed + data_grabbed });
-        //     log.info("Found ads older than check_date. Passing Into Next Region.");
-        //     break;
-        // }
         await dataProcessingService.process(ads, CRAWLER_ORIGIN.BONCOIN);
         data_grabbed += ads.length;
         await job.update({ ...job.data, total_data_grabbed: job.data.total_data_grabbed + ads.length });
@@ -48,7 +39,8 @@ export const boncoinDefaultHandler = async (context: PlaywrightCrawlingContext, 
         await scrollToTargetHumanWay(context, nextButtonPosition.y);
         await page.click("a[title='Page suivante']");
         await page.waitForTimeout(2000);
-        log.info(`Scraped ${data_grabbed} ads from ${name}.`);
+        await page.waitForTimeout(2000);
+        log.info(`Data grabbed: ${data_grabbed} of ${limit} for (${name})`);
         PAGE_REACHED++;
     }
     if (REGION_REACHED >= job.data.france_locality.length - 1) return;

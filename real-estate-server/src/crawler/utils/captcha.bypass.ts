@@ -1,6 +1,7 @@
 import { PlaywrightCrawlingContext } from "crawlee"
 import { parseCookieString } from './cookies.util';
 import axios from "axios";
+import { detectDataDomeCaptcha } from "./captcha.detect";
 
 export const bypassDataDomeCaptchaByCapSolver = async (context: PlaywrightCrawlingContext, captchaUrl: string) => {
     const { page, request, proxyInfo, log, browserController } = context;
@@ -29,8 +30,9 @@ export const bypassDataDomeCaptchaByCapSolver = async (context: PlaywrightCrawli
                 log.info('CAPTCHA bypassed. Reloading page.');
                 const cookie = parseCookieString(taskRes.data.solution.cookie);
                 await page.context().addCookies([cookie]);
-                await page.reload({ waitUntil: 'networkidle' });
+                await page.reload({ waitUntil: 'load' });
                 await page.waitForTimeout(2000);
+                await detectDataDomeCaptcha(context);
                 return;
             }
             if (status === "failed" || taskRes.data.errorId) {

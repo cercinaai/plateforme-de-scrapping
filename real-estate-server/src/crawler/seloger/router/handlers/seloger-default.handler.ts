@@ -9,8 +9,8 @@ import { DataProcessingService } from "src/data-processing/data-processing.servi
 
 
 export const selogerDefaultHandler = async (context: PlaywrightCrawlingContext, dataProcessingService: DataProcessingService, job: Job) => {
-    const { page, closeCookieModals, waitForSelector, enqueueLinks, log } = context;
-    await page.waitForLoadState('domcontentloaded');
+    const { page, closeCookieModals, waitForSelector, enqueueLinks, log, adsHttpInterceptor } = context;
+    await page.waitForLoadState('load');
     await detectDataDomeCaptcha(context);
     const cursor = await createCursor(page);
     await cursor.actions.randomMove();
@@ -21,7 +21,8 @@ export const selogerDefaultHandler = async (context: PlaywrightCrawlingContext, 
         await waitForSelector('a[data-testid="gsl.uilib.Paging.nextButton"]');
         await closeCookieModals().catch(() => { });
     });
-    let { data_grabbed, limit } = job.data.france_locality[job.data.REGION_REACHED];
+    let data_grabbed = 0;
+    let { name, limit } = job.data.france_locality[job.data.REGION_REACHED];
     const nextButton = await page.$('a[data-testid="gsl.uilib.Paging.nextButton"]');
     const nextButtonPosition = await nextButton.boundingBox();
     let ads = await page.evaluate(() => Array.from(window['initialData']['cards']['list']).filter(card => card['cardType'] === 'classified'));
@@ -47,17 +48,18 @@ export const selogerDefaultHandler = async (context: PlaywrightCrawlingContext, 
         });
         const nextButton = await page.$('a[data-testid="gsl.uilib.Paging.nextButton"]');
         const nextButtonPosition = await nextButton.boundingBox();
-        ads = await page.evaluate(() => window['crawled_ads']);
-        if (!ads) continue;
-        // if ((await stopCrawler(ads)) === true) break;
-        await dataProcessingService.process(ads, CRAWLER_ORIGIN.SELOGER);
-        data_grabbed += ads.length;
+        const intercepted_ads: any = await adsHttpInterceptor;
+        const transformed_ads = await intercepted_ads.json();
+        const cleaned_ads = transformed_ads.filter((card: any) => card['type'] === 0);
+        const formatted_ads = cleaned_ads.map((card: any) => card['listing']);
+        await dataProcessingService.process(formatted_ads, CRAWLER_ORIGIN.SELOGER);
+        data_grabbed += formatted_ads.length;
         await scrollToTargetHumanWay(context, nextButtonPosition.y);
         await page.mouse.move(nextButtonPosition.x - 10, nextButtonPosition.y - 10);
         await nextButton.scrollIntoViewIfNeeded();
         await nextButton.click();
         await page.waitForTimeout(2000);
-        log.info(`Data grabbed: ${data_grabbed} of ${limit} for (${job.data.france_locality[job.data.REGION_REACHED].name})`);
+        log.info(`Data grabbed: ${data_grabbed} of ${limit} for (${name})`);
     }
     // NEXT LOCALITY
     if (job.data.REGION_REACHED >= job.data.france_locality.length - 1) return;

@@ -1,5 +1,6 @@
 import { Job } from "bull";
 import { FinalStatistics, PlaywrightCrawlingContext } from "crawlee";
+import { CRAWLER_ORIGIN } from "./enum";
 
 export const handleCrawlerState = async (job: Job, stat: FinalStatistics) => {
     if (job.data.error || stat.requestsTotal === 0) {
@@ -22,6 +23,22 @@ export const handleCrawlerError = async (error: Error, job: Job, ctx: Playwright
             proxy_used: proxyInfo ? proxyInfo.url : 'N/A',
         }
     })
+}
+
+export const generateTimeoutCrawlerError = async (job: Job, origin?: CRAWLER_ORIGIN) => {
+    await job.update({
+        ...job.data,
+        crawler_origin: origin || job.data.crawler_origin,
+        total_data_grabbed: job.data.total_data_grabbed || 0,
+        status: 'failed',
+        error: {
+            failed_date: new Date(),
+            failedReason: 'Timeout reached',
+            failed_request_url: 'N/A',
+            proxy_used: 'N/A'
+        }
+    })
+    await job.moveToFailed({ message: 'Timeout reached' });
 }
 
 const handleFailure = async (job: Job, stat: FinalStatistics) => {

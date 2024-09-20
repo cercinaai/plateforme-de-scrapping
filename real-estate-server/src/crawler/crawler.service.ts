@@ -4,15 +4,19 @@ import { InjectQueue } from '@nestjs/bull';
 import { CrawlerSession } from "../models/crawlerSession.schema";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
+import { generateTimeoutCrawlerError } from "./utils/handleCrawlerState.util";
 
 @Injectable()
 export class CrawlerService {
 
     private readonly logger = new Logger(CrawlerService.name);
+
+    private session_timer!: number;
     constructor(@InjectQueue('crawler') private crawlerQueue: Queue, @InjectModel(CrawlerSession.name) private crawlerSession: Model<CrawlerSession>) { }
 
     async populate_database() {
         this.logger.log('Populating Crawler Queues...');
+        this.session_timer = 0;
         await this.addJobAndWaitForCompletion('boncoin-crawler');
         await this.addJobAndWaitForCompletion('seloger-crawler');
         await this.addJobAndWaitForCompletion('logicimmo-crawler');
@@ -20,6 +24,7 @@ export class CrawlerService {
         this.logger.log('Crawler Queues Populated');
     }
     private async addJobAndWaitForCompletion(jobName: string): Promise<void> {
+        if (this.session_timer >= 480) return;
         const job = await this.crawlerQueue.add(jobName, {}, { attempts: 1 });
         await this.waitForJobCompletion(job);
     }
@@ -32,8 +37,14 @@ export class CrawlerService {
     }
     async heathCheck(): Promise<boolean> {
         this.logger.log('Crawler Queues Health Check...');
-        if ((await this.crawlerQueue.getActiveCount()) > 0) return false;
-        this.logger.log('Crawler Queues is Empty now...');
+        this.session_timer += 10;
+        if (this.session_timer < 480 || (await this.crawlerQueue.getActiveCount()) > 0) return false;
+        if (this.session_timer >= 480) {
+            // STOPING ALL ACTIVE JOBS
+            const activeJobs = await this.crawlerQueue.getActive();
+            await Promise.all(activeJobs.map(async (job) => await generateTimeoutCrawlerError(job)));
+        }
+        this.logger.log('Crawler Queues is Empty now Or Timeout Reached...');
         const failedJobs = await this.crawlerQueue.getFailed();
         const completedJobs = await this.crawlerQueue.getCompleted();
         const failedJobsSchema = failedJobs.map(job => this.mapJobToSchema(job, 'failed'));

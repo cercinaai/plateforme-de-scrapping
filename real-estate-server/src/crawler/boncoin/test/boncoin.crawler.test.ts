@@ -1,4 +1,4 @@
-import { Configuration, createPlaywrightRouter, log, LogLevel, PlaywrightCrawler, ProxyConfiguration } from "crawlee";
+import { Configuration, createPlaywrightRouter, log, LogLevel, PlaywrightCrawler, PlaywrightCrawlingContext, ProxyConfiguration } from "crawlee";
 import { boncoinCrawlerOption } from "../../../config/playwright.config";
 import { createCursor } from 'ghost-cursor-playwright';
 import dotenv from 'dotenv';
@@ -6,6 +6,7 @@ import { isSameDayOrBefore } from "../../../crawler/utils/date.util";
 import { scrollToTargetHumanWay } from "../../../crawler/utils/human-behavior.util";
 import { detectDataDomeCaptcha } from "../../../crawler/utils/captcha.detect";
 import { save_files } from "../../../data-processing/test/save-file.test";
+import { Page } from "playwright";
 
 dotenv.config({ path: 'real-estate.env' });
 
@@ -43,36 +44,28 @@ const router = createPlaywrightRouter();
 const check_date = new Date();
 
 router.addDefaultHandler(async (context) => {
-    const { page, closeCookieModals, waitForSelector, enqueueLinks } = context;
-    await page.waitForLoadState('domcontentloaded');
-    await detectDataDomeCaptcha(context);
+    const { page, closeCookieModals, waitForSelector, enqueueLinks, adsHttpInterceptor } = context;
+    await page.waitForLoadState('load');
+    await detectDataDomeCaptcha(context, true);
     await closeCookieModals();
-    await waitForSelector("a[title='Page suivante']");
     const cursor = await createCursor(page);
     let { limit, data_grabbed } = france_locality[REGION_REACHED];
     // PAGE LOOP
     while (data_grabbed < limit) {
+        await waitForSelector("a[title='Page suivante']")
         await cursor.actions.randomMove();
         let ads: any;
         if (PAGE_REACHED === 1) {
             let data = await page.$("script[id='__NEXT_DATA__']");
             ads = JSON.parse(await data?.textContent() as string)["props"]["pageProps"]["searchData"]["ads"];
         } else {
-            ads = await page.evaluate(() => window['crawled_ads']);
+            const intercepted_ads: any = await adsHttpInterceptor;
+            const transformed_ads = await intercepted_ads.json();
+            ads = transformed_ads['ads'];
         }
-        let date_filter_content = Array.from(ads).filter((ad) => isSameDayOrBefore({ target_date: new Date(ad["index_date"]), check_date, returnDays: 1 }));
-        if (date_filter_content.length === 0) {
-            log.info("Found ads older than check_date. Passing Into Next Region.");
-            break;
-        }
-        if (ads.length > date_filter_content.length) {
-            data_grabbed += date_filter_content.length;
-            log.info("Found ads older than check_date. Passing Into Next Region.");
-            break;
-        }
-        data_grabbed += date_filter_content.length;
-        const images_to_upload = date_filter_content.map((ad: any) => ad.images.thumb_url);
-        await save_files(images_to_upload[0]);
+        data_grabbed += ads.length;
+        // const images_to_upload = date_filter_content.map((ad: any) => ad.images.thumb_url);
+        // await save_files(images_to_upload[0]);
         const nextButton = await page.$("a[title='Page suivante']");
         const nextButtonPosition = await nextButton.boundingBox();
         await scrollToTargetHumanWay(context, nextButtonPosition.y);
@@ -91,23 +84,19 @@ const build_url = (): string => {
     return `https://www.leboncoin.fr/recherche?category=9&locations=${link}&real_estate_type=1,2,3,4,5&immo_sell_type=old,new,viager&owner_type=pro`
 }
 
+const interceptHttpRequest = async (context: PlaywrightCrawlingContext) => {
+    if (!context.page) return;
+    context.adsHttpInterceptor = context.page.waitForResponse(async (response) => {
+        const url = response.url();
+        if (!url.includes('https://api.leboncoin.fr/finder/search')) return false;
+        const body = await response.json();
+        return body['ads'] ? true : false;
+    }, { timeout: 0 });
+}
+
 const boncoinCrawler = new PlaywrightCrawler({
     ...boncoinCrawlerOption,
-    preNavigationHooks: [
-        async ({ page }) => {
-            page.on('response', async (response) => {
-                const url = response.url();
-                if (url.includes('https://api.leboncoin.fr/finder/search')) {
-                    const body = await response.json();
-                    let ads = body['ads'];
-                    if (!ads) return;
-                    await page.evaluate((transformed_ads) => {
-                        window['crawled_ads'] = transformed_ads;
-                    }, ads);
-                }
-            })
-        }
-    ],
+    preNavigationHooks: [interceptHttpRequest],
     proxyConfiguration: new ProxyConfiguration({ proxyUrls }),
     requestHandler: router,
     errorHandler: (context, error) => { context.log.error(error.message) },
