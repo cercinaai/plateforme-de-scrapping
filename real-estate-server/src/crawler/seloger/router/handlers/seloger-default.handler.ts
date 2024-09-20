@@ -5,6 +5,7 @@ import { detectDataDomeCaptcha } from "src/crawler/utils/captcha.detect";
 import { CRAWLER_ORIGIN } from "src/crawler/utils/enum";
 import { scrollToTargetHumanWay } from "src/crawler/utils/human-behavior.util";
 import { DataProcessingService } from "src/data-processing/data-processing.service";
+import { interceptSelogerHttpResponse } from "../../preNavigation/preHooks.register";
 
 
 
@@ -48,14 +49,12 @@ export const selogerDefaultHandler = async (context: PlaywrightCrawlingContext, 
         });
         const nextButton = await page.$('a[data-testid="gsl.uilib.Paging.nextButton"]');
         const nextButtonPosition = await nextButton.boundingBox();
-        const intercepted_ads: any = await adsHttpInterceptor;
-        const transformed_ads = await intercepted_ads.json();
-        const cleaned_ads = transformed_ads.filter((card: any) => card['type'] === 0);
-        const formatted_ads = cleaned_ads.map((card: any) => card['listing']);
-        await dataProcessingService.process(formatted_ads, CRAWLER_ORIGIN.SELOGER);
-        data_grabbed += formatted_ads.length;
+        ads = await page.evaluate(() => window['crawled_ads']);
+        await dataProcessingService.process(ads, CRAWLER_ORIGIN.SELOGER);
+        data_grabbed += ads.length;
         await scrollToTargetHumanWay(context, nextButtonPosition.y);
         await page.mouse.move(nextButtonPosition.x - 10, nextButtonPosition.y - 10);
+        await interceptSelogerHttpResponse(context);
         await nextButton.scrollIntoViewIfNeeded();
         await nextButton.click();
         await page.waitForTimeout(2000);

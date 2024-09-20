@@ -22,7 +22,7 @@ export const bypassDataDomeCaptchaByCapSolver = async (context: PlaywrightCrawli
         const task_id = createTaskRes.data.taskId;
         if (!task_id) throw new Error('Failed to create CapSolver task');
         while (true) {
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            await new Promise(resolve => setTimeout(resolve, 2000));
             const getResultPayload = { clientKey: process.env.CAPSOLVER_API_KEY, taskId: task_id };
             const taskRes = await axios.post("https://api.capsolver.com/getTaskResult", getResultPayload, { headers: { "Content-Type": "application/json" } });
             const status = taskRes.data.status;
@@ -36,12 +36,11 @@ export const bypassDataDomeCaptchaByCapSolver = async (context: PlaywrightCrawli
                 return;
             }
             if (status === "failed" || taskRes.data.errorId) {
-                console.log(taskRes.data);
-                throw new Error(taskRes.data.errorMessage)
+                throw new Error(taskRes.data.errorMessage);
             };
         }
     } catch (error) {
-        log.error(error.message);
+        throw error;
     }
 }
 

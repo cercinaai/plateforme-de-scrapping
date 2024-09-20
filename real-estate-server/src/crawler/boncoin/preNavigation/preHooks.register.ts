@@ -1,15 +1,15 @@
 import { PlaywrightCrawlingContext, PlaywrightHook } from "crawlee";
 
 
-const interceptBoncoinHttpResponse = async (context: PlaywrightCrawlingContext) => {
-    if (!context.page) return;
-    context.adsHttpInterceptor = context.page.waitForResponse(async (response) => {
+export const interceptBoncoinHttpResponse = async (context: PlaywrightCrawlingContext) => {
+    const { page } = context;
+    page.on('response', async (response) => {
         const url = response.url();
-        if (!url.includes('https://api.leboncoin.fr/finder/search')) return false;
+        if (!url.includes('https://api.leboncoin.fr/finder/search')) return;
         const body = await response.json();
-        return body['ads'] ? true : false;
-    }, { timeout: 0 });
+        await page.evaluate((body) => { window['ads'] = body['ads']; }, body);
+    })
 }
 
 
-export const preBoncoinHooksRegister: PlaywrightHook[] = [interceptBoncoinHttpResponse] 
+export const preBoncoinHooksRegister: PlaywrightHook[] = [] 

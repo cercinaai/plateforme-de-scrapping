@@ -6,19 +6,20 @@ import { isSameDayOrBefore } from "src/crawler/utils/date.util";
 import { CRAWLER_ORIGIN } from "src/crawler/utils/enum";
 import { scrollToTargetHumanWay } from "src/crawler/utils/human-behavior.util";
 import { DataProcessingService } from "src/data-processing/data-processing.service";
+import { interceptBoncoinHttpResponse } from "../../preNavigation/preHooks.register";
 
 
 export const boncoinDefaultHandler = async (context: PlaywrightCrawlingContext, dataProcessingService: DataProcessingService, job: Job) => {
-    const { page, closeCookieModals, log, waitForSelector, enqueueLinks, adsHttpInterceptor } = context;
+    const { page, closeCookieModals, log, waitForSelector, enqueueLinks } = context;
     let data_grabbed = 0;
     let { name, limit } = job.data.france_locality[job.data.REGION_REACHED];
     let { REGION_REACHED, PAGE_REACHED } = job.data;
     await page.waitForLoadState('load');
     await detectDataDomeCaptcha(context, true);
-    await closeCookieModals().catch(() => { });
-    await waitForSelector("a[title='Page suivante']", 10000);
+    await closeCookieModals();
     // PAGE LOOP
     while (data_grabbed < limit) {
+        await waitForSelector("a[title='Page suivante']", 10000);
         const cursor = await createCursor(page);
         await cursor.actions.randomMove();
         let ads: any;
@@ -26,9 +27,7 @@ export const boncoinDefaultHandler = async (context: PlaywrightCrawlingContext, 
             let data = await page.$("script[id='__NEXT_DATA__']");
             ads = JSON.parse(await data?.textContent() as string)["props"]["pageProps"]["searchData"]["ads"];
         } else {
-            const intercepted_ads: any = await adsHttpInterceptor;
-            const transformed_ads = await intercepted_ads.json();
-            ads = transformed_ads['ads'];
+            ads = await page.evaluate(() => window['ads']);
         }
 
         await dataProcessingService.process(ads, CRAWLER_ORIGIN.BONCOIN);
@@ -37,8 +36,9 @@ export const boncoinDefaultHandler = async (context: PlaywrightCrawlingContext, 
         const nextButton = await page.$("a[title='Page suivante']");
         const nextButtonPosition = await nextButton.boundingBox();
         await scrollToTargetHumanWay(context, nextButtonPosition.y);
+        await page.mouse.move(nextButtonPosition.x - 10, nextButtonPosition.y - 10);
+        await interceptBoncoinHttpResponse(context);
         await page.click("a[title='Page suivante']");
-        await page.waitForTimeout(2000);
         await page.waitForTimeout(2000);
         log.info(`Data grabbed: ${data_grabbed} of ${limit} for (${name})`);
         PAGE_REACHED++;

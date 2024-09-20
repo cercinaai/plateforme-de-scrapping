@@ -4,18 +4,24 @@ import { bypassDataDomeCaptchaByCapSolver } from "./captcha.bypass";
 
 
 export const detectDataDomeCaptcha = async (context: PlaywrightCrawlingContext, startByCaptcha = false) => {
-    const { page, session, log, waitForSelector } = context;
+    const { page, log, waitForSelector } = context;
     const cursor = await createCursor(page);
     await cursor.actions.randomMove();
     log.info('Detecting if there is a CAPTCHA...');
     await page.waitForEvent('frameattached', { timeout: 5000 }).catch(() => { });
-    return waitForSelector('iframe[src*="https://geo.captcha-delivery.com"]').then(async () => await handleCaptchaDetection(context)).catch(() => {
-        if (!startByCaptcha) {
-            log.info('No CAPTCHA detected.');
-            return;
-        };
-        throw new Error('No CAPTCHA detected');
-    });
+    return waitForSelector('iframe[src*="https://geo.captcha-delivery.com"]')
+        .then(async () => {
+            await handleCaptchaDetection(context).catch((err) => { console.error(err) });
+        }).catch((err) => {
+            if (!err.message.includes('locator.waitFor')) {
+                throw err;
+            }
+            if (!startByCaptcha) {
+                log.info('No CAPTCHA detected.');
+                return;
+            };
+            throw new Error('No CAPTCHA detected');
+        });
 }
 
 
