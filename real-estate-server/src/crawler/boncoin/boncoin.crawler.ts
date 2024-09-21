@@ -29,13 +29,14 @@ export class BoncoinCrawler implements CrawlerInterface {
 
     async initialize(job: Job): Promise<void> {
         await job.update({
+            ...job.data,
             crawler_origin: 'boncoin',
             check_date: new Date(),
             status: 'running',
-            total_data_grabbed: 0,
-            attempts_count: 0,
-            REGION_REACHED: 0,
-            PAGE_REACHED: 1,
+            total_data_grabbed: job.data.total_data_grabbed || 0,
+            attempts_count: job.data.attempts_count || 0,
+            REGION_REACHED: job.data.REGION_REACHED || 0,
+            PAGE_REACHED: job.data.PAGE_REACHED || 1,
             france_locality: [
                 { name: 'Île-de-France', link: 'r_12', limit: 986 },
                 { name: "Provence-Alpes-Côte d'Azur", link: 'r_21', limit: 697 },

@@ -16,6 +16,7 @@ export const boncoinDefaultHandler = async (context: PlaywrightCrawlingContext, 
     await page.waitForLoadState('load');
     await detectDataDomeCaptcha(context, true);
     await closeCookieModals();
+    await return_after_error(job, context);
     // PAGE LOOP
     while (data_grabbed < limit) {
         await waitForSelector("a[title='Page suivante']", 10000);
@@ -30,6 +31,7 @@ export const boncoinDefaultHandler = async (context: PlaywrightCrawlingContext, 
         }
         if (!ads) throw new Error('No ads found');
         await dataProcessingService.process(ads, CRAWLER_ORIGIN.BONCOIN);
+        await page.evaluate(() => window['crawled_ads'] = null);
         data_grabbed += ads.length;
         await job.update({ ...job.data, total_data_grabbed: job.data.total_data_grabbed + ads.length });
         const nextButton = await page.$("a[title='Page suivante']");
@@ -51,4 +53,8 @@ export const boncoinDefaultHandler = async (context: PlaywrightCrawlingContext, 
 const build_link = (job: Job): string => {
     const { link } = job.data.france_locality[job.data.REGION_REACHED]
     return `https://www.leboncoin.fr/recherche?category=9&locations=${link}&real_estate_type=1,2,3,4,5&immo_sell_type=old,new,viager&owner_type=pro`
+}
+
+const return_after_error = async (job: Job, context: PlaywrightCrawlingContext): Promise<void> => {
+    return;
 }

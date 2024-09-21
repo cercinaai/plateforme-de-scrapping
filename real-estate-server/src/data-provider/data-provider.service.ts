@@ -113,17 +113,5 @@ export class DataProviderService {
         }
 
         return { $or: orConditions }
-        // Clean city name
-        // city = city.toLowerCase();
-        // // CHECK IF CITY IS A REGION OR A DEPARTMENT
-        // const isRegion = FrenshRegions.find(region => region.nom.toLowerCase() === city);
-        // if (isRegion) {
-        //     return { 'location.regionCode': isRegion.code };
-        // }
-        // const isDepartment = FrenshDepartments.find(department => department.nom.toLowerCase() === city);
-        // if (isDepartment) {
-        //     return { 'location.departmentCode': isDepartment.code };
-        // }
-        // return { 'location.city': city };
     }
 }

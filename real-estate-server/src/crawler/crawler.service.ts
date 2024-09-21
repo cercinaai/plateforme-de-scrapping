@@ -15,8 +15,8 @@ export class CrawlerService {
     async populate_database() {
         this.logger.log('Populating Crawler Queues...');
         const session_id = await this._create_initial_session();
-        await this.addJobAndWaitForCompletion('boncoin-crawler', { session_id });
         await this.addJobAndWaitForCompletion('seloger-crawler', { session_id });
+        await this.addJobAndWaitForCompletion('boncoin-crawler', { session_id });
         // await this.addJobAndWaitForCompletion('logicimmo-crawler');
         // await this.addJobAndWaitForCompletion('bienici-crawler');
         this.logger.log('Crawler Queues Populated');

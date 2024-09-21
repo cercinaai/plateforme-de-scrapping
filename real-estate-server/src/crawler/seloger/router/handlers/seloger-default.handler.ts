@@ -17,6 +17,7 @@ export const selogerDefaultHandler = async (context: PlaywrightCrawlingContext, 
     await page.waitForLoadState('load');
     await detectDataDomeCaptcha(context);
     await closeCookieModals();
+    await return_after_error(job, context);
     const cursor = await createCursor(page);
     while (data_grabbed < limit) {
         await cursor.actions.randomMove();
@@ -30,10 +31,11 @@ export const selogerDefaultHandler = async (context: PlaywrightCrawlingContext, 
         if (PAGE_REACHED === 1) {
             ads = await page.evaluate(() => Array.from(window['initialData']['cards']['list']).filter(card => card['cardType'] === 'classified'));
         } else {
-            ads = await page.evaluate(() => window['crawled_ads']);
+            ads = await page.evaluate(() => window['crawled_ads'] || null);
         }
         if (!ads) throw new Error('No ads found');
         await dataProcessingService.process(ads, CRAWLER_ORIGIN.SELOGER);
+        await page.evaluate(() => window['crawled_ads'] = null);
         data_grabbed += ads.length;
         await job.update({ ...job.data, total_data_grabbed: job.data.total_data_grabbed + ads.length });
         const nextButton = await page.$('a[data-testid="gsl.uilib.Paging.nextButton"]');
@@ -44,6 +46,7 @@ export const selogerDefaultHandler = async (context: PlaywrightCrawlingContext, 
         await nextButton.scrollIntoViewIfNeeded();
         await nextButton.click();
         await page.waitForTimeout(2000);
+        await job.update({ ...job.data, PAGE_REACHED: PAGE_REACHED + 1 });
         PAGE_REACHED++;
         log.info(`Data grabbed: ${data_grabbed} of ${limit} for (${name})`);
     }
@@ -61,3 +64,8 @@ const build_link = (job: Job): string => {
     return `https://www.seloger.com/list.htm?projects=2,5&types=2,4,1,13,9,3,14,12,11,10&natures=1,2,4&places=${string_urls}&sort=d_dt_crea&mandatorycommodities=0&privateseller=0&enterprise=0&houseboat=1&qsVersion=1.0&m=search_refine-redirection-search_results`
 }
 
+
+
+const return_after_error = async (job: Job, context: PlaywrightCrawlingContext): Promise<void> => {
+    return;
+}

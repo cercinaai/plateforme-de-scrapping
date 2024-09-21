@@ -56,12 +56,13 @@ export class SelogerCrawler implements CrawlerInterface {
 
     async initialize(job: Job): Promise<void> {
         await job.update({
+            ...job.data,
             crawler_origin: 'seloger',
-            total_data_grabbed: 0,
-            attempts_count: 0,
+            total_data_grabbed: job.data.total_data_grabbed || 0,
+            attempts_count: job.data.attempts_count || 0,
             status: 'running',
-            REGION_REACHED: 0,
-            PAGE_REACHED: 1,
+            REGION_REACHED: job.data.REGION_REACHED || 0,
+            PAGE_REACHED: job.data.PAGE_REACHED || 1,
             france_locality: [
                 { name: 'Île-de-France', link: ['2238'], limit: 986 },
                 { name: "Provence-Alpes-Côte d'Azur", link: ['2246'], limit: 697 },
