@@ -11,7 +11,7 @@ export class ScheduleTasksService {
 
     @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
     async startPeriodicCrawlers() {
-        await this.start_crawler_with_health_check();
+        // await this.start_crawler_with_health_check();
     }
 
     async start_crawler_with_health_check() {
