@@ -96,6 +96,7 @@ export class DataProviderService {
 
 
     private extractFiltersByCity(all_citys: string[]): object {
+        if (typeof all_citys === 'string') all_citys = [all_citys];
         const region_to_find = FrenshRegions.filter(region => all_citys.find(city => city.toLowerCase() === region.nom.toLowerCase())).map(region => region.code);
         const department_to_find = FrenshDepartments.filter(department => all_citys.find(city => city.toLowerCase() === department.nom.toLowerCase())).map(department => department.code);
         const city_to_find = all_citys.filter(city => !FrenshRegions.find(region => region.nom.toLowerCase() === city.toLowerCase()) && !FrenshDepartments.find(department => department.nom.toLowerCase() === city.toLowerCase()));
