@@ -65,6 +65,10 @@ export class DataProviderController {
     @UseGuards(RealEstateAuthGuard)
     @Get('ad-list')
     async get_ad(@Query() query: FilterAdsDto): Promise<Ad[] | { ads: Ad[], total: number }> {
+        if (!query.page || !query.limit) {
+            query.page = 1;
+            query.limit = 20;
+        }
         return this.dataProviderService.filterAdsList(query);
     }
 

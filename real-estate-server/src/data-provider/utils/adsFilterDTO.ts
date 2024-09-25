@@ -68,7 +68,7 @@ export class FilterAdsDto {
 
     @IsString()
     @IsOptional()
-    sortBy?: 'DATE' | 'PRICE' | 'SURFACE';
+    sortBy?: 'DATE' | 'PRICE' | 'SURFACE' | 'ACCURACY';
 
     @IsString()
     @IsOptional()
