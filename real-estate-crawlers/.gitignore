@@ -21,6 +21,7 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 # Runtime data
 storage
 local-data
+proxy.txt
 pids
 _.pid
 _.seed

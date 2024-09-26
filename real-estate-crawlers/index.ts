@@ -1,14 +1,14 @@
 import { CronJob } from 'cron';
 import { initMongoDB } from "./src/config/mongodb.config";
 import { config } from 'dotenv';
-import { start_crawlers, start_crawlers_revision } from './src/crawlers/crawlers';
+import { start_crawlers, start_crawlers_revision } from './src/crawlers/crawlers.queue';
 
 // INITIALIZE ENVIRONMENT
 config();
 
 
 // INITIALIZE MONGODB
-await initMongoDB();
+// await initMongoDB();
 
 // INITIALIZE CRAWLERS
 await start_crawlers()

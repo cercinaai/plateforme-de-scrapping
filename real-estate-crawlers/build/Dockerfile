@@ -31,3 +31,4 @@ COPY . .
 
 # Command to start the application with Bun
 CMD ./start_xvfb_and_run_cmd.sh && bun run index.ts
+

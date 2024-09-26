@@ -26,8 +26,6 @@ services:
     container_name: crawlers-container
     env_file:
       - .env
-    volumes:
-      - ./logs:/logs
     depends_on:
       - redis
   

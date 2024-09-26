@@ -8,9 +8,8 @@ export const boncoinConfig = new Configuration({
         persistStorage: false,
         writeMetadata: false,
     },
-    memoryMbytes: 14000,
-    availableMemoryRatio: 1,
-    headless: true,
+    availableMemoryRatio: 0.5,
+    headless: false,
 })
 export const selogerConfig = new Configuration({
     logLevel: LogLevel.INFO,
@@ -20,8 +19,7 @@ export const selogerConfig = new Configuration({
         persistStorage: false,
         writeMetadata: false,
     },
-    memoryMbytes: 14000,
-    availableMemoryRatio: 1,
+    availableMemoryRatio: 0.5,
     headless: true,
 })
 export const bieniciConfig = new Configuration({
@@ -32,8 +30,7 @@ export const bieniciConfig = new Configuration({
         persistStorage: false,
         writeMetadata: false,
     },
-    memoryMbytes: 14000,
-    availableMemoryRatio: 1,
+    availableMemoryRatio: 0.5,
     headless: true,
 })
 export const logicimmoConfig = new Configuration({
@@ -44,7 +41,6 @@ export const logicimmoConfig = new Configuration({
         persistStorage: false,
         writeMetadata: false,
     },
-    memoryMbytes: 14000,
-    availableMemoryRatio: 1,
+    availableMemoryRatio: 0.5,
     headless: true
 })
