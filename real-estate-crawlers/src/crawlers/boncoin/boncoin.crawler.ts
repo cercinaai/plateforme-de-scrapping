@@ -16,7 +16,13 @@ export const start_boncoin_crawler = async (job: Job) => {
     logger.info('Starting boncoin crawler...');
     await initialize(job);
     const crawler = await create_crawler(job);
-    const statistics = await crawl(job, crawler);
+    const statistics = await crawl(job, crawler).catch(async (err) => {
+        if (crawler.requestQueue) {
+            await crawler.requestQueue.drop();
+        }
+        await crawler.teardown();
+        throw err;
+    });
     logger.info('Boncoin crawler finished!');
     return statistics;
 }

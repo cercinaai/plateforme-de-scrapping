@@ -22,7 +22,7 @@ export const boncoinCrawlerOption: PlaywrightCrawlerOptions = {
         fingerprintOptions: {
             fingerprintGeneratorOptions: {
                 screen: { maxHeight: 2000, maxWidth: 1920, minWidth: 1920, minHeight: 800 },
-                browsers: [{ name: BrowserName.chrome, httpVersion: '2' }, { name: BrowserName.safari, httpVersion: '2' }, { name: BrowserName.firefox, httpVersion: '2' }],
+                browsers: [{ name: BrowserName.chrome, httpVersion: '2' }],
                 devices: [DeviceCategory.desktop],
                 operatingSystems: [OperatingSystemsName.windows],
                 locales: ['fr-FR'],
@@ -32,7 +32,7 @@ export const boncoinCrawlerOption: PlaywrightCrawlerOptions = {
     useSessionPool: true,
     persistCookiesPerSession: true,
     maxSessionRotations: Infinity,
-    maxRequestRetries: 20,
+    maxRequestRetries: 100,
 }
 
 export const selogerCrawlerOptions: PlaywrightCrawlerOptions = {

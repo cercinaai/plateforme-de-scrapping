@@ -1,43 +1,48 @@
 import { Job } from "bullmq";
 import { PlaywrightCrawlingContext } from "crawlee";
+import { detectDataDomeCaptcha } from '../../../../utils/captcha.detect';
 import { createCursor } from "ghost-cursor-playwright";
-import { detectDataDomeCaptcha } from "../../../../utils/captcha.detect";
-import { ingestData } from "../../../../data-ingestion/data.ingestion";
 import { CRAWLER_ORIGIN } from "../../../../utils/enum";
-import { ElementHandle } from "playwright";
 import { scrollToTargetHumanWay } from '../../../../utils/human-behavior.util';
+import { ingestData } from '../../../../data-ingestion/data.ingestion';
+import { ElementHandle } from "playwright";
+import { build_link } from "../seloger.router";
 import { initLogger } from "../../../../config/logger.config";
 
-const logger = initLogger(CRAWLER_ORIGIN.BONCOIN);
+const logger = initLogger(CRAWLER_ORIGIN.SELOGER);
 
-export const boncoinDefaultHandler = async (job: Job, context: PlaywrightCrawlingContext) => {
+
+export const selogerDefaultHandler = async (job: Job, context: PlaywrightCrawlingContext) => {
     const { page, closeCookieModals, waitForSelector, enqueueLinks } = context;
     let data_grabbed = 0;
     let { name, limit } = job.data.france_locality[job.data.REGION_REACHED];
     let { REGION_REACHED, PAGE_REACHED } = job.data;
     await page.waitForLoadState('load');
-    await detectDataDomeCaptcha(context, true);
+    await detectDataDomeCaptcha(context);
     await closeCookieModals();
     const cursor = await createCursor(page as any);
-    // PAGE LOOP
     let ads: any;
     while (data_grabbed < limit) {
-        await waitForSelector("a[title='Page suivante']", 10000);
+        await waitForSelector('a[data-testid="gsl.uilib.Paging.nextButton"]').catch(async () => {
+            await page.goBack({ waitUntil: 'load' });
+            await page.goForward({ waitUntil: 'load' });
+            await waitForSelector('a[data-testid="gsl.uilib.Paging.nextButton"]');
+            await closeCookieModals().catch(() => { });
+        });
         await cursor.actions.randomMove();
         if (PAGE_REACHED === 1) {
-            let data = await page.$("script[id='__NEXT_DATA__']");
-            ads = JSON.parse(await data?.textContent() as string)["props"]["pageProps"]["searchData"]["ads"];
+            ads = await page.evaluate(() => Array.from(window['initialData']['cards']['list']).filter((card: any) => card['cardType'] === 'classified'));
         }
         if (!ads) throw new Error('No ads found');
-        await ingestData(ads, CRAWLER_ORIGIN.BONCOIN);
+        await ingestData(ads, CRAWLER_ORIGIN.SELOGER);
         data_grabbed += ads.length;
         await job.updateData({ ...job.data, total_data_grabbed: job.data.total_data_grabbed + ads.length });
-        ads = null
-        const nextButton = await page.$("a[title='Page suivante']") as ElementHandle<SVGElement | HTMLElement>;
+        ads = null;
+        const nextButton = await page.$('a[data-testid="gsl.uilib.Paging.nextButton"]') as ElementHandle<SVGElement | HTMLElement>;
         const nextButtonPosition = await nextButton.boundingBox() as { x: number, y: number };
-        await scrollToTargetHumanWay(context, nextButtonPosition?.y);
+        await scrollToTargetHumanWay(context, nextButtonPosition.y);
         await page.mouse.move(nextButtonPosition.x - 10, nextButtonPosition.y - 10);
-        ads = await interceptBoncoinHttpResponse(context);
+        ads = await interceptSelogerHttpResponse(context);
         await page.waitForTimeout(2000);
         logger.info(`Data grabbed: ${data_grabbed} of ${limit} for (${name}) in page (${PAGE_REACHED})`);
         PAGE_REACHED++;
@@ -48,22 +53,17 @@ export const boncoinDefaultHandler = async (job: Job, context: PlaywrightCrawlin
 }
 
 
-export const build_link = (job: Job): string => {
-    const { link } = job.data.france_locality[job.data.REGION_REACHED]
-    return `https://www.leboncoin.fr/recherche?category=9&locations=${link}&real_estate_type=1,2,3,4,5&immo_sell_type=old,new,viager&owner_type=pro`
-}
-
-const interceptBoncoinHttpResponse = async (context: PlaywrightCrawlingContext): Promise<any> => {
+const interceptSelogerHttpResponse = async (context: PlaywrightCrawlingContext): Promise<any> => {
     const { page } = context;
     const listen_response = page.waitForResponse(async (response) => {
         const url = response.url();
-        if (!url.includes('https://api.leboncoin.fr/finder/search')) return false;
+        if (!url.includes('https://www.seloger.com/search-bff/api/externaldata')) return false;
         const body = await response.json();
-        if (!body['ads']) return false;
+        if (!body || !body['listingData'] || !body['listingData']['cards']) return false;
         return true;
     });
-    await page.click("a[title='Page suivante']");
+    await page.click('a[data-testid="gsl.uilib.Paging.nextButton"]');
     const res = await listen_response;
     const data = await res.json();
-    return data['ads'];
-}   
+    return data['listingData']['cards'].filter((card: any) => card['type'] === 0).map((card: any) => card['listing']);
+}

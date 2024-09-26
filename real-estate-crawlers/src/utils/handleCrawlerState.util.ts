@@ -4,6 +4,7 @@
 
 import { Job } from "bullmq";
 import type { FinalStatistics, PlaywrightCrawlingContext } from "crawlee";
+import { initLogger } from "../config/logger.config";
 
 // export const handleCrawlerState = async (job: Job, stat: FinalStatistics): Promise<CrawlerSessionDocument> => {
 //     if (job.data.error || stat.requestsTotal === 0) {
@@ -70,12 +71,10 @@ export const handleFailedCrawler = async (job: Job, ctx: PlaywrightCrawlingConte
     const screenshot_path = `./screenshots/${job.name}-${job.id}-${failed_date.toString()}.jpg`;
     await page.screenshot({ fullPage: true, path: screenshot_path });
     await job.updateData({
-        screenshot: screenshot_path,
         total_data_grabbed: job.data.total_data_grabbed,
-        REGION_REACHED: job.data.REGION_REACHED,
-        PAGE_REACHED: job.data.PAGE_REACHED,
         status: 'failed',
         error: {
+            screenshot: screenshot_path,
             failed_date: failed_date,
             failedReason: error.message || 'Unknown error',
             failed_request_url: request.url || 'N/A',
@@ -87,9 +86,7 @@ export const handleFailedCrawler = async (job: Job, ctx: PlaywrightCrawlingConte
 export const handleCompletedCrawler = async (job: Job) => {
     const crawlers_statistics = job.returnvalue as FinalStatistics;
     await job.updateData({
-        status: job.data.status || 'success',
-        error: job.data.error,
-        total_data_grabbed: job.data.total_data_grabbed,
+        ...job.data,
         total_request: crawlers_statistics.requestsTotal,
         success_requests: crawlers_statistics.requestsFinished,
         failed_requests: crawlers_statistics.requestsFailed
@@ -97,5 +94,12 @@ export const handleCompletedCrawler = async (job: Job) => {
 }
 
 export const handleCrawlerUnexpectedError = async (error: Error) => {
-    console.error(error);
+    const logger = initLogger('GLOBAL-ERRORS');
+    logger.error('Crawler encountered an unexpected error: ', error);
+}
+
+export const handleQueueUnexpectedError = async (error: Error) => {
+    const logger = initLogger('GLOBAL-ERRORS');
+    logger.error('Queue encountered an unexpected error: ', error);
+    process.kill(process.pid, 'SIGTERM');
 }

@@ -9,8 +9,9 @@ export const boncoinConfig = new Configuration({
         writeMetadata: false,
     },
     availableMemoryRatio: 0.5,
-    headless: false,
-})
+    headless: true,
+});
+
 export const selogerConfig = new Configuration({
     logLevel: LogLevel.INFO,
     purgeOnStart: true,
@@ -20,8 +21,9 @@ export const selogerConfig = new Configuration({
         writeMetadata: false,
     },
     availableMemoryRatio: 0.5,
-    headless: true,
-})
+    headless: false,
+});
+
 export const bieniciConfig = new Configuration({
     logLevel: LogLevel.INFO,
     purgeOnStart: true,
@@ -32,7 +34,8 @@ export const bieniciConfig = new Configuration({
     },
     availableMemoryRatio: 0.5,
     headless: true,
-})
+});
+
 export const logicimmoConfig = new Configuration({
     logLevel: LogLevel.INFO,
     purgeOnStart: true,
@@ -43,4 +46,4 @@ export const logicimmoConfig = new Configuration({
     },
     availableMemoryRatio: 0.5,
     headless: true
-})
+});
