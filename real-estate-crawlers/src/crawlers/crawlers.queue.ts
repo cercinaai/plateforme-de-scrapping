@@ -14,10 +14,10 @@ export const start_crawlers = async () => {
     const crawlers_worker = new Worker('crawlers', async (job) => run_crawler(job), { ...initRedis(), autorun: false });
 
     await crawlers_queue.setGlobalConcurrency(1);
-    await crawlers_queue.add(CRAWLER_ORIGIN.SELOGER, {});
-    await crawlers_queue.add(CRAWLER_ORIGIN.BONCOIN, {});
     await crawlers_queue.add(CRAWLER_ORIGIN.LOGICIMMO, {});
-    await crawlers_queue.add(CRAWLER_ORIGIN.BIENICI, {});
+    // await crawlers_queue.add(CRAWLER_ORIGIN.SELOGER, {});
+    // await crawlers_queue.add(CRAWLER_ORIGIN.BONCOIN, {});
+    // await crawlers_queue.add(CRAWLER_ORIGIN.BIENICI, {});
 
     crawlers_worker.on('completed', async (job) => handleCompletedCrawler(job));
     crawlers_worker.on('error', (error) => handleCrawlerUnexpectedError(error));

@@ -21,7 +21,7 @@ export const selogerConfig = new Configuration({
         writeMetadata: false,
     },
     availableMemoryRatio: 0.5,
-    headless: false,
+    headless: true,
 });
 
 export const bieniciConfig = new Configuration({
@@ -45,5 +45,5 @@ export const logicimmoConfig = new Configuration({
         writeMetadata: false,
     },
     availableMemoryRatio: 0.5,
-    headless: true
+    headless: false
 });
