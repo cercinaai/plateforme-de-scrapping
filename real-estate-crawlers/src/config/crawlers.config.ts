@@ -45,5 +45,5 @@ export const logicimmoConfig = new Configuration({
         writeMetadata: false,
     },
     availableMemoryRatio: 0.5,
-    headless: false
+    headless: true
 });

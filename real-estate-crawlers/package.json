@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "start": "vite-node index.ts",
-    "dev": "vite-node index.ts --watch"
+    "dev": "vite-node index.ts --watch",
+    "test": "vitest"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
@@ -20,5 +21,8 @@
     "playwright": "1.45.2",
     "vite-node": "^2.1.1",
     "winston": "^3.14.2"
+  },
+  "devDependencies": {
+    "vitest": "^2.1.1"
   }
 }
