@@ -6,23 +6,22 @@ import { start_seloger_crawler } from './seloger/seloger.crawler';
 import { start_bienici_crawler } from './bienici/bienici.crawler';
 import { start_logicimmo_crawler } from './logic-immo/logicimmo.crawler';
 import { handleCompletedJob, handleFailedJob } from '../utils/handleCrawlerState.util';
+import { CrawlerSessionModel } from '../models/mongodb/crawler-session.mongodb';
 
 
 export const start_crawlers = async () => {
     const crawlers_queue = await create_crawler_queue();
     const crawlers_worker = await create_worker(crawlers_queue);
-    crawlers_worker.on('completed', async (job) => handleCompletedJob(job));
-    crawlers_worker.on('failed', async (job, error) => handleFailedJob(job, error));
+    const session_id = await create_initial_session()
+    crawlers_worker.on('completed', async (job) => handleCompletedJob(job, session_id));
+    crawlers_worker.on('failed', async (job, error) => handleFailedJob(job, error, session_id));
     await crawlers_worker.run();
 }
 
 export const start_crawlers_revision = async () => { }
 
-
-
 const create_crawler_queue = async () => {
     const crawlers_queue = new Queue('crawlers', initRedis());
-
     await crawlers_queue.setGlobalConcurrency(2);
     await crawlers_queue.add(CRAWLER_ORIGIN.BONCOIN, {});
     await crawlers_queue.add(CRAWLER_ORIGIN.SELOGER, {});
@@ -39,4 +38,14 @@ const create_worker = async (queue: Queue) => {
         if (job.name === CRAWLER_ORIGIN.LOGICIMMO) return start_logicimmo_crawler(job);
     }, { ...initRedis(), autorun: false });
     return crawlers_worker
+}
+
+
+const create_initial_session = async (): Promise<string> => {
+    const crawler_session = {
+        session_date: new Date(),
+        crawlers_stats: []
+    };
+    const { _id } = await CrawlerSessionModel.create(crawler_session);
+    return _id.toString();
 }

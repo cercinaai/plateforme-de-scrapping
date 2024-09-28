@@ -1,7 +1,7 @@
 import { Job } from "bullmq";
 import { FinalStatistics, PlaywrightCrawler, RequestQueue } from "crawlee";
 import { initLogger } from "../../config/logger.config";
-import { CRAWLER_ORIGIN } from "../../utils/enum";
+import { CRAWLER_ORIGIN, CRAWLER_STATUS } from "../../utils/enum";
 import { bieniciCrawlerOption } from "../../config/playwright.config";
 import { bieniciConfig } from "../../config/crawlers.config";
 import { handleFailedCrawler } from "../../utils/handleCrawlerState.util";
@@ -23,7 +23,7 @@ export const start_bienici_crawler = async (job: Job) => {
 const initialize = async (job: Job) => {
     logger.info('Initializing bienici crawler...');
     await job.updateData({
-        status: 'running',
+        status: CRAWLER_STATUS.RUNNING,
         AD_LIMIT: 1500,
         total_data_grabbed: 0,
         PAGE_REACHED: 1

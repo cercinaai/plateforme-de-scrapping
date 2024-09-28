@@ -1,5 +1,5 @@
 import { Job } from "bullmq";
-import { CRAWLER_ORIGIN } from "../../utils/enum";
+import { CRAWLER_ORIGIN, CRAWLER_STATUS } from "../../utils/enum";
 import { initLogger } from "../../config/logger.config";
 import { type FinalStatistics, PlaywrightCrawler, ProxyConfiguration, RequestQueue } from "crawlee";
 import { boncoinCrawlerOption } from "../../config/playwright.config";
@@ -32,7 +32,7 @@ export const start_boncoin_crawler = async (job: Job) => {
 const initialize = async (job: Job) => {
     logger.info('Initializing boncoin crawler...');
     await job.updateData({
-        status: 'running',
+        status: CRAWLER_STATUS.RUNNING,
         total_data_grabbed: 0,
         REGION_REACHED: 0,
         PAGE_REACHED: 1,

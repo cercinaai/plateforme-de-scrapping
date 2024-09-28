@@ -4,3 +4,9 @@ export enum CRAWLER_ORIGIN {
     BIENICI = 'bienici',
     LOGICIMMO = 'logicimmo'
 }
+
+export enum CRAWLER_STATUS {
+    RUNNING = 'running',
+    SUCCESS = 'success',
+    FAILED = 'failed',
+}

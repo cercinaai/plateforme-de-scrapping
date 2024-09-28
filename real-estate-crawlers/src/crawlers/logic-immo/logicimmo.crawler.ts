@@ -1,7 +1,7 @@
 import { Job } from "bullmq";
 import { FinalStatistics, PlaywrightCrawler, ProxyConfiguration, RequestQueue } from "crawlee";
 import { initLogger } from "../../config/logger.config";
-import { CRAWLER_ORIGIN } from "../../utils/enum";
+import { CRAWLER_ORIGIN, CRAWLER_STATUS } from "../../utils/enum";
 import { initProxy } from "../../config/proxy.config";
 import { logicimmoCrawlerOption } from "../../config/playwright.config";
 import { logicimmoConfig } from "../../config/crawlers.config";
@@ -31,7 +31,7 @@ const initialize = async (job: Job) => {
     logger.info('Initializing logicimmo crawler...');
     await job.updateData({
         total_data_grabbed: 0,
-        status: 'running',
+        status: CRAWLER_STATUS.RUNNING,
         REGION_REACHED: 0,
         PAGE_REACHED: 1,
         DATA_REACHED: 0,

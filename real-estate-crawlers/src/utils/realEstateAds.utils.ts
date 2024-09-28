@@ -1,5 +1,5 @@
 import axios from "axios";
-import { realEstateAd } from "../models/real-estate-ad.mongdb";
+import { realEstateAd } from "../models/mongodb/real-estate-ad.mongdb";
 
 export const universalCategoryMapping: Record<string, string> = {
     "Appartement": "Appartement",
