@@ -1,4 +1,4 @@
-import { realEstateAd } from "../../models/real-estate-ad.mongdb";
+import { realEstateAd } from "../../models/mongodb/real-estate-ad.mongdb";
 import { calculateAdAccuracy } from "../../utils/realEstateAds.utils";
 
 export const boncoin_preprocess_data = async (data: Partial<realEstateAd>[]): Promise<Partial<realEstateAd>[]> => {

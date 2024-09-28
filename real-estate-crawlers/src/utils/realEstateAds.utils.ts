@@ -61,9 +61,15 @@ export const BienIciCategoryMapping: Record<string, string> = {
 }
 
 
-export const extractLocation = async (city: string, postalCode: string, withCoordinates = false): Promise<{
-    departmentCode: string, regionCode: string, coordinates?: { lat: number, lon: number }
-}> => {
+export const extractLocation = async (city: string, postalCode: string, withCoordinates = false):
+    Promise<{
+        departmentCode: string,
+        regionCode: string,
+        coordinates?: {
+            lat: number,
+            lon: number
+        }
+    }> => {
     if (!city || !postalCode) return { departmentCode: 'NO DEPARTMENT', regionCode: 'NO REGION' };
     let response = await axios.get(`https://geo.api.gouv.fr/communes?nom=${city}&codePostal=${postalCode}&fields=centre,codeDepartement,codeRegion`);
     if (!response.data || response.data.length === 0) {

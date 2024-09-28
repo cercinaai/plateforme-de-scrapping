@@ -1,4 +1,4 @@
-import { realEstateAd, realEstateAdsModel } from "../models/real-estate-ad.mongdb"
+import { realEstateAd, realEstateAdsModel } from "../models/mongodb/real-estate-ad.mongdb";
 
 
 
