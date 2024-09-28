@@ -9,7 +9,7 @@ config();
 
 
 // INITIALIZE MONGODB
-// await initMongoDB();
+await initMongoDB();
 
 // INITIALIZE CRAWLERS
 await start_crawlers()

@@ -1,0 +1,1 @@
+export const clean_logicimmo_data = async (data: any) => { }
