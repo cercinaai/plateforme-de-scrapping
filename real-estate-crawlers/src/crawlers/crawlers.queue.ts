@@ -18,7 +18,7 @@ export const start_crawlers = async () => {
     crawlers_worker.on('completed', async (job) => handleCompletedJob(job, session_id));
     crawlers_worker.on('failed', async (job, error) => handleFailedJob(job, error, session_id));
     // SET A PROCESS TIMEOUT IF EXECEEDED STOP THE CRAWLERS
-    await handleTimeOut(crawlers_queue, 43_200_000);
+    // await handleTimeOut(crawlers_queue, 43_200_000);
     await crawlers_worker.run();
 }
 
