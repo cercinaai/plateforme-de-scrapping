@@ -1,11 +1,12 @@
 import { CronJob } from 'cron';
 import { initMongoDB } from "./src/config/mongodb.config";
-import { config } from 'dotenv';
 import { start_crawlers, start_crawlers_revision } from './src/crawlers/crawlers.queue';
 import { handleQueueUnexpectedError } from './src/utils/handleCrawlerState.util';
+import { config } from 'dotenv';
 
-// INITIALIZE ENVIRONMENT
-config();
+
+// LOADS ENVIRONMENT VARIABLES
+config({ path: `./environments/${process.env.NODE_ENV}.env` })
 
 
 // INITIALIZE MONGODB

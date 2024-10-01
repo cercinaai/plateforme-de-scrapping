@@ -1,34 +1,30 @@
-# Stage 1: Use Bun to install production dependencies
-FROM oven/bun:1 AS base
+FROM apify/actor-node-playwright:22-1.45.2 AS builder
 
-# Skip browser download since Playwright handles that in the final stage
-ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+COPY --chown=myuser package*.json ./
 
-WORKDIR /usr/src/app
+RUN npm install --include=dev --audit=false
 
-# Copy necessary files for dependency installation
-COPY ./package.json bun.lockb ./
+COPY --chown=myuser . ./
 
-# Install production dependencies only
-RUN bun install --production --frozen-lockfile
+RUN npm run build
 
-# Stage 2: Use Playwright image, but copy Bun runtime and dependencies from the previous stage
-FROM apify/actor-node-playwright:22-1.45.2 AS playwright
+FROM apify/actor-node-playwright:22-1.45.2
 
+COPY --from=builder --chown=myuser /home/myuser/dist ./dist
 
-# Copy the Bun runtime from the first stage
-COPY --from=base --chown=myuser /usr/local/bin/bun /usr/local/bin/bun
-COPY --from=base --chown=myuser /root/.bun /root/.bun
+COPY --chown=myuser package*.json ./
 
-ENV PATH="/root/.bun/bin:$PATH"
+RUN npm --quiet set progress=false \
+    && npm install --omit=dev --omit=optional \
+    && echo "Installed NPM packages:" \
+    && (npm list --omit=dev --all || true) \
+    && echo "Node.js version:" \
+    && node --version \
+    && echo "NPM version:" \
+    && npm --version
 
-# Copy the node_modules and other files from the Bun build stage
-COPY --from=base --chown=myuser /usr/src/app/node_modules ./node_modules
-COPY --from=base --chown=myuser /usr/src/app/package.json ./
+COPY --chown=myuser . ./
 
-# Copy the application files
-COPY . .
+CMD ./start_xvfb_and_run_cmd.sh && npm run start:prod --silent
 
-# Command to start the application with Bun
-CMD ./start_xvfb_and_run_cmd.sh && bun run index.ts
 
