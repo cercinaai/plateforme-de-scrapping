@@ -8,7 +8,6 @@ import { start_logicimmo_crawler } from './logic-immo/logicimmo.crawler';
 import { handleCompletedJob, handleFailedJob } from '../utils/handleCrawlerState.util';
 import { CrawlerSessionModel } from '../models/mongodb/crawler-session.mongodb';
 import { initLogger } from '../config/logger.config';
-import { config } from 'dotenv';
 
 
 export const start_crawlers = async () => {

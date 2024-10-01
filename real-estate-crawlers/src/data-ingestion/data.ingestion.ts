@@ -8,14 +8,12 @@ import { logicimmoIngest } from "./logicimmo-ingest/logicimmo.ingest";
 
 const ingestion_queue = new Queue('data-ingestion', initRedis());
 
-ingestion_queue.setGlobalConcurrency(20);
-
 new Worker(ingestion_queue.name, async (job) => {
     if (job.name === CRAWLER_ORIGIN.BONCOIN) return boncoinIngest(job);
     if (job.name === CRAWLER_ORIGIN.SELOGER) return selogerIngest(job);
     if (job.name === CRAWLER_ORIGIN.BIENICI) return bieniciIngest(job);
     if (job.name === CRAWLER_ORIGIN.LOGICIMMO) return logicimmoIngest(job);
-}, initRedis());
+}, { ...initRedis(), concurrency: 20 });
 
 
 export const ingestData = async (data_ingestion: any, origin: CRAWLER_ORIGIN) => {
