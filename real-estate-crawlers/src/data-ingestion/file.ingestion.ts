@@ -16,6 +16,7 @@ const configure_bucket = (): S3Client => {
 let s3 = configure_bucket();
 
 export const uploadFilesIntoBucket = async (files: string[], target: string): Promise<string[]> => {
+    if (!files) return [];
     return await Promise.all(files.map(async (file) => await uploadFileIntoBucket(file, target)));
 }
 

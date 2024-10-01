@@ -27,14 +27,14 @@ export const handleFailedCrawler = async (job: Job, ctx: PlaywrightCrawlingConte
     });
 }
 
-export const handleFailedJob = async (job: Job | undefined, error: Error, session_id: string) => {
+export const handleFailedJob = async (job: Job | undefined, error: Error, session_id?: string, keepAfterSave?: boolean) => {
     if (!job) return;
     const crawlerStat: CrawlerStats = {
         origin: job.name as CRAWLER_ORIGIN,
         status: CRAWLER_STATUS.FAILED,
         started_at: new Date(job.processedOn as number),
         finished_at: new Date(job.finishedOn as number),
-        total_data_grabbed: job.data.total_data_grabbed,
+        total_data_grabbed: job.data.total_data_grabbed || 0,
         error: {
             screenshot: 'N/A',
             failedReason: error.message || 'Unknown error',
@@ -42,38 +42,40 @@ export const handleFailedJob = async (job: Job | undefined, error: Error, sessio
             proxy_used: 'N/A',
         },
     }
+    // REMOVE JOB FROM QUEUE
+    if (!keepAfterSave) await job.remove();
+    if (!session_id) return crawlerStat;
     // SAVE STATS IN DB
     const { acknowledged } = await CrawlerSessionModel.updateOne({ _id: session_id }, { $push: { crawlers_stats: crawlerStat } });
     if (!acknowledged) {
         logger.error('Failed to save crawler stats in DB');
         return;
     };
-    // REMOVE JOB FROM QUEUE
-    await job.remove();
 }
 
-export const handleCompletedJob = async (job: Job, session_id: string) => {
+export const handleCompletedJob = async (job: Job, session_id?: string) => {
     const crawlers_statistics = job.returnvalue as FinalStatistics;
     const { error } = job.data;
     const crawlerStat: CrawlerStats = {
         origin: job.name as CRAWLER_ORIGIN,
-        status: job.data.status || CRAWLER_STATUS.SUCCESS,
+        status: error ? CRAWLER_STATUS.FAILED : CRAWLER_STATUS.SUCCESS,
         started_at: new Date(job.processedOn as number),
         finished_at: new Date(job.finishedOn as number),
-        total_data_grabbed: job.data.total_data_grabbed,
-        total_requests: crawlers_statistics.requestsTotal,
-        success_requests: crawlers_statistics.requestsFinished,
-        failed_requests: crawlers_statistics.requestsFailed,
+        total_data_grabbed: job.data.total_data_grabbed || 0,
+        total_requests: crawlers_statistics ? crawlers_statistics.requestsTotal : 0,
+        success_requests: crawlers_statistics ? crawlers_statistics.requestsFinished : 0,
+        failed_requests: crawlers_statistics ? crawlers_statistics.requestsFailed : 0,
     }
     if (error) crawlerStat.error = error;
+    // REMOVE JOB FROM QUEUE
+    await job.remove();
+    if (!session_id) return crawlerStat;
     // SAVE STATS IN DB
     const { acknowledged } = await CrawlerSessionModel.updateOne({ _id: session_id }, { $push: { crawlers_stats: crawlerStat } });
     if (!acknowledged) {
         logger.error('Failed to save crawler stats in DB');
         return;
     };
-    // REMOVE JOB FROM QUEUE
-    await job.remove();
 }
 
 export const handleQueueUnexpectedError = async (expection: string, error?: Error | unknown) => {
