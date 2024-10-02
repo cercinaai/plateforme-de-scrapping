@@ -23,7 +23,7 @@ build_backend:
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
     - cd real-estate-backend
   script:
-    - docker build -t $BACKEND_IMAGE:$CI_COMMIT_SHORT_SHA ./docker
+    - docker build -t $BACKEND_IMAGE:$CI_COMMIT_SHORT_SHA -f ./docker/Dockerfile .
     - docker tag $BACKEND_IMAGE:$CI_COMMIT_SHORT_SHA $BACKEND_IMAGE:latest
     - docker push $BACKEND_IMAGE:$CI_COMMIT_SHORT_SHA
     - docker push $BACKEND_IMAGE:latest
@@ -39,7 +39,7 @@ build_crawlers:
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
     - cd real-estate-crawlers
   script:
-    - docker build -t $CRAWLERS_IMAGE:$CI_COMMIT_SHORT_SHA ./docker
+    - docker build -t $CRAWLERS_IMAGE:$CI_COMMIT_SHORT_SHA -f ./docker/Dockerfile .
     - docker tag $CRAWLERS_IMAGE:$CI_COMMIT_SHORT_SHA $CRAWLERS_IMAGE:latest
     - docker push $CRAWLERS_IMAGE:$CI_COMMIT_SHORT_SHA
     - docker push $CRAWLERS_IMAGE:latest
