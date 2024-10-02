@@ -24,3 +24,12 @@ start_crawlers_monthly_revision.start();
 // LISTEN FOR UNEXPECTED ERRORS
 process.on('unhandledRejection', async (err) => handleQueueUnexpectedError('unhandledRejection', err));
 process.on('uncaughtException', async (err) => handleQueueUnexpectedError('uncaughtException', err));
+
+// CREATE SERVER AND START SERVER
+const port = process.env.PORT || 3002;
+const http = await import('http');
+const server = http.createServer();
+
+server.listen(port, () => {
+    console.log(`Server listening on port ${port}`);
+});
