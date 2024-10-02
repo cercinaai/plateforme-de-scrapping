@@ -3,7 +3,7 @@
 /node_modules
 /build
 /storage
-
+/local-data
 # Logs
 logs
 *.log

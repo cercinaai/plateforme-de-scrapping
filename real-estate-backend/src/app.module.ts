@@ -22,7 +22,11 @@ const configEnv = (): ConfigModuleOptions => {
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
-        uri: configService.get<string>('MONGODB_URI'),
+        uri: `mongodb://${configService.get<string>('MONGO_HOST')}:${configService.get<string>('MONGO_PORT')}/${configService.get<string>('MONGO_DATABASE')}`,
+        auth: {
+          username: configService.get<string>('MONGO_USER'),
+          password: configService.get<string>('MONGO_PASSWORD'),
+        }
       }),
       inject: [ConfigService]
     }),
