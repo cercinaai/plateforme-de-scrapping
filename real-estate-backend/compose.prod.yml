@@ -14,7 +14,7 @@ services:
         target: /docker-entrypoint-initdb.d/
 
   backend:
-    image: $BACKEND_IMAGE:latest
+    image: ${BACKEND_IMAGE}:latest
     container_name: real-estate-server-container
     restart: on-failure
     expose:

@@ -19,7 +19,7 @@ services:
     depends_on:
       - redis
   crawlers:
-    image: $CRAWLERS_IMAGE:latest
+    image: ${CRAWLERS_IMAGE}:latest
     container_name: crawlers-container
     env_file:
       - ./environments/production.env
