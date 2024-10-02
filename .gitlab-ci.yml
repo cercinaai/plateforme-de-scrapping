@@ -83,7 +83,7 @@ deploy_backend:
     - ssh haythem@$BACKEND_HOST "docker pull $DASHBOARD_IMAGE:latest"
     - scp real-estate-backend/compose.prod.yml haythem@"$BACKEND_HOST":/home/haythem/real-estate-backend/
     - scp "$BACKEND_ENV_KEYS" haythem@"$BACKEND_HOST":/home/haythem/real-estate-backend/environments/production.env
-    - scp real-estate-backend/bin/ haythem@"$BACKEND_HOST":/home/haythem/real-estate-backend/bin/
+    - scp -r real-estate-backend/bin haythem@$BACKEND_HOST:/home/haythem/real-estate-backend/
     - ssh haythem@$BACKEND_HOST "export BACKEND_IMAGE=$BACKEND_IMAGE && export DASHBOARD_IMAGE=$DASHBOARD_IMAGE && docker compose -f /home/haythem/real-estate-backend/compose.prod.yml down"
     - ssh haythem@$BACKEND_HOST "export BACKEND_IMAGE=$BACKEND_IMAGE && export DASHBOARD_IMAGE=$DASHBOARD_IMAGE && docker image prune -f"
     - ssh haythem@$BACKEND_HOST "export BACKEND_IMAGE=$BACKEND_IMAGE && export DASHBOARD_IMAGE=$DASHBOARD_IMAGE && docker compose -f /home/haythem/real-estate-backend/compose.prod.yml up -d"
@@ -109,7 +109,7 @@ deploy_crawlers:
     - ssh haythem@"$CRAWLERS_HOST" "docker pull $CRAWLERS_IMAGE:latest"
     - scp real-estate-crawlers/compose.prod.yml haythem@"$CRAWLERS_HOST":/home/haythem/real-estate-crawlers/
     - scp "$CRAWLERS_ENV_KEYS" haythem@"$CRAWLERS_HOST":/home/haythem/real-estate-crawlers/environments/production.env
-    - scp real-estate-crawlers/entrypoints/redis.conf haythem@"$CRAWLERS_HOST":/home/haythem/real-estate-crawlers/entrypoints/
+    - scp -r real-estate-crawlers/entrypoints haythem@$CRAWLERS_HOST:/home/haythem/real-estate-crawlers/
     - ssh haythem@"$CRAWLERS_HOST" "export CRAWLERS_IMAGE=$CRAWLERS_IMAGE && docker compose -f /home/haythem/real-estate-crawlers/compose.prod.yml down"
     - ssh haythem@"$CRAWLERS_HOST" "export CRAWLERS_IMAGE=$CRAWLERS_IMAGE && docker image prune -f"
     - ssh haythem@"$CRAWLERS_HOST" "export CRAWLERS_IMAGE=$CRAWLERS_IMAGE && docker compose -f /home/haythem/real-estate-crawlers/compose.prod.yml up -d"
