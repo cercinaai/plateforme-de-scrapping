@@ -79,15 +79,15 @@ deploy_backend:
     - cp "$SSH_KNOWN_HOSTS" ~/.ssh/known_hosts
     - chmod 644 ~/.ssh/known_hosts
   script:
-    - ssh haythem@"$BACKEND_HOST" "docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY"
-    - ssh haythem@"$BACKEND_HOST" "docker pull $BACKEND_IMAGE:latest"
-    - ssh haythem@"$BACKEND_HOST" "docker pull $DASHBOARD_IMAGE:latest"
+    - ssh haythem@$BACKEND_HOST "docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY"
+    - ssh haythem@$BACKEND_HOST "docker pull $BACKEND_IMAGE:latest"
+    - ssh haythem@$BACKEND_HOST "docker pull $DASHBOARD_IMAGE:latest"
     - scp real-estate-backend/compose.prod.yml haythem@"$BACKEND_HOST":/home/haythem/real-estate-backend/
     - scp "$BACKEND_ENV_KEYS" haythem@"$BACKEND_HOST":/home/haythem/real-estate-backend/environments/production.env
-    - ssh haythem@"$BACKEND_HOST" "docker compose -f /home/haythem/real-estate-backend/compose.prod.yml down"
-    - ssh haythem@"$BACKEND_HOST" "docker image prune -f"
-    - ssh haythem@"$BACKEND_HOST" "docker compose -f /home/haythem/real-estate-backend/compose.prod.yml build --no-cache"
-    - ssh haythem@"$BACKEND_HOST" "docker compose -f /home/haythem/real-estate-backend/compose.prod.yml up -d"
+    - ssh haythem@$BACKEND_HOST "docker compose -f /home/haythem/real-estate-backend/compose.prod.yml down"
+    - ssh haythem@$BACKEND_HOST "docker image prune -f"
+    - ssh haythem@$BACKEND_HOST "docker compose -f /home/haythem/real-estate-backend/compose.prod.yml build --no-cache"
+    - ssh haythem@$BACKEND_HOST "docker compose -f /home/haythem/real-estate-backend/compose.prod.yml up -d"
   
 
 deploy_crawlers:
