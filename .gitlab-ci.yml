@@ -62,7 +62,6 @@ build_dashboard:
 
 
 
-
 deploy_backend:
   stage: deploy
   rules:
@@ -79,6 +78,7 @@ deploy_backend:
     - cp "$SSH_KNOWN_HOSTS" ~/.ssh/known_hosts
     - chmod 644 ~/.ssh/known_hosts
   script:
+    - ssh haythem@$BACKEND_HOST "echo 'export BACKEND_IMAGE=$BACKEND_IMAGE' >> ~/.bashrc && echo 'export DASHBOARD_IMAGE=$DASHBOARD_IMAGE' >> ~/.bashrc && source ~/.bashrc"
     - ssh haythem@$BACKEND_HOST "docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY"
     - ssh haythem@$BACKEND_HOST "docker pull $BACKEND_IMAGE:latest"
     - ssh haythem@$BACKEND_HOST "docker pull $DASHBOARD_IMAGE:latest"
@@ -86,7 +86,6 @@ deploy_backend:
     - scp "$BACKEND_ENV_KEYS" haythem@"$BACKEND_HOST":/home/haythem/real-estate-backend/environments/production.env
     - ssh haythem@$BACKEND_HOST "docker compose -f /home/haythem/real-estate-backend/compose.prod.yml down"
     - ssh haythem@$BACKEND_HOST "docker image prune -f"
-    - ssh haythem@$BACKEND_HOST "docker compose -f /home/haythem/real-estate-backend/compose.prod.yml build --no-cache"
     - ssh haythem@$BACKEND_HOST "docker compose -f /home/haythem/real-estate-backend/compose.prod.yml up -d"
   
 
@@ -106,13 +105,13 @@ deploy_crawlers:
     - cp "$SSH_KNOWN_HOSTS" ~/.ssh/known_hosts
     - chmod 644 ~/.ssh/known_hosts
   script:
+    - ssh haythem@"$CRAWLERS_HOST" "echo 'export CRAWLERS_IMAGE=$CRAWLERS_IMAGE' >> ~/.bashrc && source ~/.bashrc"
     - ssh haythem@"$CRAWLERS_HOST" "docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY"
     - ssh haythem@"$CRAWLERS_HOST" "docker pull $CRAWLERS_IMAGE:latest"
     - scp real-estate-crawlers/compose.prod.yml haythem@"$CRAWLERS_HOST":/home/haythem/real-estate-crawlers/
     - scp "$CRAWLERS_ENV_KEYS" haythem@"$CRAWLERS_HOST":/home/haythem/real-estate-crawlers/environments/production.env
     - ssh haythem@"$CRAWLERS_HOST" "docker compose -f /home/haythem/real-estate-crawlers/compose.prod.yml down"
     - ssh haythem@"$CRAWLERS_HOST" "docker image prune -f"
-    - ssh haythem@"$CRAWLERS_HOST" "docker compose -f /home/haythem/real-estate-crawlers/compose.prod.yml build --no-cache"
     - ssh haythem@"$CRAWLERS_HOST" "docker compose -f /home/haythem/real-estate-crawlers/compose.prod.yml up -d"
 
 
