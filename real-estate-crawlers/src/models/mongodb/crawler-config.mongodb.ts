@@ -1,20 +1,21 @@
-import { Schema } from "mongoose";
+import { model, Schema } from "mongoose";
 
 
 
 const CrawlerConfigSchema = new Schema<CrawlerConfig>({
     can_crawl: { type: Boolean, required: true },
+    api_key: { type: String, required: true },
     proxy_urls: [{ type: String }],
     seloger_config: {
-        url_prefix: { type: String, required: true },
+        total: { type: Number, required: true },
         regions: [{
             name: { type: String, required: true },
-            link: { type: String, required: true },
+            link: [{ type: String, required: true }],
             limit: { type: Number, required: true }
         }]
     },
     boncoin_limits: {
-        url_prefix: { type: String, required: true },
+        total: { type: Number, required: true },
         regions: [{
             name: { type: String, required: true },
             link: { type: String, required: true },
@@ -22,7 +23,7 @@ const CrawlerConfigSchema = new Schema<CrawlerConfig>({
         }]
     },
     bienici_limits: {
-        url_prefix: { type: String, required: true },
+        total: { type: Number, required: true },
         regions: [{
             name: { type: String, required: true },
             link: { type: String, required: true },
@@ -30,7 +31,7 @@ const CrawlerConfigSchema = new Schema<CrawlerConfig>({
         }]
     },
     logicimmo_limits: {
-        url_prefix: { type: String, required: true },
+        total: { type: Number, required: true },
         regions: [{
             name: { type: String, required: true },
             link: { type: String, required: true },
@@ -39,23 +40,27 @@ const CrawlerConfigSchema = new Schema<CrawlerConfig>({
     }
 })
 
+
+export const CrawlerConfigModel = model<CrawlerConfig>('CrawlerConfig', CrawlerConfigSchema);
+
 export interface CrawlerConfig {
     can_crawl: boolean;
     proxy_urls: string[];
+    api_key: string;
     seloger_config: {
-        url_prefix: string,
-        regions: Array<{ name: string, link: string, limit: number }>
+        total: number;
+        regions: Array<{ name: string, link: string[], limit: number }>
     }
     boncoin_limits: {
-        url_prefix: string,
+        total: number;
         regions: Array<{ name: string, link: string, limit: number }>
     };
     bienici_limits: {
-        url_prefix: string,
+        total: number;
         regions: Array<{ name: string, link: string, limit: number }>
     };
     logicimmo_limits: {
-        url_prefix: string,
+        total: number;
         regions: Array<{ name: string, link: string, limit: number }>
     };
 }
