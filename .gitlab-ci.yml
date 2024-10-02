@@ -77,13 +77,13 @@ deploy_backend:
     - chmod 700 ~/.ssh
     - cp "$SSH_KNOWN_HOSTS" ~/.ssh/known_hosts
     - chmod 644 ~/.ssh/known_hosts
+    - echo "$BACKEND_ENV_KEYS" > "production.env"
   script:
-    - ssh haythem@$BACKEND_HOST "echo 'export BACKEND_IMAGE=$BACKEND_IMAGE' >> ~/.bashrc && echo 'export DASHBOARD_IMAGE=$DASHBOARD_IMAGE' >> ~/.bashrc && source ~/.bashrc"
     - ssh haythem@$BACKEND_HOST "docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY"
     - ssh haythem@$BACKEND_HOST "docker pull $BACKEND_IMAGE:latest"
     - ssh haythem@$BACKEND_HOST "docker pull $DASHBOARD_IMAGE:latest"
     - scp real-estate-backend/compose.prod.yml haythem@"$BACKEND_HOST":/home/haythem/real-estate-backend/
-    - scp "$BACKEND_ENV_KEYS" haythem@"$BACKEND_HOST":/home/haythem/real-estate-backend/environments/production.env
+    - scp production.env haythem@"$BACKEND_HOST":/home/haythem/real-estate-backend/environments/
     - ssh haythem@$BACKEND_HOST "docker compose -f /home/haythem/real-estate-backend/compose.prod.yml down"
     - ssh haythem@$BACKEND_HOST "docker image prune -f"
     - ssh haythem@$BACKEND_HOST "docker compose -f /home/haythem/real-estate-backend/compose.prod.yml up -d"
@@ -104,12 +104,12 @@ deploy_crawlers:
     - chmod 700 ~/.ssh
     - cp "$SSH_KNOWN_HOSTS" ~/.ssh/known_hosts
     - chmod 644 ~/.ssh/known_hosts
+    - echo "$CRAWLERS_ENV_KEYS" > production.env
   script:
-    - ssh haythem@"$CRAWLERS_HOST" "echo 'export CRAWLERS_IMAGE=$CRAWLERS_IMAGE' >> ~/.bashrc && source ~/.bashrc"
     - ssh haythem@"$CRAWLERS_HOST" "docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY"
     - ssh haythem@"$CRAWLERS_HOST" "docker pull $CRAWLERS_IMAGE:latest"
     - scp real-estate-crawlers/compose.prod.yml haythem@"$CRAWLERS_HOST":/home/haythem/real-estate-crawlers/
-    - scp "$CRAWLERS_ENV_KEYS" haythem@"$CRAWLERS_HOST":/home/haythem/real-estate-crawlers/environments/production.env
+    - scp production.env haythem@"$CRAWLERS_HOST":/home/haythem/real-estate-crawlers/environments/
     - ssh haythem@"$CRAWLERS_HOST" "docker compose -f /home/haythem/real-estate-crawlers/compose.prod.yml down"
     - ssh haythem@"$CRAWLERS_HOST" "docker image prune -f"
     - ssh haythem@"$CRAWLERS_HOST" "docker compose -f /home/haythem/real-estate-crawlers/compose.prod.yml up -d"
