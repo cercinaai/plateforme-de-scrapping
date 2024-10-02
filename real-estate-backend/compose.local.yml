@@ -1,0 +1,28 @@
+services:
+
+  mongodb:
+    image: mongo:5.0.28
+    container_name: mongodb-container
+    ports:
+      - "27017:27017"
+    env_file:
+      - ./real-estate.env
+    volumes:
+      - ./local-data:/data/db
+      - type: bind
+        source: ./bin
+        target: /docker-entrypoint-initdb.d/
+  
+  backend:
+    build:
+      context: ./
+      dockerfile: ./docker/Dockerfile
+    container_name: real-estate-server-container
+    env_file:
+      - ./real-estate.env
+    expose:
+      - 3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mongodb

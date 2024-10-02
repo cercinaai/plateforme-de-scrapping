@@ -1,0 +1,59 @@
+services:
+  mongodb:
+    image: mongo:5.0.28
+    container_name: mongodb-container
+    restart: on-failure
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${ADMIN_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${ADMIN_PASSWORD}
+      - MONGO_USER=${MONGO_USER}
+      - MONGO_PASSWORD=${MONGO_PASSWORD}
+      - MONGO_DATABASE=${MONGO_DATABASE}
+    ports:
+      - "27017:27017"
+    volumes:
+      - real_state_mongo:/data/db
+      - type: bind
+        source: ./bin
+        target: /docker-entrypoint-initdb.d/
+
+  backend:
+    image: $SERVER_IMAGE:latest
+    container_name: real-estate-server-container
+    restart: on-failure
+    expose:
+      - 3000
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - ADMIN_USERNAME=${ADMIN_USERNAME}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - REAL_ESTATE_API_KEY=${REAL_ESTATE_API_KEY}
+      - JWT_SECRET=${JWT_SECRET}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - MONGODB_URI=mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongodb:27017/${MONGO_DATABASE}
+      - PROXY_API_KEY=${PROXY_API_KEY}
+      - TWO_CAPTCHA_API_KEY=${TWO_CAPTCHA_API_KEY}
+      - CAPSOLVER_API_KEY=${CAPSOLVER_API_KEY}
+      - SHIFTER_API_KEY=${SHIFTER_API_KEY}
+      - AWS_S3_BUCKET_NAME=${AWS_S3_BUCKET_NAME}
+      - AWS_S3_ENDPOINT=${AWS_S3_ENDPOINT}
+      - AWS_S3_ACCESS_KEY=${AWS_S3_ACCESS_KEY}
+      - AWS_S3_SECRET_KEY=${AWS_S3_SECRET_KEY}
+    depends_on:
+      - redis
+      - mongodb
+
+  frontend:
+    image: $DASHBOARD_IMAGE:latest
+    container_name: frontend-container
+    restart: on-failure
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  real_state_mongo:

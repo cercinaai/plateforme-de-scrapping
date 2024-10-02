@@ -1,0 +1,29 @@
+services:
+  redis:
+    image: redis:7.2.5
+    container_name: redis-container
+    ports:
+      - "6379:6379"
+    env_file:
+      - ./environments/production.env
+    command: /bin/sh -c 'redis-server --appendonly yes --requirepass $${REDIS_PASSWORD}'
+    volumes:
+      - real_state_redis:/data
+      - ./entrypoints/redis.conf:/usr/local/etc/redis/redis.conf
+  bull-monitor:
+    image: ejhayes/nodejs-bull-monitor:2.2.0
+    ports:
+      - 3001:3001
+    env_file:
+      - ./environments/production.env
+    depends_on:
+      - redis
+  crawlers:
+    image: $CRAWLERS_IMAGE:latest
+    container_name: crawlers-container
+    env_file:
+      - ./environments/production.env
+    depends_on:
+      - redis
+volumes:
+  real_state_redis:

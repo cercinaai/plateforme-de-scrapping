@@ -4,13 +4,15 @@ stages:
 
 variables:
   DOCKER_DRIVER: overlay2
-  SERVER_IMAGE: $CI_REGISTRY_IMAGE/real-estate-server
+  BACKEND_IMAGE: $CI_REGISTRY_IMAGE/real-estate-backend
   DASHBOARD_IMAGE: $CI_REGISTRY_IMAGE/real-estate-dashboard
+  CRAWLERS_IMAGE: $CI_REGISTRY_IMAGE/real-estate-crawlers
   MONGO_USER: $MONGO_USER
   MONGO_PASSWORD: $MONGO_PASSWORD
   MONGO_DATABASE: $MONGO_DATABASE
   SERVER_IP_ADDRESS: $SERVER_IP_ADDRESS
-build_server:
+
+build_backend:
   stage: build
   image: docker:latest
   rules:
@@ -19,12 +21,28 @@ build_server:
     - docker:dind
   before_script:
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - cd real-estate-backend
   script:
-    - cd real-estate-server
-    - docker build -t $SERVER_IMAGE:$CI_COMMIT_SHORT_SHA .
-    - docker tag $SERVER_IMAGE:$CI_COMMIT_SHORT_SHA $SERVER_IMAGE:latest
-    - docker push $SERVER_IMAGE:$CI_COMMIT_SHORT_SHA
-    - docker push $SERVER_IMAGE:latest
+    - docker build -t $BACKEND_IMAGE:$CI_COMMIT_SHORT_SHA ./docker
+    - docker tag $BACKEND_IMAGE:$CI_COMMIT_SHORT_SHA $BACKEND_IMAGE:latest
+    - docker push $BACKEND_IMAGE:$CI_COMMIT_SHORT_SHA
+    - docker push $BACKEND_IMAGE:latest
+
+build_crawlers:
+  stage: build
+  image: docker:latest
+  rules:
+    - if: $CI_COMMIT_REF_NAME == "main"
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - cd real-estate-crawlers
+  script:
+    - docker build -t $CRAWLERS_IMAGE:$CI_COMMIT_SHORT_SHA ./docker
+    - docker tag $CRAWLERS_IMAGE:$CI_COMMIT_SHORT_SHA $CRAWLERS_IMAGE:latest
+    - docker push $CRAWLERS_IMAGE:$CI_COMMIT_SHORT_SHA
+    - docker push $CRAWLERS_IMAGE:latest
 
 build_dashboard:
   stage: build
@@ -42,7 +60,10 @@ build_dashboard:
     - docker push $DASHBOARD_IMAGE:$CI_COMMIT_SHORT_SHA
     - docker push $DASHBOARD_IMAGE:latest
 
-deploy:
+
+
+
+deploy_backend:
   stage: deploy
   rules:
     - if: $CI_COMMIT_REF_NAME == "main"
@@ -58,33 +79,41 @@ deploy:
     - cp "$SSH_KNOWN_HOSTS" ~/.ssh/known_hosts
     - chmod 644 ~/.ssh/known_hosts
   script:
-    - ssh haythem@93.127.203.195 "docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY"
-    - ssh haythem@93.127.203.195 "docker pull $SERVER_IMAGE:latest"
-    - ssh haythem@93.127.203.195 "docker pull $DASHBOARD_IMAGE:latest"
-    - scp compose.prod.yml haythem@93.127.203.195:/home/haythem/
-    - scp -r entrypoints haythem@93.127.203.195:/home/haythem/
-    - ssh haythem@93.127.203.195 "
-        export SERVER_IMAGE=\"$SERVER_IMAGE\" &&
-        export DASHBOARD_IMAGE=\"$DASHBOARD_IMAGE\" &&
-        export ADMIN_USERNAME=\"$ADMIN_USERNAME\" &&
-        export ADMIN_PASSWORD=\"$ADMIN_PASSWORD\" &&
-        export MONGO_USER=\"$MONGO_USER\" &&
-        export MONGO_PASSWORD=\"$MONGO_PASSWORD\" &&
-        export MONGO_DATABASE=\"$MONGO_DATABASE\" &&
-        export AWS_S3_BUCKET_NAME=\"$AWS_S3_BUCKET_NAME\" &&
-        export AWS_S3_ENDPOINT=\"$AWS_S3_ENDPOINT\" &&
-        export AWS_S3_ACCESS_KEY=\"$AWS_S3_ACCESS_KEY\" &&
-        export AWS_S3_SECRET_KEY=\"$AWS_S3_SECRET_KEY\" &&
-        export REAL_ESTATE_API_KEY=\"$REAL_ESTATE_API_KEY\" &&
-        export JWT_SECRET=\"$JWT_SECRET\" &&
-        export REDIS_HOST=\"$REDIS_HOST\" &&
-        export MONGODB_URI=\"$MONGODB_URI\" &&
-        export PROXY_API_KEY=\"$PROXY_API_KEY\" &&
-        export TWO_CAPTCHA_API_KEY=\"$TWO_CAPTCHA_API_KEY\" &&
-        export CAPSOLVER_API_KEY=\"$CAPSOLVER_API_KEY\" &&
-        export SHIFTER_API_KEY=\"$SHIFTER_API_KEY\" &&
-        docker compose -f /home/haythem/compose.prod.yml down &&
-        docker image prune -f && 
-        docker compose -f /home/haythem/compose.prod.yml build --no-cache &&
-        docker compose -f /home/haythem/compose.prod.yml up -d"
+    - ssh haythem@"$BACKEND_HOST" "docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY"
+    - ssh haythem@"$BACKEND_HOST" "docker pull $BACKEND_IMAGE:latest"
+    - ssh haythem@"$BACKEND_HOST" "docker pull $DASHBOARD_IMAGE:latest"
+    - scp real-estate-backend/compose.prod.yml haythem@"$BACKEND_HOST":/home/haythem/real-estate-backend/
+    - scp "$BACKEND_ENV_KEYS" haythem@"$BACKEND_HOST":/home/haythem/real-estate-backend/environments/production.env
+    - ssh haythem@"$BACKEND_HOST" "docker compose -f /home/haythem/real-estate-backend/compose.prod.yml down"
+    - ssh haythem@"$BACKEND_HOST" "docker image prune -f"
+    - ssh haythem@"$BACKEND_HOST" "docker compose -f /home/haythem/real-estate-backend/compose.prod.yml build --no-cache"
+    - ssh haythem@"$BACKEND_HOST" "docker compose -f /home/haythem/real-estate-backend/compose.prod.yml up -d"
+  
+
+deploy_crawlers:
+  stage: deploy
+  rules:
+    - if: $CI_COMMIT_REF_NAME == "main"
+  environment:
+    name: production
+  before_script:
+    - 'command -v ssh-agent >/dev/null || ( apt-get update -y && apt-get install openssh-client -y )'
+    - eval $(ssh-agent -s)
+    - chmod 400 "$SSH_PRIVATE_KEY"
+    - ssh-add "$SSH_PRIVATE_KEY"
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - cp "$SSH_KNOWN_HOSTS" ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+  script:
+    - ssh haythem@"$CRAWLERS_HOST" "docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY"
+    - ssh haythem@"$CRAWLERS_HOST" "docker pull $CRAWLERS_IMAGE:latest"
+    - scp real-estate-crawlers/compose.prod.yml haythem@"$CRAWLERS_HOST":/home/haythem/real-estate-crawlers/
+    - scp "$CRAWLERS_ENV_KEYS" haythem@"$CRAWLERS_HOST":/home/haythem/real-estate-crawlers/environments/production.env
+    - ssh haythem@"$CRAWLERS_HOST" "docker compose -f /home/haythem/real-estate-crawlers/compose.prod.yml down"
+    - ssh haythem@"$CRAWLERS_HOST" "docker image prune -f"
+    - ssh haythem@"$CRAWLERS_HOST" "docker compose -f /home/haythem/real-estate-crawlers/compose.prod.yml build --no-cache"
+    - ssh haythem@"$CRAWLERS_HOST" "docker compose -f /home/haythem/real-estate-crawlers/compose.prod.yml up -d"
+
+
     
