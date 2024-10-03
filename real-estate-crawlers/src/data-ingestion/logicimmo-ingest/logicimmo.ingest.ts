@@ -12,7 +12,7 @@ export const logicimmoIngest = async (job: Job) => {
         const { data_ingestion } = job.data;
         const cleaned_data = await clean_logicimmo_data(data_ingestion);
         const processed_data = await logicimmo_preprocess_data(cleaned_data);
-        await save_mongodb(processed_data);
+        await save_mongodb([processed_data]);
         logger.info('Ingest data successfully!');
     } catch (error) {
         logger.error('Ingest data failed.', error);

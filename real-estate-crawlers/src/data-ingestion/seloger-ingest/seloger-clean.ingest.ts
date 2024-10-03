@@ -61,8 +61,12 @@ const extractLandSurfaceFromTags = (tags: string[]): number | null => {
 }
 
 const extractFloorFromTags = (tags: string[]): number | null => {
-    const floorTag = tags.find(tag => tag.includes('Étage'));
-    return floorTag ? parseInt(floorTag.split(' ')[1].split('/')[0]) : null;
+    try {
+        const floorTag = tags.find(tag => tag.includes('Étage'));
+        return floorTag ? parseInt(floorTag.split(' ')[1].split('/')[0]) : null;
+    } catch {
+        return null;
+    }
 }
 
 const extractOptions = (data: any): Partial<EstateOption> => {

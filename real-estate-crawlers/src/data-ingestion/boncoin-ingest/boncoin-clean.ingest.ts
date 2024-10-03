@@ -1,4 +1,4 @@
-import { EstateOption, realEstateAd } from "../../models/real-estate-ad.mongdb";
+import { EstateOption, realEstateAd } from "../../models/mongodb/real-estate-ad.mongdb";
 import { boncoinCategoryMapping, extractLocation } from "../../utils/realEstateAds.utils";
 import { CRAWLER_ORIGIN } from "../../utils/enum";
 import { uploadFileIntoBucket, uploadFilesIntoBucket } from "../file.ingestion";

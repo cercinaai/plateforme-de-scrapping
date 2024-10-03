@@ -26,8 +26,8 @@ export const uploadFileIntoBucket = async (file: string, target: string): Promis
         const url = urlWithoutQueryParams(file);
         const fileName = url.split('/').pop();
         const targetName = `${target}/${fileName}`;
-        const file_download = await axios.get(file, { responseType: 'arraybuffer' });
-        if (file_download.status !== 200) return 'N/A';
+        const file_download = await axios.get(file, { responseType: 'arraybuffer' }).catch(() => null);
+        if (!file_download || file_download.status !== 200) return 'N/A';
         const fileBuffer = Buffer.from(file_download.data, 'binary');
         const command = new PutObjectCommand({
             Bucket: process.env.AWS_S3_BUCKET_NAME,

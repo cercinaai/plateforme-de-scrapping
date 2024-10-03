@@ -29,7 +29,6 @@ export const start_seloger_crawler = async (job: Job) => {
 const initialize = async (job: Job) => {
     logger.info('Initializing seloger crawler...');
     await job.updateData({
-
         status: CRAWLER_STATUS.RUNNING,
         total_data_grabbed: 0,
         REGION_REACHED: 0,
@@ -54,7 +53,6 @@ const initialize = async (job: Job) => {
             // { name: 'La Reunion', link: ['906'], limit: 42, data_grabbed: 0 },
             // { name: 'Mayotte', link: ['903'], limit: 1, data_grabbed: 0 },
         ]
-
     });
     logger.info('Seloger initialized!');
 }

@@ -1,5 +1,6 @@
 import { Configuration, LogLevel } from "crawlee";
-import { CrawlerConfigModel } from "../models/mongodb/crawler-config.mongodb";
+import { CrawlerConfig, CrawlerConfigModel } from "../models/mongodb/crawler-config.mongodb";
+import { initLogger } from "./logger.config";
 
 export const boncoinConfig = new Configuration({
     logLevel: LogLevel.ERROR,
@@ -128,4 +129,15 @@ export const generateDefaultCrawlersConfig = async () => {
             regions: []
         },
     });
+}
+
+
+export const getCrawlersConfig = async (): Promise<CrawlerConfig> => {
+    const logger = initLogger('GLOBAL-ERRORS');
+    const haveConfig = await CrawlerConfigModel.findOne({})
+    if (!haveConfig) {
+        logger.error('No Crawler Config Found!');
+        process.kill(process.pid, 'SIGTERM');
+    }
+    return haveConfig as CrawlerConfig;
 }
