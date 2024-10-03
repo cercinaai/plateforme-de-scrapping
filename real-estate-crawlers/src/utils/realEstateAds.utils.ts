@@ -47,7 +47,7 @@ export const logicImmoCategoryMapping: Record<string, string> = {
     "av_18": universalCategoryMapping["Bureau"],
 };
 
-export const BienIciCategoryMapping: Record<string, string> = {
+export const bienIciCategoryMapping: Record<string, string> = {
     "house": universalCategoryMapping["Maison"],
     "flat": universalCategoryMapping["Appartement"],
     "terrain": universalCategoryMapping["Terrain"],
