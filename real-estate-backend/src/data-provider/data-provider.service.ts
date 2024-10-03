@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
-import { Ad } from "src/models/ad.schema";
+import { realEstateAd } from "src/models/ad.schema";
 import { FrenshDepartments, FrenshRegions } from "src/models/frensh-territory";
 import { FilterAdsDto } from "./utils/adsFilterDTO";
 
@@ -9,10 +9,10 @@ import { FilterAdsDto } from "./utils/adsFilterDTO";
 @Injectable()
 export class DataProviderService {
 
-    constructor(@InjectModel(Ad.name) private adModel: Model<Ad>) { }
+    constructor(@InjectModel(realEstateAd.name) private adModel: Model<realEstateAd>) { }
 
 
-    async filterAdsList(query: FilterAdsDto): Promise<Ad[] | { ads: Ad[], total: number }> {
+    async filterAdsList(query: FilterAdsDto): Promise<realEstateAd[] | { ads: realEstateAd[], total: number }> {
         let filters: any = {};
         let sort: any = {};
         if (query.origin && query.origin.length > 0) filters.origin = { $in: query.origin };
@@ -78,7 +78,7 @@ export class DataProviderService {
         if (typeof query.hasGarage !== 'undefined') filters['options.hasGarage'] = query.hasGarage;
         if (query.exposition) filters['options.exposition'] = query.exposition;
         if (typeof query.parkingPlacesQuantity !== 'undefined') filters['options.parkingPlacesQuantity'] = query.parkingPlacesQuantity;
-        let ads: Ad[];
+        let ads: realEstateAd[];
         // FIRE THE QUERY
         if (query.page && query.limit) {
             ads = await this.adModel.find(filters).sort(sort).skip((query.page - 1) * query.limit).limit(query.limit);

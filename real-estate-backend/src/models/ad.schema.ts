@@ -5,10 +5,10 @@ import { Duplicate, DuplicateSchema } from './duplicate.schema';
 import { HydratedDocument } from 'mongoose';
 import { EstateOption, EstateOptionSchema } from './estateOption.schema';
 
-export type AdDocument = HydratedDocument<Ad>;
+export type AdDocument = HydratedDocument<realEstateAd>;
 
 @Schema({ timestamps: true })
-export class Ad {
+export class realEstateAd {
 
     @Prop({ required: true })
     origin: string;
@@ -103,7 +103,7 @@ export class Ad {
 
 }
 
-export const AdSchema = SchemaFactory.createForClass(Ad);
+export const realEstateAdSchema = SchemaFactory.createForClass(realEstateAd);
 
-AdSchema.index({ origin: 1, adId: 1 }, { unique: true });
-AdSchema.index({ 'location.coordinates': '2dsphere' });
+realEstateAdSchema.index({ origin: 1, adId: 1 }, { unique: true });
+realEstateAdSchema.index({ 'location.coordinates': '2dsphere' });

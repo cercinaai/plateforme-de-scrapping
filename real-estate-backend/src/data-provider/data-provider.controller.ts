@@ -3,7 +3,7 @@ import { InjectModel } from "@nestjs/mongoose";
 import { Throttle } from "@nestjs/throttler";
 import { Model } from "mongoose";
 import { RealEstateAuthGuard } from "../auth/guard/RealEstate.guard";
-import { Ad } from "../models/ad.schema";
+import { realEstateAd } from "../models/ad.schema";
 import { CrawlerSession } from "../models/crawlerSession.schema";
 import { DataProviderService } from "./data-provider.service";
 import { FilterAdsDto } from "./utils/adsFilterDTO";
@@ -44,7 +44,7 @@ export class DataProviderController {
         defaultValue: 'EMPTY'
     });
 
-    constructor(@InjectModel(CrawlerSession.name) private crawlerSessionModel: Model<CrawlerSession>, @InjectModel(Ad.name) private adModel: Model<Ad>, private dataProviderService: DataProviderService) { }
+    constructor(@InjectModel(CrawlerSession.name) private crawlerSessionModel: Model<CrawlerSession>, @InjectModel(realEstateAd.name) private adModel: Model<realEstateAd>, private dataProviderService: DataProviderService) { }
 
     @Throttle({ short: { limit: 2, ttl: 1000 }, long: { limit: 5, ttl: 60000 } })
     @UseGuards(RealEstateAuthGuard)
@@ -64,7 +64,7 @@ export class DataProviderController {
     @Throttle({ short: { limit: 2, ttl: 1000 }, long: { limit: 15, ttl: 60000 } })
     @UseGuards(RealEstateAuthGuard)
     @Get('ad-list')
-    async get_ad(@Query() query: FilterAdsDto): Promise<Ad[] | { ads: Ad[], total: number }> {
+    async get_ad(@Query() query: FilterAdsDto): Promise<realEstateAd[] | { ads: realEstateAd[], total: number }> {
         if (!query.page || !query.limit) {
             query.page = 1;
             query.limit = 20;
@@ -75,7 +75,7 @@ export class DataProviderController {
     @Throttle({ short: { limit: 2, ttl: 1000 }, long: { limit: 10, ttl: 60000 } })
     @UseGuards(RealEstateAuthGuard)
     @Get('single-ad')
-    async get_single_ad(@Query('_id') _id?: string, @Query('adId') adId?: string,): Promise<Ad> {
+    async get_single_ad(@Query('_id') _id?: string, @Query('adId') adId?: string,): Promise<realEstateAd> {
         if (!_id && !adId) {
             throw new BadRequestException('Either _id or adId must be provided');
         }
@@ -90,7 +90,7 @@ export class DataProviderController {
     @Throttle({ short: { limit: 2, ttl: 1000 }, long: { limit: 5, ttl: 60000 } })
     @UseGuards(RealEstateAuthGuard)
     @Get('similar-ads')
-    async get_similar_ads(@Query('_id') _id: string): Promise<Ad[]> {
+    async get_similar_ads(@Query('_id') _id: string): Promise<realEstateAd[]> {
         // Fetch the ad by its ID
         const ad = await this.adModel.findById(_id);
         if (!ad) {
