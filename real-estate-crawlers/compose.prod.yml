@@ -8,7 +8,6 @@ services:
       - ./environments/production.env
     command: /bin/sh -c 'redis-server --appendonly yes --requirepass $${REDIS_PASSWORD}'
     volumes:
-      - redis_data:/data
       - ./entrypoints/redis.conf:/usr/local/etc/redis/redis.conf
   
   bull-monitor:
@@ -28,6 +27,3 @@ services:
     depends_on:
       - redis
 
-volumes:
-  redis_data:
-    external: true
