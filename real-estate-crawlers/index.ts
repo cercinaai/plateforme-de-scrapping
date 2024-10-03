@@ -36,7 +36,7 @@ const server = http.createServer();
 
 
 server.on('request', async (req, res) => {
-    if (req.method === 'GET' && req.url === '/populate-database' && req.headers['x-api-key'] === process.env.API_KEY) {
+    if (req.method === 'GET' && req.url === '/populate-database' && req.headers['x-api-key'] === process.env.CERCINA_DEFAULT_KEY) {
         await start_crawlers();
         res.end('Database populated.');
     } else {

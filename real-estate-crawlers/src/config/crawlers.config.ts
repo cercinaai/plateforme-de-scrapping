@@ -57,7 +57,7 @@ export const generateDefaultCrawlersConfig = async () => {
     if (haveConfig) return;
     await CrawlerConfigModel.create({
         can_crawl: true,
-        api_key: process.env.API_KEY,
+        api_key: process.env.CERCINA_DEFAULT_KEY,
         proxy_urls: [
             'http://hephaestus.p.shifter.io:10065',
             'http://hephaestus.p.shifter.io:10066',
