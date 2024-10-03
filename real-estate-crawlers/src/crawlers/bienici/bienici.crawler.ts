@@ -3,7 +3,7 @@ import { FinalStatistics, PlaywrightCrawler, RequestQueue } from "crawlee";
 import { initLogger } from "../../config/logger.config";
 import { CRAWLER_ORIGIN, CRAWLER_STATUS } from "../../utils/enum";
 import { bieniciCrawlerOption } from "../../config/playwright.config";
-import { bieniciConfig } from "../../config/crawlers.config";
+import { bieniciConfig, getCrawlersConfig } from "../../config/crawlers.config";
 import { handleFailedCrawler } from "../../utils/handleCrawlerState.util";
 import { createBieniciRouter } from "./router/bienici.router";
 import { bieniciPreNavigationHooks } from "./bienici-hooks.navigation";
@@ -22,9 +22,10 @@ export const start_bienici_crawler = async (job: Job) => {
 
 const initialize = async (job: Job) => {
     logger.info('Initializing bienici crawler...');
+    const { bienici_limits } = await getCrawlersConfig();
     await job.updateData({
         status: CRAWLER_STATUS.RUNNING,
-        AD_LIMIT: 1500,
+        AD_LIMIT: bienici_limits.total,
         total_data_grabbed: 0,
         PAGE_REACHED: 1
     });

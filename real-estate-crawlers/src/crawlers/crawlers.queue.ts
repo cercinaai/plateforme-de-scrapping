@@ -7,9 +7,13 @@ import { start_bienici_crawler } from './bienici/bienici.crawler';
 import { start_logicimmo_crawler } from './logic-immo/logicimmo.crawler';
 import { handleCompletedJob, handleFailedJob } from '../utils/handleCrawlerState.util';
 import { CrawlerSessionModel } from '../models/mongodb/crawler-session.mongodb';
+import { getCrawlersConfig } from '../config/crawlers.config';
 
 
 export const start_crawlers = async () => {
+    // LOAD CONFIG
+    const config = await getCrawlersConfig();
+    if (!config.can_crawl) return;
     const crawlers_queue = await create_crawler_queue();
     const boncoin_seloger_worker = await create_boncoin_seloger_worker(crawlers_queue);
     const logicimmo_bienici_worker = await create_logicimmo_bienici_worker(crawlers_queue);

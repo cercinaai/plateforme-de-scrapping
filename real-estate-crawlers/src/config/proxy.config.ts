@@ -1,6 +1,6 @@
-import { CrawlerConfigModel } from "../models/mongodb/crawler-config.mongodb"
+import { getCrawlersConfig } from "./crawlers.config";
 
 export const initProxy = async (): Promise<string[]> => {
-    const crawlerConfig = await CrawlerConfigModel.findOne({});
-    return crawlerConfig?.proxy_urls || [];
+    const crawlerConfig = await getCrawlersConfig();
+    return crawlerConfig.proxy_urls;
 }

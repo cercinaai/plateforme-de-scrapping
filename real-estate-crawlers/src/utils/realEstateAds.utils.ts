@@ -187,3 +187,11 @@ export const calculateAdAccuracy = (ad: Partial<realEstateAd>): number => {
     }
     return Math.round(accuracy);
 }
+
+
+export const transform_crawler_limits = (limits: { total: number, regions: Array<{ name: string, link: string | string[], limit: number; }> }) => {
+    return limits.regions.map((region) => {
+        region.limit = Math.round(region.limit / limits.total * 100);
+        return region
+    });
+}

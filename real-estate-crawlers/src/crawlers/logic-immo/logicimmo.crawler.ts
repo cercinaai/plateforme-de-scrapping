@@ -4,9 +4,10 @@ import { initLogger } from "../../config/logger.config";
 import { CRAWLER_ORIGIN, CRAWLER_STATUS } from "../../utils/enum";
 import { initProxy } from "../../config/proxy.config";
 import { logicimmoCrawlerOption } from "../../config/playwright.config";
-import { logicimmoConfig } from "../../config/crawlers.config";
+import { getCrawlersConfig, logicimmoConfig } from "../../config/crawlers.config";
 import { handleFailedCrawler } from "../../utils/handleCrawlerState.util";
 import { build_link, createLogicimmoRouter } from "./router/logicimmo.router";
+import { transform_crawler_limits } from "../../utils/realEstateAds.utils";
 
 const logger = initLogger(CRAWLER_ORIGIN.LOGICIMMO);
 
@@ -29,29 +30,15 @@ export const start_logicimmo_crawler = async (job: Job) => {
 
 const initialize = async (job: Job) => {
     logger.info('Initializing logicimmo crawler...');
+    const { logicimmo_limits } = await getCrawlersConfig();
+    const regions = transform_crawler_limits(logicimmo_limits);
     await job.updateData({
         total_data_grabbed: 0,
         status: CRAWLER_STATUS.RUNNING,
         REGION_REACHED: 0,
         PAGE_REACHED: 1,
         DATA_REACHED: 0,
-        france_locality: [
-            { name: 'Île-de-France', link: 'ile-de-france,1_0', limit: 563 },
-            { name: "Provence-Alpes-Côte d'Azur", link: 'provence-alpes-cote-d-azur,21_0', limit: 398 },
-            { name: 'Centre-Val de Loire', link: 'centre,5_0', limit: 85 },
-            { name: 'Bourgogne-Franche-Comté', link: 'Bourgogne,7_0', limit: 89 },
-            { name: 'Normandie', link: 'haute-normandie,basse-normandie,4_0,6_0', limit: 107 },
-            { name: 'Hauts-de-France', link: 'picardie,nord-pas-de-calais,3_0,8_0', limit: 150 },
-            { name: 'Grand Est', link: 'champagne-ardenne,lorraine,alsace,2_0,9_0,10_0', limit: 168 },
-            { name: 'Pays de la Loire', link: 'pays-de-la-loire,12_0', limit: 146 },
-            { name: 'Bretagne', link: 'bretagne,13_0', limit: 134 },
-            { name: 'Nouvelle-Aquitaine', link: 'aquitaine,15_0', limit: 303 },
-            { name: 'Occitanie', link: 'midi-pyrenees,languedoc-roussillon,16_0,20_0', limit: 153 },
-            { name: 'Auvergne-Rhône-Alpes', link: 'Auvergne,19_0', limit: 357 },
-            { name: 'Corse', link: 'corse,22_0', limit: 23 },
-            { name: 'Guadeloupe', link: 'guadeloupe-97,40266_1', limit: 18 },
-            { name: 'Guyane', link: 'guyane-973,la-reunion-97,martinique-97,40267_1,40270_1,40269_1', limit: 5 },
-        ]
+        france_locality: regions
     })
     logger.info('Logicimmo crawler initialized!');
 }
