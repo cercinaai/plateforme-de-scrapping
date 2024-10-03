@@ -23,6 +23,7 @@ export const bypassDataDomeCaptchaByCapSolver = async (context: PlaywrightCrawli
             body: JSON.stringify(playload)
         });
         const createTaskRes = await createTask.json();
+        console.log(createTaskRes);
         const task_id = createTaskRes.taskId;
         if (!task_id) throw new Error('Failed to create CapSolver task');
         while (true) {

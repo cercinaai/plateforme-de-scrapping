@@ -15,15 +15,11 @@ export const start_crawlers = async () => {
     const config = await getCrawlersConfig();
     if (!config.can_crawl) return;
     const crawlers_queue = await create_crawler_queue();
-    const boncoin_seloger_worker = await create_boncoin_seloger_worker(crawlers_queue);
-    const logicimmo_bienici_worker = await create_logicimmo_bienici_worker(crawlers_queue);
+    const crawlers_worker = await create_worker(crawlers_queue);
     const session_id = await create_initial_session()
-    boncoin_seloger_worker.on('completed', async (job) => handleCompletedJob(job, session_id));
-    boncoin_seloger_worker.on('failed', async (job, error) => handleFailedJob(job, error, session_id));
-    logicimmo_bienici_worker.on('completed', async (job) => handleCompletedJob(job, session_id));
-    logicimmo_bienici_worker.on('failed', async (job, error) => handleFailedJob(job, error, session_id));
-    await boncoin_seloger_worker.run();
-    await logicimmo_bienici_worker.run();
+    crawlers_worker.on('completed', async (job) => handleCompletedJob(job, session_id));
+    crawlers_worker.on('failed', async (job, error) => handleFailedJob(job, error, session_id));
+    await crawlers_worker.run();
 }
 
 export const start_crawlers_revision = async () => { }
@@ -37,18 +33,13 @@ const create_crawler_queue = async () => {
     return crawlers_queue
 }
 
-const create_boncoin_seloger_worker = async (queue: Queue) => {
+const create_worker = async (queue: Queue) => {
     const crawlers_worker = new Worker(queue.name, async (job) => {
         if (job.name === CRAWLER_ORIGIN.BONCOIN) return start_boncoin_crawler(job);
         if (job.name === CRAWLER_ORIGIN.SELOGER) return start_seloger_crawler(job);
-    }, { ...initRedis(), autorun: false, concurrency: 2 });
-    return crawlers_worker
-}
-const create_logicimmo_bienici_worker = async (queue: Queue) => {
-    const crawlers_worker = new Worker(queue.name, async (job) => {
         if (job.name === CRAWLER_ORIGIN.LOGICIMMO) return start_logicimmo_crawler(job);
         if (job.name === CRAWLER_ORIGIN.BIENICI) return start_bienici_crawler(job);
-    }, { ...initRedis(), autorun: false, concurrency: 1 });
+    }, { ...initRedis(), autorun: false, concurrency: 2 });
     return crawlers_worker
 }
 

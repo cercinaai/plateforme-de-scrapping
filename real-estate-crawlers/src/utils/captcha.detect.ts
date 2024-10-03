@@ -28,7 +28,7 @@ export const detectDataDomeCaptcha = async (context: PlaywrightCrawlingContext, 
 
 
 const handleCaptchaDetection = async (context: PlaywrightCrawlingContext) => {
-    const { page, session, log } = context;
+    const { page, session, log, proxyInfo } = context;
     const cursor = await createCursor(page as any);
     const captchaElement = await page.$("iframe[src*='https://geo.captcha-delivery.com']") as ElementHandle<SVGElement | HTMLElement>;
     const captchaUrl = await captchaElement?.getAttribute('src') as string;
@@ -41,7 +41,7 @@ const handleCaptchaDetection = async (context: PlaywrightCrawlingContext) => {
     const isFlaggedText = await isFlaggedElement.textContent() as string;
     if (isFlaggedText.trim().match(/bloqué/i) || isFlaggedText.trim().match(/blocked/i)) {
         session?.retire();
-        throw new Error('Session flagged. Switching to new session');
+        throw new Error(`${proxyInfo?.hostname}:${proxyInfo?.port} Is flagged. Switching to new session`);
     }
     await cursor.actions.randomMove();
     await bypassDataDomeCaptchaByCapSolver(context, captchaUrl);

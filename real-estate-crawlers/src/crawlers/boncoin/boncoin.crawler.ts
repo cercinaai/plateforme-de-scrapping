@@ -39,6 +39,7 @@ const initialize = async (job: Job) => {
         total_data_grabbed: 0,
         REGION_REACHED: 0,
         PAGE_REACHED: 1,
+        DATA_REACHED: 0,
         france_locality: regions
     });
     logger.info('Boncoin crawler initialized!');

@@ -12,7 +12,7 @@ const logger = initLogger(CRAWLER_ORIGIN.BONCOIN);
 
 export const boncoinDefaultHandler = async (job: Job, context: PlaywrightCrawlingContext) => {
     const { page, closeCookieModals, waitForSelector, enqueueLinks } = context;
-    let data_grabbed = 0;
+    let { DATA_REACHED } = job.data;
     let { name, limit } = job.data.france_locality[job.data.REGION_REACHED];
     let { REGION_REACHED, PAGE_REACHED } = job.data;
     await page.waitForLoadState('load');
@@ -21,7 +21,7 @@ export const boncoinDefaultHandler = async (job: Job, context: PlaywrightCrawlin
     const cursor = await createCursor(page as any);
     // PAGE LOOP
     let ads: any;
-    while (data_grabbed < limit) {
+    while (DATA_REACHED < limit) {
         await waitForSelector("a[title='Page suivante']", 10000);
         await cursor.actions.randomMove();
         if (PAGE_REACHED === 1) {
@@ -30,8 +30,8 @@ export const boncoinDefaultHandler = async (job: Job, context: PlaywrightCrawlin
         }
         if (!ads) throw new Error('No ads found');
         await ingestData(ads, CRAWLER_ORIGIN.BONCOIN);
-        data_grabbed += ads.length;
-        await job.updateData({ ...job.data, total_data_grabbed: job.data.total_data_grabbed + ads.length });
+        DATA_REACHED += ads.length
+        let ads_numbers = ads.length;
         ads = null
         const nextButton = await page.$("a[title='Page suivante']") as ElementHandle<SVGElement | HTMLElement>;
         const nextButtonPosition = await nextButton.boundingBox() as { x: number, y: number };
@@ -39,8 +39,9 @@ export const boncoinDefaultHandler = async (job: Job, context: PlaywrightCrawlin
         await page.mouse.move(nextButtonPosition.x - 10, nextButtonPosition.y - 10);
         ads = await interceptBoncoinHttpResponse(context);
         await page.waitForTimeout(2000);
-        logger.info(`Data grabbed: ${data_grabbed} of ${limit} for (${name}) in page (${PAGE_REACHED})`);
+        logger.info(`Data grabbed: ${DATA_REACHED} of ${limit} for (${name}) in page (${PAGE_REACHED})`);
         PAGE_REACHED++;
+        await job.updateData({ ...job.data, PAGE_REACHED: PAGE_REACHED, DATA_REACHED: DATA_REACHED, total_data_grabbed: job.data.total_data_grabbed + ads_numbers });
     }
     if (REGION_REACHED >= job.data.france_locality.length - 1) return;
     await job.updateData({ ...job.data, REGION_REACHED: REGION_REACHED + 1, PAGE_REACHED: 1 });
