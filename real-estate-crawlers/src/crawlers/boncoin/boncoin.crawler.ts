@@ -9,6 +9,8 @@ import { boncoinConfig, getCrawlersConfig } from "../../config/crawlers.config";
 import { createBoncoinRouter } from "./router/boncoin.router";
 import { build_link } from "./router/handlers/boncoin-default.handler";
 import { transform_crawler_limits } from "../../utils/realEstateAds.utils";
+import { crawl } from '../../utils/crawl.utils'
+
 
 
 const logger = initLogger(CRAWLER_ORIGIN.BONCOIN);
@@ -17,13 +19,7 @@ export const start_boncoin_crawler = async (job: Job) => {
     logger.info('Starting boncoin crawler...');
     await initialize(job);
     const crawler = await create_crawler(job);
-    const statistics = await crawl(job, crawler).catch(async (err) => {
-        if (crawler.requestQueue) {
-            await crawler.requestQueue.drop();
-        }
-        await crawler.teardown();
-        throw err;
-    });
+    const statistics = await crawl(crawler, [build_link(job)]);
     logger.info('Boncoin crawler finished!');
     return statistics;
 }
@@ -62,10 +58,3 @@ const create_crawler = async (job: Job): Promise<PlaywrightCrawler> => {
     }, boncoinConfig);
 }
 
-const crawl = async (job: Job, crawler: PlaywrightCrawler): Promise<FinalStatistics> => {
-    logger.info('Starting boncoin crawler...');
-    const statistics = await crawler.run([build_link(job)]);
-    await crawler.requestQueue?.drop();
-    await crawler.teardown();
-    return statistics;
-}

@@ -7,15 +7,17 @@ import { bieniciConfig, getCrawlersConfig } from "../../config/crawlers.config";
 import { handleFailedCrawler } from "../../utils/handleCrawlerState.util";
 import { createBieniciRouter } from "./router/bienici.router";
 import { bieniciPreNavigationHooks } from "./bienici-hooks.navigation";
+import { crawl } from "../../utils/crawl.utils";
 
 const logger = initLogger(CRAWLER_ORIGIN.BIENICI);
 
 
 export const start_bienici_crawler = async (job: Job) => {
     logger.info('Starting bienici crawler...');
+    const url = 'https://www.bienici.com/recherche/achat/france/maisonvilla,appartement,parking,terrain,loft,commerce,batiment,chateau,local,bureau,hotel,autres?mode=liste&tri=publication-desc';
     await initialize(job);
     const crawler = await create_crawler(job);
-    const statistics = await crawl(crawler);
+    const statistics = await crawl(crawler, [url]);
     logger.info('Bienici crawler finished!');
     return statistics;
 }
@@ -47,10 +49,3 @@ const create_crawler = async (job: Job): Promise<PlaywrightCrawler> => {
     }, bieniciConfig);
 }
 
-const crawl = async (crawler: PlaywrightCrawler): Promise<FinalStatistics> => {
-    const url = 'https://www.bienici.com/recherche/achat/france/maisonvilla,appartement,parking,terrain,loft,commerce,batiment,chateau,local,bureau,hotel,autres?mode=liste&tri=publication-desc'
-    const statistics = await crawler.run([url]);
-    await crawler.requestQueue?.drop();
-    await crawler.teardown();
-    return statistics;
-}

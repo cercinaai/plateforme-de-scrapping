@@ -8,6 +8,7 @@ import { getCrawlersConfig, selogerConfig } from "../../config/crawlers.config";
 import { build_link, createSelogerRouter } from "./router/seloger.router";
 import { handleFailedCrawler } from "../../utils/handleCrawlerState.util";
 import { transform_crawler_limits } from "../../utils/realEstateAds.utils";
+import { crawl } from "../../utils/crawl.utils";
 
 
 const logger = initLogger(CRAWLER_ORIGIN.SELOGER);
@@ -16,13 +17,7 @@ export const start_seloger_crawler = async (job: Job) => {
     logger.info('Starting seloger crawler...');
     await initialize(job);
     const crawler = await create_crawler(job);
-    const statistics = await crawl(job, crawler).catch(async (err) => {
-        if (crawler.requestQueue) {
-            await crawler.requestQueue.drop();
-        }
-        await crawler.teardown();
-        throw err;
-    });
+    const statistics = await crawl(crawler, [build_link(job)]);
     logger.info('Seloger crawler finished!');
     return statistics;
 }
@@ -59,10 +54,3 @@ const create_crawler = async (job: Job): Promise<PlaywrightCrawler> => {
     }, selogerConfig);
 }
 
-const crawl = async (job: Job, crawler: PlaywrightCrawler): Promise<FinalStatistics> => {
-    logger.info('Starting Seloger crawler...');
-    const statistics = await crawler.run([build_link(job)]);
-    await crawler.requestQueue?.drop();
-    await crawler.teardown();
-    return statistics;
-}

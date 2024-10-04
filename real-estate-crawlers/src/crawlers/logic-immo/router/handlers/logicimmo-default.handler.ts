@@ -23,7 +23,7 @@ export const logicImmoDefaultHandler = async (job: Job, context: PlaywrightCrawl
         await enqueueLinks({ urls: ads_links, label: 'ad-single-url' });
         await job.updateData({ ...job.data, PAGE_REACHED: PAGE_REACHED + 1 })
         DATA_REACHED += ads_links.length;
-        await job.updateData({ ...job.data, DATA_REACHED: DATA_REACHED });
+        await job.updateData({ ...job.data, DATA_REACHED: DATA_REACHED, total_data_grabbed: job.data.total_data_grabbed + ads_links.length });
         logger.info(`Data grabbed: ${DATA_REACHED} of ${limit} for (${name}) in page (${PAGE_REACHED})`);
         await enqueueLinks({ urls: [build_link(job)] });
         return;

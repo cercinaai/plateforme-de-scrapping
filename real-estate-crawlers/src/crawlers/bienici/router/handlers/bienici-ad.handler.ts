@@ -7,7 +7,7 @@ const logger = initLogger(CRAWLER_ORIGIN.BIENICI);
 
 
 export const bieniciAdHandler = async (context: PlaywrightCrawlingContext) => {
-    const { single_ad_response } = context;
+    const { single_ad_response, request } = context;
     const res = await single_ad_response as Response;
     if (!res) return;
     const single_ad = await res.json();
@@ -15,5 +15,5 @@ export const bieniciAdHandler = async (context: PlaywrightCrawlingContext) => {
         logger.info('Ad Not Found Exit...')
         return;
     };
-    await ingestData(single_ad, CRAWLER_ORIGIN.BIENICI);
+    await ingestData({ url: request.url, ...single_ad }, CRAWLER_ORIGIN.BIENICI);
 }
