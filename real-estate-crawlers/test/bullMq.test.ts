@@ -11,45 +11,51 @@ import { PlaywrightCrawler } from 'crawlee';
 
 
 
+const initTestCrawler = (timeout: number) => {
+    return new PlaywrightCrawler({
+        headless: true,
+        requestHandler: async () => {
+            await new Promise((resolve) => setTimeout(resolve, timeout));
+        }
+    });
+}
 
 
-
-describe('Crawler Real-Time Error Handling', () => {
+describe('BullMq Suite Tests', () => {
     config();
     let queue!: Queue
-    let testCrawler =
-        beforeAll(async () => {
-            queue = new Queue('crawlers_test_queue', initRedis());
-        });
+    beforeAll(async () => {
+        queue = new Queue('crawlers_test_queue', initRedis());
+    });
 
     afterAll(async () => {
         await queue.close();
     });
 
-    // test.sequential('Handles non-critical failure gracefully and continues with next job', { timeout: 20000 }, async () => {
-    //     const worker = new Worker(queue.name, async (job) => {
-    //         if (job.name === CRAWLER_ORIGIN.BONCOIN) {
-    //             await new Promise((resolve) => setTimeout(resolve, 1000));
-    //             throw new Error('test error');
-    //         } else {
-    //             await new Promise((resolve) => setTimeout(resolve, 1000));
-    //         }
-    //     }, { ...initRedis() });
+    test.sequential('Handles non-critical failure gracefully and continues with next job', { timeout: 20000 }, async () => {
+        const worker = new Worker(queue.name, async (job) => {
+            if (job.name === CRAWLER_ORIGIN.BONCOIN) {
+                await new Promise((resolve) => setTimeout(resolve, 1000));
+                throw new Error('test error');
+            } else {
+                await new Promise((resolve) => setTimeout(resolve, 1000));
+            }
+        }, { ...initRedis() });
 
-    //     await queue.add(CRAWLER_ORIGIN.SELOGER, {});
-    //     await queue.add(CRAWLER_ORIGIN.BONCOIN, {});
-    //     await queue.add(CRAWLER_ORIGIN.BIENICI, {});
-    //     // WAIT FOR JOBS TO COMPLETE
-    //     await new Promise((resolve) => setTimeout(resolve, 6000));
+        await queue.add(CRAWLER_ORIGIN.SELOGER, {});
+        await queue.add(CRAWLER_ORIGIN.BONCOIN, {});
+        await queue.add(CRAWLER_ORIGIN.BIENICI, {});
+        // WAIT FOR JOBS TO COMPLETE
+        await new Promise((resolve) => setTimeout(resolve, 6000));
 
-    //     const completedJobs = await Promise.all((await queue.getCompleted()).map(async (job) => await handleCompletedJob(job)));
-    //     const failedJobs = await Promise.all((await queue.getFailed()).map(async (job) => await handleFailedJob(job, new Error(job.failedReason))));
-    //     expect(completedJobs.length).toEqual(2);
-    //     expect(failedJobs.length).toEqual(1);
-    //     expectTypeOf(completedJobs).toMatchTypeOf<(CrawlerStats | undefined)[]>
-    //     expectTypeOf(failedJobs).toMatchTypeOf<(CrawlerStats | undefined)[]>
-    //     await worker.close();
-    // });
+        const completedJobs = await Promise.all((await queue.getCompleted()).map(async (job) => await handleCompletedJob(job)));
+        const failedJobs = await Promise.all((await queue.getFailed()).map(async (job) => await handleFailedJob(job, new Error(job.failedReason))));
+        expect(completedJobs.length).toEqual(2);
+        expect(failedJobs.length).toEqual(1);
+        expectTypeOf(completedJobs).toMatchTypeOf<(CrawlerStats | undefined)[]>
+        expectTypeOf(failedJobs).toMatchTypeOf<(CrawlerStats | undefined)[]>
+        await worker.close();
+    });
 
     test.sequential('Handles Timeout Error Gracefully', { timeout: 40000 }, async () => {
         const worker = new Worker(queue.name, async (job) => {
@@ -80,12 +86,3 @@ describe('Crawler Real-Time Error Handling', () => {
 });
 
 
-
-const initTestCrawler = (timeout: number) => {
-    return new PlaywrightCrawler({
-        headless: true,
-        requestHandler: async () => {
-            await new Promise((resolve) => setTimeout(resolve, timeout));
-        }
-    });
-}

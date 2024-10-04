@@ -24,10 +24,7 @@ export const bypassDataDomeCaptchaByCapSolver = async (context: PlaywrightCrawli
         });
         const createTaskRes = await createTask.json();
         const task_id = createTaskRes.taskId;
-        if (!task_id) {
-            log.error('Failed to create CAPSOLVER task');
-            return bypassDataDomeCaptchaBy2Captcha(context, captchaUrl)
-        }
+        if (!task_id) throw new Error('Failed to create CapSolver task');
         while (true) {
             await new Promise(resolve => setTimeout(resolve, 2000));
             const getResultPayload = { clientKey: process.env.CAPSOLVER_API_KEY, taskId: task_id };
@@ -44,7 +41,6 @@ export const bypassDataDomeCaptchaByCapSolver = async (context: PlaywrightCrawli
                 const cookie = parseCookieString(taskRes.solution.cookie);
                 await page.context().addCookies([cookie]);
                 await page.reload({ waitUntil: 'load' });
-                await page.waitForTimeout(2000);
                 await detectDataDomeCaptcha(context);
                 return;
             }

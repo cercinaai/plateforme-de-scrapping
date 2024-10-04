@@ -7,7 +7,9 @@
     "start:dev": "export NODE_ENV=development && vite-node index.ts --watch",
     "start:prod": "export NODE_ENV=production && node dist/index.js",
     "build": "vite build",
-    "test": "export NODE_ENV=development && vitest"
+    "test": "export NODE_ENV=development && vitest",
+    "test:crawler": "export NODE_ENV=development && vitest crawlers",
+    "test:queue": "export NODE_ENV=development && vitest bullMq"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"

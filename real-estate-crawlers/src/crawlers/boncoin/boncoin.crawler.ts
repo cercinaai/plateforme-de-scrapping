@@ -1,7 +1,7 @@
 import { Job } from "bullmq";
 import { CRAWLER_ORIGIN, CRAWLER_STATUS } from "../../utils/enum";
 import { initLogger } from "../../config/logger.config";
-import { type FinalStatistics, PlaywrightCrawler, ProxyConfiguration, RequestQueue } from "crawlee";
+import { PlaywrightCrawler, ProxyConfiguration, RequestQueue } from "crawlee";
 import { boncoinCrawlerOption } from "../../config/playwright.config";
 import { initProxy } from "../../config/proxy.config";
 import { handleFailedCrawler } from "../../utils/handleCrawlerState.util";
