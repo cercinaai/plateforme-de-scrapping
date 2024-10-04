@@ -22,6 +22,8 @@ services:
   crawlers:
     image: ${CRAWLERS_IMAGE}:latest
     container_name: crawlers-container
+    ports:
+      - 3002:3002
     env_file:
       - ./environments/production.env
     depends_on:
