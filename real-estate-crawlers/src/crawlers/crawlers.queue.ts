@@ -39,7 +39,7 @@ const create_worker = async (queue: Queue) => {
         if (job.name === CRAWLER_ORIGIN.SELOGER) return start_seloger_crawler(job);
         if (job.name === CRAWLER_ORIGIN.LOGICIMMO) return start_logicimmo_crawler(job);
         if (job.name === CRAWLER_ORIGIN.BIENICI) return start_bienici_crawler(job);
-    }, { ...initRedis(), autorun: false, concurrency: 2 });
+    }, { ...initRedis(), autorun: false, concurrency: 1 });
     return crawlers_worker
 }
 
