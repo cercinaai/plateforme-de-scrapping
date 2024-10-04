@@ -1,0 +1,103 @@
+$dark-bg: #1e1e1e;
+$darker-bg: #2e2e2e;
+$light-text: #ccc;
+$lighter-text: #888;
+$highlight-color: #1b76ff;
+$debit-color: #ff6b6b;
+$credit-color: #4caf50;
+$border-color: #444;
+$primary_color: #ea3700;
+
+.navigation-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background-color: $dark-bg;
+
+  .top {
+    text-align: center;
+    margin-bottom: 50px;
+
+    .navigation-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      text-align: center;
+      padding: 20px;
+      border: 2px solid $border-color;
+      border-radius: 10px;
+      background-color: $darker-bg;
+      transition: transform 0.3s ease, background-color 0.3s ease;
+
+      &:hover {
+        transform: scale(1.1);
+        background-color: $highlight-color;
+      }
+
+      img {
+        width: 80px;
+        height: 80px;
+        margin-bottom: 10px;
+      }
+
+      h2 {
+        font-size: 24px;
+        font-weight: bold;
+        color: $light-text;
+      }
+    }
+  }
+
+  .bottom {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    gap: 7rem;
+
+    .bottom-left,
+    .bottom-right {
+      text-align: center;
+
+      .navigation-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        cursor: pointer;
+        text-align: center;
+        padding: 20px;
+        border: 2px solid $border-color;
+        border-radius: 10px;
+        background-color: $darker-bg;
+        transition: transform 0.3s ease, background-color 0.3s ease;
+
+        &:hover {
+          transform: scale(1.1);
+          background-color: $highlight-color;
+        }
+
+        img {
+          width: 80px;
+          height: 80px;
+          margin-bottom: 10px;
+        }
+
+        h2 {
+          font-size: 24px;
+          font-weight: bold;
+          color: $light-text;
+        }
+      }
+    }
+  }
+}
+
+a {
+  text-decoration: none;
+}
+
+.navigation-item:hover h2 {
+  color: $light-text;
+}

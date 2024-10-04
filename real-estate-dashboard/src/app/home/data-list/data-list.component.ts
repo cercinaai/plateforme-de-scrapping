@@ -17,10 +17,11 @@ import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/p
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatSelectModule } from '@angular/material/select';
+import { RouterModule } from '@angular/router';
 @Component({
   selector: 'app-data-list',
   standalone: true,
-  imports: [ToastModule, CommonModule, FormsModule, MatSliderModule, MatTableModule, MatPaginatorModule,
+  imports: [ToastModule, CommonModule, RouterModule, FormsModule, MatSliderModule, MatTableModule, MatPaginatorModule,
     MatSortModule, MatDatepickerModule, MatIconModule, MatExpansionModule, MatSlideToggleModule, MatRadioModule, MatDividerModule, MatSelectModule],
   providers: [MessageService],
   templateUrl: './data-list.component.html',

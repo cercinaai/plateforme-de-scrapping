@@ -4,6 +4,8 @@ import { authGuard } from './guards/auth.guard';
 import { LoginComponent } from './login/login.component';
 import { CrawlerSessionComponent } from './home/crawler-session/crawler-session.component';
 import { DataListComponent } from './home/data-list/data-list.component';
+import { NavigationComponent } from './home/navigation/navigation.component';
+import { CrawlerConfigComponent } from './home/crawler-config/crawler-config.component';
 
 export const routes: Routes = [
     {
@@ -18,16 +20,24 @@ export const routes: Routes = [
         children: [
             {
                 path: '',
-                redirectTo: 'data-list',
+                redirectTo: 'navigator',
                 pathMatch: 'full'
             },
             {
-                path: 'crawler-session',
-                component : CrawlerSessionComponent
+                path: 'navigator',
+                component: NavigationComponent
             },
             {
-                path:'data-list',
-                component : DataListComponent
+                path: 'crawler-session',
+                component: CrawlerSessionComponent
+            },
+            {
+                path: 'data-list',
+                component: DataListComponent
+            },
+            {
+                path: 'crawler-config',
+                component: CrawlerConfigComponent
             }
         ]
     },

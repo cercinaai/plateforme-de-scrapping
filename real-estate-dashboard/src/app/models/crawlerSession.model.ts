@@ -1,23 +1,24 @@
+import { CRAWLER_ORIGIN, CRAWLER_STATUS } from "../utils/enum";
+
 export type CrawlerStats = {
-    success_date?: Date;
-    error_date?: Date;
-    crawler_origin: string;
-    status: string;
-    total_data_grabbed: number;
-    total_request?: number;
+    origin: CRAWLER_ORIGIN,
+    status: CRAWLER_STATUS,
+    total_data_grabbed: number,
+    started_at: Date,
+    finished_at: Date,
+    total_requests?: number;
     success_requests?: number;
     failed_requests?: number;
-    failedReason?: string;
-    attempts_count?: number;
-    failed_request_url?: string;
-    proxy_used?: string;
-};
+    error?: {
+        screenshot: string,
+        failedReason: string,
+        failed_request_url: string,
+        proxy_used: string
+    }
+}
 
-export type CrawlerSession = {
-    _id: string;
-    session_date: Date;
-    bienici: CrawlerStats;
-    logicimmo: CrawlerStats;
-    seloger: CrawlerStats;
-    boncoin: CrawlerStats;
-};
+
+export interface CrawlerSession {
+    session_date: Date
+    crawlers_stats: CrawlerStats[]
+}
