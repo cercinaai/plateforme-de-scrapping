@@ -20,6 +20,9 @@ export const start_crawlers = async () => {
     crawlers_worker.on('completed', async (job) => handleCompletedJob(job, session_id));
     crawlers_worker.on('failed', async (job, error) => handleFailedJob(job, error, session_id));
     await crawlers_worker.run();
+    crawlers_worker.removeAllListeners();
+    await crawlers_worker.close();
+    await crawlers_queue.close();
 }
 
 export const start_crawlers_revision = async () => { }
