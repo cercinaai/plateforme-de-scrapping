@@ -11,7 +11,6 @@ import { getCrawlersConfig } from '../config/crawlers.config';
 
 
 export const start_crawlers = async () => {
-    // LOAD CONFIG
     const config = await getCrawlersConfig();
     if (!config.can_crawl) return;
     const crawlers_queue = await create_crawler_queue();
