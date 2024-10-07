@@ -1,0 +1,306 @@
+@if (crawler_config) {
+<div class="centered-pen">
+    <div class="personal-assistant">
+        <div id="felix" class="felix"
+            [ngClass]="{'active': crawler_config.can_crawl , 'inactive': !crawler_config.can_crawl}"
+            (click)="toggleCrawler()">
+            <div class="eyes">
+                <div class="eye left"></div>
+                <div class="eye right"></div>
+            </div>
+        </div>
+        <div class="platform"></div>
+        @if(crawler_config.can_crawl) {
+        <ul class="command-list">
+            <li id="show-api-key-container" (click)="toggleContainer('api_key')"><img width="100%" height="100%"
+                    src="assets/images/api-key.png" alt="Crawler Config Icon"></li>
+            <li (click)="toggleContainer('boncoin')"><img width="100%" height="100%" src="assets/images/crawler-bot.png"
+                    alt="Crawler Config Icon"></li>
+            <li (click)="toggleContainer('bienici')"><img width="100%" height="100%" src="assets/images/crawler-bot.png"
+                    alt="Crawler Config Icon"></li>
+            <li (click)="toggleContainer('logicimmo')"><img width="100%" height="100%"
+                    src="assets/images/crawler-bot.png" alt="Crawler Config Icon"></li>
+            <li (click)="toggleContainer('seloger')"><img width="100%" height="100%" src="assets/images/crawler-bot.png"
+                    alt="Crawler Config Icon"></li>
+            <li (click)="toggleContainer('proxy')"><img width="100%" height="100%" src="assets/images/proxy-image.png"
+                    alt="Crawler Config Icon"></li>
+            <p class="hey-felix lead"></p>
+        </ul>
+        }
+    </div>
+</div>
+<div class="config-container">
+    @switch (containerToOpen) {
+    @case ('api_key') {
+    <div class="api-key-container active">
+        <div class="card-api-key">
+            <div class="content">
+                <div class="img">
+                    <img width="100%" height="100%" src="assets/images/api-key.png" alt="Crawler Config Icon">
+                </div>
+                <div class="details">
+                    <input type="text" [value]="crawler_config.api_key" [(ngModel)]="crawler_config.api_key" readonly
+                        required>
+                </div>
+            </div>
+            @if(!keyGenerated) {
+            <button mat-fab color="primary" (click)="generateNewApiKey()">
+                <mat-icon>generating_tokens</mat-icon>
+            </button>
+            } @else {
+            <button mat-fab color="primary" (click)="copyApiKey()">
+                <mat-icon>content_copy</mat-icon>
+            </button>
+            }
+        </div>
+    </div>
+    }
+    @case ('proxy') {
+    <div class="proxy-container active">
+        @for (proxy of proxyUrls; track $index) {
+        <div class="card-proxy">
+            <div class="content">
+                <div class="img">
+                    <img width="100%" height="100%" src="assets/images/proxy-image.png" alt="Crawler Config Icon">
+                </div>
+                <div class="details">
+                    <input type="text" [value]="proxy" [(ngModel)]="crawler_config.proxy_urls[$index]" required>
+                </div>
+            </div>
+            <button mat-icon-button color="warn" (click)="removeProxy($index)">
+                <mat-icon>delete</mat-icon>
+            </button>
+        </div>
+        }
+        <div class="proxy-button-container">
+            <div class="crud-containers">
+                <button class="add-button" (click)="addProxy()">
+                    <mat-icon>add</mat-icon>
+                    Ajouter un Proxy
+                </button>
+                <button class="reset-button" (click)="resetProxies()">
+                    <mat-icon>restore_from_trash</mat-icon>
+                    réinitialiser les proxies
+                </button>
+            </div>
+            <button class="save-button" (click)="saveProxy()">
+                <mat-icon>save</mat-icon>
+                Enregistrer les proxies
+            </button>
+        </div>
+    </div>
+    }
+    @case ('boncoin') {
+    <div class="crawler-container active">
+        <div class="card-boncoin">
+            <div class="title">
+                <div class="logo">
+                    <img src="assets/images/crawler-bot.png" alt="Crawler Config Icon">
+                    <img src="assets/images/leboncoin.svg" alt="Crawler Config Icon">
+                </div>
+                <div class="total-container">
+                    <div class="circle-wrapper data">
+                        <div class=" circle">
+                            <div class="circle-inner"><span>{{crawler_config.boncoin_limits.total}}</span></div>
+                            <svg viewBox="0 0 36 36" class="circular-chart boncoin">
+                                <path class="circle-bg"
+                                    d="M18 2.0845
+                                                                                                                 a 15.9155 15.9155 0 0 1 0 31.831
+                                                                                                                 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                <path class="circle-bar" stroke-dasharray="100, 100"
+                                    d="M18 2.0845
+                                                                                                                 a 15.9155 15.9155 0 0 1 0 31.831
+                                                                                                                 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                            </svg>
+                        </div>
+                        <div class="circle-label">Nombre total d'annonces</div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="details">
+                <div class="regions-container">
+                    <table class="region-table">
+                        <thead>
+                            <tr>
+                                <th>Region</th>
+                                <th>Limit %</th>
+                                <th>valeur brute</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let region of crawler_config.boncoin_limits.regions">
+                                <td>{{ region.name }}</td>
+                                <td>
+                                    <input type="number" [(ngModel)]="region.limit" class="limit-input" min="1" />
+                                </td>
+                                <td>{{calculateRawValue(region.limit, crawler_config.boncoin_limits.total)}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    }
+
+    @case ('bienici') {
+    <div class="crawler-container active">
+        <div class="card-bienici">
+            <div class="title">
+                <div class="logo">
+                    <img src="assets/images/crawler-bot.png" alt="Crawler Config Icon">
+                    <img src="assets/images/Bien-dici.svg" alt="Crawler Config Icon">
+                </div>
+                <div class="total-container">
+                    <div class="circle-wrapper data">
+                        <div class=" circle">
+                            <div class="circle-inner"><span>{{crawler_config.bienici_limits.total}}</span></div>
+                            <svg viewBox="0 0 36 36" class="circular-chart bienici">
+                                <path class="circle-bg"
+                                    d="M18 2.0845
+                                                                                                                                                     a 15.9155 15.9155 0 0 1 0 31.831
+                                                                                                                                                     a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                <path class="circle-bar" stroke-dasharray="100, 100"
+                                    d="M18 2.0845
+                                                                                                                                                     a 15.9155 15.9155 0 0 1 0 31.831
+                                                                                                                                                     a 15.9155 15.9155 0 0 1 0 -31.831" />
+                            </svg>
+                        </div>
+                        <div class="circle-label">Nombre total d'annonces</div>
+                    </div>
+                </div>
+            </div>
+            <div class="details">
+                <div class="regions-container">
+                    <table class="region-table">
+                        <thead>
+                            <tr>
+                                <th>Region</th>
+                                <th>Limit %</th>
+                                <th>valeur brute</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let region of crawler_config.bienici_limits.regions">
+                                <td>{{ region.name }}</td>
+                                <td>
+                                    <input type="number" [(ngModel)]="region.limit" class="limit-input" min="1" />
+                                </td>
+                                <td>{{calculateRawValue(region.limit, crawler_config.bienici_limits.total)}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    }
+
+    @case ('logicimmo') {
+    <div class="crawler-container active">
+        <div class="card-logicimmo">
+            <div class="title">
+                <div class="logo">
+                    <img src="assets/images/crawler-bot.png" alt="Crawler Config Icon">
+                    <img src="assets/images/logo_licom.svg" alt="Crawler Config Icon">
+                </div>
+                <div class="total-container">
+                    <div class="circle-wrapper data">
+                        <div class=" circle">
+                            <div class="circle-inner"><span>{{crawler_config.logicimmo_limits.total}}</span></div>
+                            <svg viewBox="0 0 36 36" class="circular-chart logicimmo">
+                                <path class="circle-bg"
+                                    d="M18 2.0845
+                                                                                                                                         a 15.9155 15.9155 0 0 1 0 31.831
+                                                                                                                                         a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                <path class="circle-bar" stroke-dasharray="100, 100"
+                                    d="M18 2.0845
+                                                                                                                                         a 15.9155 15.9155 0 0 1 0 31.831
+                                                                                                                                         a 15.9155 15.9155 0 0 1 0 -31.831" />
+                            </svg>
+                        </div>
+                        <div class="circle-label">Nombre total d'annonces</div>
+                    </div>
+                </div>
+            </div>
+            <div class="details">
+                <div class="regions-container">
+                    <table class="region-table">
+                        <thead>
+                            <tr>
+                                <th>Region</th>
+                                <th>Limit %</th>
+                                <th>valeur brute</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let region of crawler_config.logicimmo_limits.regions">
+                                <td>{{ region.name }}</td>
+                                <td>
+                                    <input type="number" [(ngModel)]="region.limit" class="limit-input" min="1" />
+                                </td>
+                                <td>{{calculateRawValue(region.limit, crawler_config.logicimmo_limits.total)}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    }
+    @case ('seloger') {
+    <div class="crawler-container active">
+        <div class="card-seloger">
+            <div class="title">
+                <div class="logo">
+                    <img src="assets/images/crawler-bot.png" alt="Crawler Config Icon">
+                    <img src="assets/images/seloger-logo.svg" alt="Crawler Config Icon">
+                </div>
+                <div class="total-container">
+                    <div class="circle-wrapper data">
+                        <div class=" circle">
+                            <div class="circle-inner"><span>{{crawler_config.seloger_config.total}}</span></div>
+                            <svg viewBox="0 0 36 36" class="circular-chart seloger">
+                                <path class="circle-bg"
+                                    d="M18 2.0845
+                                                                                                                             a 15.9155 15.9155 0 0 1 0 31.831
+                                                                                                                             a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                <path class="circle-bar" stroke-dasharray="100, 100"
+                                    d="M18 2.0845
+                                                                                                                             a 15.9155 15.9155 0 0 1 0 31.831
+                                                                                                                             a 15.9155 15.9155 0 0 1 0 -31.831" />
+                            </svg>
+                        </div>
+                        <div class="circle-label">Nombre total d'annonces</div>
+                    </div>
+                </div>
+            </div>
+            <div class="details">
+                <div class="regions-container">
+                    <table class="region-table">
+                        <thead>
+                            <tr>
+                                <th>Region</th>
+                                <th>Limit %</th>
+                                <th>valeur brute</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let region of crawler_config.seloger_config.regions">
+                                <td>{{ region.name }}</td>
+                                <td>
+                                    <input type="number" [(ngModel)]="region.limit" class="limit-input" min="1" />
+                                </td>
+                                <td>{{calculateRawValue(region.limit, crawler_config.seloger_config.total)}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    }
+    }
+</div>
+}
