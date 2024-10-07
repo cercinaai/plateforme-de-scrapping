@@ -5,13 +5,13 @@ import { CrawlerConfig } from "src/models/CrawlerConfig.schema";
 
 @Injectable()
 export class CrawlerConfigService {
-    constructor(@InjectModel(CrawlerConfig.name) private crawlerConfigModel: Model<CrawlerConfig>) {}
+    constructor(@InjectModel(CrawlerConfig.name) private crawlerConfigModel: Model<CrawlerConfig>) { }
 
-    public getCrawlerConfig() : Promise<CrawlerConfig> {
-        return this.crawlerConfigModel.findOne()
+    public getCrawlerConfig(): Promise<CrawlerConfig> {
+        return this.crawlerConfigModel.findOne({})
     }
 
-    public updateCrawlerConfig(crawlerConfig: CrawlerConfig) : Promise<CrawlerConfig> {
+    public updateCrawlerConfig(crawlerConfig: CrawlerConfig): Promise<CrawlerConfig> {
         return this.crawlerConfigModel.findOneAndUpdate({}, crawlerConfig, { upsert: true, new: true })
     }
 }

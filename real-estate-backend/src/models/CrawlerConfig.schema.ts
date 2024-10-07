@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
-import { SchemaTypes } from "mongoose";
+import { Model, SchemaTypes } from "mongoose";
 
 export type CrawlerConfigDocument = CrawlerConfig & Document;
 
@@ -26,27 +26,38 @@ export class SubCrawlerConfig {
 
 @Schema()
 export class CrawlerConfig {
-    @Prop({ required: true })
-    can_crawl: boolean;
+  @Prop({ required: true })
+  can_crawl: boolean;
 
-    @Prop({ required: true })
-    api_key: string;
+  @Prop({ required: true })
+  api_key: string;
 
-    @Prop({ type: [String] })
-    proxy_urls: string[];
+  @Prop({ type: [String] })
+  proxy_urls: string[];
 
-    @Prop({ type: SubCrawlerConfig, required: true })
-    seloger_config: SubCrawlerConfig;
+  @Prop({ type: SubCrawlerConfig, required: true })
+  seloger_config: SubCrawlerConfig;
 
-    @Prop({ type: SubCrawlerConfig, required: true })
-    boncoin_limits: SubCrawlerConfig;
+  @Prop({ type: SubCrawlerConfig, required: true })
+  boncoin_limits: SubCrawlerConfig;
 
-    @Prop({ type: SubCrawlerConfig, required: true })
-    bienici_limits: SubCrawlerConfig;
+  @Prop({ type: SubCrawlerConfig, required: true })
+  bienici_limits: SubCrawlerConfig;
 
-    @Prop({ type: SubCrawlerConfig, required: true })
-    logicimmo_limits: SubCrawlerConfig;
+  @Prop({ type: SubCrawlerConfig, required: true })
+  logicimmo_limits: SubCrawlerConfig;
 }
 
 
 export const CrawlerConfigSchema = SchemaFactory.createForClass(CrawlerConfig);
+
+CrawlerConfigSchema.pre('save', async function (next) {
+  const model = this.constructor as Model<CrawlerConfigDocument>;
+  const existingConfig = await model.findOne({});
+  if (existingConfig && !this.isNew) {
+    const error = new Error('Only one CrawlerConfig document is allowed.');
+    next(error);
+  } else {
+    next();
+  }
+});

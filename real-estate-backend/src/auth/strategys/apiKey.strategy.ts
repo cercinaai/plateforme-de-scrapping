@@ -1,5 +1,4 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
+import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { Observable } from "rxjs";
@@ -7,7 +6,7 @@ import { CrawlerConfig } from "src/models/CrawlerConfig.schema";
 
 
 @Injectable()
-export class ApiKeyStrategy {
+export class ApiKeyStrategy implements CanActivate {
 
     constructor(@InjectModel(CrawlerConfig.name) private crawlerConfigModel: Model<CrawlerConfig>) { }
 
@@ -17,10 +16,7 @@ export class ApiKeyStrategy {
         if (!apiKey) {
             return false
         }
-        const crawlerConfig = await this.crawlerConfigModel.findOne({ apiKey: apiKey });
-        if (!crawlerConfig) {
-            return false
-        }
-        return true;
+        const { api_key } = await this.crawlerConfigModel.findOne({});
+        return api_key === apiKey;
     }
 }
