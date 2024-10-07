@@ -238,6 +238,7 @@
         </button>
     </div>
 </div>
+@if(dataSource.data.length > 0) {
 <div class="ads-list">
     <table mat-table [dataSource]="dataSource" matSort class="ads-table">
         <ng-container matColumnDef="title">
@@ -279,3 +280,4 @@
     </table>
     <mat-paginator class="ads-paginator" (page)="pageChange($event)" [pageSizeOptions]="[10]"></mat-paginator>
 </div>
+}
