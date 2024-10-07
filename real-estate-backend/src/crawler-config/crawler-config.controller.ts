@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Post, Put, UseGuards } from "@nestjs/common";
 import { CrawlerConfigService } from "./crawler-config.service";
 import { CrawlerConfig } from "src/models/CrawlerConfig.schema";
 import { Throttle } from "@nestjs/throttler";
@@ -21,7 +21,7 @@ export class CrawlerConfigController {
     @Throttle({ short: { limit: 2, ttl: 1000 }, long: { limit: 5, ttl: 60000 } })
     @UseGuards(RealEstateAuthGuard)
     @Put('update-config')
-    async updateCrawlerConfig(crawlerConfig: CrawlerConfig): Promise<CrawlerConfig> {
+    async updateCrawlerConfig(@Body() crawlerConfig: CrawlerConfig): Promise<CrawlerConfig> {
         return this.crawlerConfigService.updateCrawlerConfig(crawlerConfig);
     }
 }
