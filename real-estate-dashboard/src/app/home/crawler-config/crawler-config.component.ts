@@ -9,6 +9,8 @@ import { SplitterModule } from 'primeng/splitter';
 import { CrawlerConfigService } from '../../services/crawler-config.service';
 import { first } from 'rxjs';
 import { MessageService } from 'primeng/api';
+import { ToastModule } from 'primeng/toast';
+import { RouterModule } from '@angular/router';
 @Component({
   selector: 'app-crawler-config',
   standalone: true,
@@ -18,7 +20,9 @@ import { MessageService } from 'primeng/api';
     MatButtonModule,
     FormsModule,
     MatDividerModule,
-    SplitterModule
+    SplitterModule,
+    ToastModule,
+    RouterModule
   ],
   providers: [CrawlerConfigService, MessageService],
   templateUrl: './crawler-config.component.html',
@@ -68,13 +72,14 @@ export class CrawlerConfigComponent implements OnInit {
     const apiKey = prefix + randomPart;
     this.crawler_config.api_key = apiKey;
     this.keyGenerated = true;
+    this.saveCrawlerConfig();
   }
   public copyApiKey() {
     navigator.clipboard.writeText(this.crawler_config.api_key);
   }
 
   public removeProxy(index: number): void {
-    this.proxyUrls = this.proxyUrls.filter((proxy, i) => i !== index);
+    this.proxyUrls = this.proxyUrls.filter((_, i) => i !== index);
   };
 
   public addProxy(): void {
@@ -89,11 +94,16 @@ export class CrawlerConfigComponent implements OnInit {
   }
 
   public saveProxy(): void {
-    // DATABASE INTERACTION
+    if (!this.validateProxyUrls(this.proxyUrls)) return;
     this.crawler_config.proxy_urls = this.proxyUrls
     this.containerToOpen = null
     this.saveCrawlerConfig();
   };
+
+
+  public reset(): void {
+    this._grab_crawler_config();
+  }
 
   private activateCrawler(): void {
     this.crawler_config.can_crawl = true;
@@ -106,8 +116,16 @@ export class CrawlerConfigComponent implements OnInit {
   }
 
 
-  private saveCrawlerConfig(): void {
 
+
+  public saveCrawlerConfig(): void {
+    this.crawlerConfigService.updateCrawlerConfig(this.crawler_config).pipe(first()).subscribe({
+      next: (data) => {
+        this.crawler_config = data;
+        this.messageService.add({ severity: 'success', summary: 'Success', detail: 'CRAWLER CONFIG UPDATED' });
+      },
+      error: () => this.messageService.add({ severity: 'error', summary: 'Error', detail: 'FAIL TO UPDATE CRAWLER CONFIG' })
+    });
   }
 
 
@@ -115,11 +133,23 @@ export class CrawlerConfigComponent implements OnInit {
   private _grab_crawler_config(): void {
     this.crawlerConfigService.getCrawlerConfig().pipe(first()).subscribe({
       next: (data) => {
-        console.log(data);
         this.crawler_config = data;
       },
       error: (err) => this.messageService.add({ severity: 'error', summary: 'Error', detail: 'NO CRAWLER CONFIG FOUND' })
     });
+  }
+
+
+  private validateProxyUrls(proxyUrls: string[]): boolean {
+    const httpUrlPattern = /^http:\/\/(?:[\w-]+:[\w-]+@)?[\w.-]+:\d+$/;
+
+    for (const url of proxyUrls) {
+      if (!httpUrlPattern.test(url)) {
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: `${url} IS NOT A VALID PROXY` });
+        return false;
+      }
+    }
+    return true;
   }
 
 }

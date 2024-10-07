@@ -24,6 +24,40 @@ $seloger-color: #E30513;
 $bienici-color: #fbba20;
 $logicimmo-color: rgb(0, 106, 161);
 
+.back-button-container {
+  position: fixed;
+  /* Keeps it fixed even when scrolling */
+  top: 20px;
+  /* Adjusts distance from the top */
+  left: 20px;
+  /* Adjusts distance from the right */
+  z-index: 1000;
+  /* Ensures it stays on top of other elements */
+}
+
+.back-button {
+  background-color: $light-text;
+  /* Use your color variable or any color */
+  color: $dark-bg;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: background-color 0.3s ease;
+
+  &:hover {
+    background-color: darken($highlight-color, 10%);
+    color: $light-text;
+  }
+
+  mat-icon {
+    margin-right: 5px;
+  }
+}
+
 .centered-pen {
   display: flex;
   flex-direction: column;
@@ -352,6 +386,7 @@ $logicimmo-color: rgb(0, 106, 161);
         background-color: $background-color_3;
       }
     }
+
   }
 
 
@@ -628,6 +663,58 @@ $logicimmo-color: rgb(0, 106, 161);
         }
       }
 
+      .crud-button-container {
+        display: flex;
+        justify-content: end;
+        flex-direction: row;
+        gap: 10px;
+        margin: 10px;
+
+        .save-total-button {
+          margin-top: 10px;
+          display: flex;
+          align-items: center;
+          background-color: $boncoin-color;
+          color: $light-text;
+          border: none;
+          padding: 10px;
+          border-radius: 4px;
+          font-size: 14px;
+          cursor: pointer;
+          transition: background-color 0.3s ease;
+
+          &:hover {
+            background-color: darken($boncoin-color, 10%);
+          }
+
+          mat-icon {
+            margin-right: 5px;
+          }
+        }
+
+        .reset-total-button {
+          margin-top: 10px;
+          display: flex;
+          align-items: center;
+          background-color: $light-text;
+          color: $darker-bg;
+          border: none;
+          padding: 10px;
+          border-radius: 4px;
+          font-size: 14px;
+          cursor: pointer;
+          transition: background-color 0.3s ease;
+
+          &:hover {
+            background-color: darken($light-text, 10%);
+          }
+
+          mat-icon {
+            margin-right: 5px;
+          }
+        }
+      }
+
       .details {
         display: flex;
         flex-direction: column;
@@ -739,6 +826,58 @@ $logicimmo-color: rgb(0, 106, 161);
         .total-container {
           display: flex;
           justify-content: end;
+        }
+      }
+
+      .crud-button-container {
+        display: flex;
+        justify-content: end;
+        flex-direction: row;
+        gap: 10px;
+        margin: 10px;
+
+        .save-total-button {
+          margin-top: 10px;
+          display: flex;
+          align-items: center;
+          background-color: $seloger-color;
+          color: $light-text;
+          border: none;
+          padding: 10px;
+          border-radius: 4px;
+          font-size: 14px;
+          cursor: pointer;
+          transition: background-color 0.3s ease;
+
+          &:hover {
+            background-color: darken($seloger-color, 10%);
+          }
+
+          mat-icon {
+            margin-right: 5px;
+          }
+        }
+
+        .reset-total-button {
+          margin-top: 10px;
+          display: flex;
+          align-items: center;
+          background-color: $light-text;
+          color: $darker-bg;
+          border: none;
+          padding: 10px;
+          border-radius: 4px;
+          font-size: 14px;
+          cursor: pointer;
+          transition: background-color 0.3s ease;
+
+          &:hover {
+            background-color: darken($light-text, 10%);
+          }
+
+          mat-icon {
+            margin-right: 5px;
+          }
         }
       }
 
@@ -856,6 +995,58 @@ $logicimmo-color: rgb(0, 106, 161);
         }
       }
 
+      .crud-button-container {
+        display: flex;
+        justify-content: end;
+        flex-direction: row;
+        gap: 10px;
+        margin: 10px;
+
+        .save-total-button {
+          margin-top: 10px;
+          display: flex;
+          align-items: center;
+          background-color: $logicimmo-color;
+          color: $light-text;
+          border: none;
+          padding: 10px;
+          border-radius: 4px;
+          font-size: 14px;
+          cursor: pointer;
+          transition: background-color 0.3s ease;
+
+          &:hover {
+            background-color: darken($logicimmo-color, 10%);
+          }
+
+          mat-icon {
+            margin-right: 5px;
+          }
+        }
+
+        .reset-total-button {
+          margin-top: 10px;
+          display: flex;
+          align-items: center;
+          background-color: $light-text;
+          color: $darker-bg;
+          border: none;
+          padding: 10px;
+          border-radius: 4px;
+          font-size: 14px;
+          cursor: pointer;
+          transition: background-color 0.3s ease;
+
+          &:hover {
+            background-color: darken($light-text, 10%);
+          }
+
+          mat-icon {
+            margin-right: 5px;
+          }
+        }
+      }
+
       .details {
         display: flex;
         flex-direction: column;
@@ -967,6 +1158,58 @@ $logicimmo-color: rgb(0, 106, 161);
         .total-container {
           display: flex;
           justify-content: end;
+        }
+      }
+
+      .crud-button-container {
+        display: flex;
+        justify-content: end;
+        flex-direction: row;
+        gap: 10px;
+        margin: 10px;
+
+        .save-total-button {
+          margin-top: 10px;
+          display: flex;
+          align-items: center;
+          background-color: $bienici-color;
+          color: $light-text;
+          border: none;
+          padding: 10px;
+          border-radius: 4px;
+          font-size: 14px;
+          cursor: pointer;
+          transition: background-color 0.3s ease;
+
+          &:hover {
+            background-color: darken($bienici-color, 10%);
+          }
+
+          mat-icon {
+            margin-right: 5px;
+          }
+        }
+
+        .reset-total-button {
+          margin-top: 10px;
+          display: flex;
+          align-items: center;
+          background-color: $light-text;
+          color: $darker-bg;
+          border: none;
+          padding: 10px;
+          border-radius: 4px;
+          font-size: 14px;
+          cursor: pointer;
+          transition: background-color 0.3s ease;
+
+          &:hover {
+            background-color: darken($light-text, 10%);
+          }
+
+          mat-icon {
+            margin-right: 5px;
+          }
         }
       }
 
@@ -1295,6 +1538,9 @@ $logicimmo-color: rgb(0, 106, 161);
 }
 
 
+
+
+
 .circle-wrapper {
   display: flex;
   flex-direction: column;
@@ -1313,9 +1559,28 @@ $logicimmo-color: rgb(0, 106, 161);
       display: flex;
       justify-content: center;
       align-items: center;
-      font-size: 16px;
-      font-weight: bold;
-      color: $light-text;
+
+      .total-input {
+        width: 100%;
+        border: none;
+        background: transparent;
+        text-align: center;
+        font-size: 16px;
+        font-weight: bold;
+        color: $light-text;
+        outline: none;
+
+        &::-webkit-outer-spin-button,
+        &::-webkit-inner-spin-button {
+          -webkit-appearance: none;
+          margin: 0;
+        }
+      }
+
+      .total-input:focus {
+        outline: none;
+        border-bottom: 1px solid $highlight-color;
+      }
     }
 
     svg {
@@ -1329,7 +1594,13 @@ $logicimmo-color: rgb(0, 106, 161);
     font-size: 12px;
     color: $light-text;
   }
+
+
 }
+
+
+
+
 
 .circular-chart {
   display: block;
