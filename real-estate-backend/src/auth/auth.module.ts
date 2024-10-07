@@ -9,10 +9,11 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './strategys/jwt.strategy';
 import { ApiKeyStrategy } from './strategys/apiKey.strategy';
 import { RealEstateAuthGuard } from './guard/RealEstate.guard';
+import { CrawlerConfig, CrawlerConfigSchema } from 'src/models/CrawlerConfig.schema';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: Admin.name, schema: AdminSchema }]),
+    MongooseModule.forFeature([{ name: Admin.name, schema: AdminSchema }, { name: CrawlerConfig.name, schema: CrawlerConfigSchema }]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

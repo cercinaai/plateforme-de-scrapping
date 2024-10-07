@@ -11,11 +11,9 @@ export class RealEstateAuthGuard extends AuthGuard('jwt') {
         super();
     }
 
-    canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
-        const isApiKeyValid = this.apiKeyStrategy.canActivate(context);
-        if (isApiKeyValid) {
-            return true;
-        }
-        return super.canActivate(context);
+    async canActivate(context: ExecutionContext): Promise<boolean> {
+        const isApiKeyValid = await this.apiKeyStrategy.canActivate(context);
+        if(!isApiKeyValid)  super.canActivate(context);
+
     }
 }

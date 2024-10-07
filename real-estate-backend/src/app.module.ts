@@ -7,6 +7,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './auth/auth.module';
 import { DataProviderModule } from './data-provider/data-provider.module';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { CrawlerConfigModule } from './crawler-config/crawler-config.module';
 
 const configEnv = (): ConfigModuleOptions => {
   if (!process.env.NODE_ENV || process.env.NODE_ENV !== 'production') {
@@ -36,6 +37,7 @@ const configEnv = (): ConfigModuleOptions => {
     }]),
     AuthModule,
     DataProviderModule,
+    CrawlerConfigModule
   ],
   controllers: [AppController],
   providers: [AppService],
