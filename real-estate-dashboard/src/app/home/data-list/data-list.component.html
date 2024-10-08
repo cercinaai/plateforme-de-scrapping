@@ -36,8 +36,8 @@
                             [ngClass]="{ 'active': ads_filter.origin && ads_filter.origin.value.includes('seloger')  }"
                             (click)="applyOriginFilter('seloger')">Seloger</span>
                         <span class="chip"
-                            [ngClass]="{ 'active': ads_filter.origin && ads_filter.origin.value.includes('logic-immo')  }"
-                            (click)="applyOriginFilter('logic-immo')">Logicimmo</span>
+                            [ngClass]="{ 'active': ads_filter.origin && ads_filter.origin.value.includes('logicimmo')  }"
+                            (click)="applyOriginFilter('logicimmo')">Logicimmo</span>
                         <span class="chip"
                             [ngClass]="{ 'active': ads_filter.origin && ads_filter.origin.value.includes('bienici')  }"
                             (click)="applyOriginFilter('bienici')">Bienici</span>
@@ -238,40 +238,39 @@
         </button>
     </div>
 </div>
-@if(dataSource.data.length > 0) {
 <div class="ads-list">
-    <table mat-table [dataSource]="dataSource" matSort class="ads-table">
+    <table mat-table [dataSource]="dataSource" class="ads-table">
         <ng-container matColumnDef="title">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header> Titre </th>
+            <th mat-header-cell *matHeaderCellDef> Titre </th>
             <td mat-cell *matCellDef="let element"> {{element.title}} </td>
         </ng-container>
 
         <ng-container matColumnDef="origin">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header> Origine du robot </th>
+            <th mat-header-cell *matHeaderCellDef> Origine du robot </th>
             <td mat-cell *matCellDef="let element"> {{element.origin}} </td>
         </ng-container>
         <ng-container matColumnDef="price">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header> Prix (€) </th>
+            <th mat-header-cell *matHeaderCellDef> Prix (€) </th>
             <td mat-cell *matCellDef="let element"> {{element.price | currency:'EUR':'symbol'}}
             </td>
         </ng-container>
 
         <ng-container matColumnDef="surface">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header> Surface (m²) </th>
+            <th mat-header-cell *matHeaderCellDef> Surface (m²) </th>
             <td mat-cell *matCellDef="let element"> {{element.surface}} </td>
         </ng-container>
 
         <ng-container matColumnDef="category">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header> Catégorie </th>
+            <th mat-header-cell *matHeaderCellDef> Catégorie </th>
             <td mat-cell *matCellDef="let element"> {{element.category}} </td>
         </ng-container>
 
         <ng-container matColumnDef="adAccuracy">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header> Précision de l'annonce </th>
+            <th mat-header-cell *matHeaderCellDef> Précision de l'annonce </th>
             <td mat-cell *matCellDef="let element"> {{element.adAccuracy|number:'1.0-0'}}% </td>
         </ng-container>
         <ng-container matColumnDef="creationDate">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header> Date de création </th>
+            <th mat-header-cell *matHeaderCellDef> Date de création </th>
             <td mat-cell *matCellDef="let element"> {{element.creationDate}} </td>
         </ng-container>
 
@@ -280,4 +279,3 @@
     </table>
     <mat-paginator class="ads-paginator" (page)="pageChange($event)" [pageSizeOptions]="[10]"></mat-paginator>
 </div>
-}

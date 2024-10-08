@@ -115,7 +115,6 @@ export class DataListComponent implements OnInit {
   displayedColumns: string[] = ['title', 'origin', 'price', 'surface', 'category', 'adAccuracy', "creationDate"];
   dataSource = new MatTableDataSource<Ad_Model>([]);
   @ViewChild(MatPaginator) paginator!: MatPaginator;
-  @ViewChild(MatSort) sort!: MatSort;
   expend_filters = false;
   ngOnInit(): void {
     this._getData();
@@ -126,7 +125,6 @@ export class DataListComponent implements OnInit {
       next: (ads) => {
         this.dataSource.data = ads;
         this.dataSource.paginator = this.paginator;
-        this.dataSource.sort = this.sort;
       },
       error: (err) => this.messageService.add({ severity: 'error', summary: 'Error', detail: err.message })
     })
@@ -142,7 +140,6 @@ export class DataListComponent implements OnInit {
       next: (ads) => {
         this.dataSource.data = ads;
         this.dataSource.paginator = this.paginator;
-        this.dataSource.sort = this.sort;
       },
       error: (err) => this.messageService.add({ severity: 'error', summary: 'Error', detail: err.message })
     })
