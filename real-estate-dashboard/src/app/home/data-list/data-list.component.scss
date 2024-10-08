@@ -465,9 +465,6 @@ $label-font-size: 16px; // Slightly larger font size
 }
 
 
-
-
-
 .ads-list {
     margin-top: 10px;
     padding: 20px;
@@ -515,4 +512,9 @@ $label-font-size: 16px; // Slightly larger font size
             fill: $light-text;
         }
     }
+}
+
+::ng-deep .export-dialog mat-dialog-container {
+    border-color: $darker-bg;
+    box-shadow: none;
 }

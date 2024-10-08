@@ -18,11 +18,29 @@ import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatSelectModule } from '@angular/material/select';
 import { RouterModule } from '@angular/router';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { ExportDialogComponent } from './exportDialog/export-dialog.component';
 @Component({
   selector: 'app-data-list',
   standalone: true,
-  imports: [ToastModule, CommonModule, RouterModule, FormsModule, MatSliderModule, MatTableModule, MatPaginatorModule,
-    MatSortModule, MatDatepickerModule, MatIconModule, MatExpansionModule, MatSlideToggleModule, MatRadioModule, MatDividerModule, MatSelectModule],
+  imports: [
+    ToastModule,
+    CommonModule,
+    RouterModule,
+    FormsModule,
+    MatSliderModule,
+    MatTableModule,
+    MatPaginatorModule,
+    MatSortModule,
+    MatDatepickerModule,
+    MatIconModule,
+    MatExpansionModule,
+    MatSlideToggleModule,
+    MatRadioModule,
+    MatDividerModule,
+    MatSelectModule,
+    MatDialogModule
+  ],
   providers: [MessageService],
   templateUrl: './data-list.component.html',
   styleUrl: './data-list.component.scss'
@@ -30,6 +48,8 @@ import { RouterModule } from '@angular/router';
 export class DataListComponent implements OnInit {
   private dataListService = inject(DataListService);
   private messageService = inject(MessageService);
+  private dialog = inject(MatDialog);
+
   public findByCoordinates: boolean = false;
   public ads_filter: {
     date?: {
@@ -370,6 +390,34 @@ export class DataListComponent implements OnInit {
   }
   public surfaceAreaFormat(value: number): string {
     return `${value}m`
+  }
+
+  public openExportDialog(): void {
+    const dialogRef = this.dialog.open(ExportDialogComponent, {
+      disableClose: true,
+      width: '50%',
+      height: '50%',
+      closeOnNavigation: true,
+      panelClass: 'export-dialog',
+    });
+    const filter = this._extract_filters();
+    this.expend_filters = false;
+    this.dataListService.exportAds(filter).subscribe({
+      next: (data) => {
+        const link = document.createElement('a');
+        const url = window.URL.createObjectURL(data);
+        link.href = url;
+        link.download = `realEstateAds-${new Date().getTime()}.csv`;
+        link.click();
+        dialogRef.close();
+        window.URL.revokeObjectURL(url);
+      },
+      error: (err) => {
+        dialogRef.close();
+        console.error(err);
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'EXPORT FAILED' })
+      }
+    });
   }
 
   public changePanelExpend(value: any) {

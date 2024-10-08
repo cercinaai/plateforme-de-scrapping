@@ -14,4 +14,11 @@ export class DataListService {
   public getAds(params: any): Observable<Ad_Model[]> {
     return this.http.get<Ad_Model[]>(`${environment.api_url}/data-provider/ad-list`, { params })
   }
+
+  public exportAds(params: any): Observable<Blob> {
+    return this.http.get(`${environment.api_url}/data-provider/export-ads-csv`, {
+      params,
+      responseType: 'blob',
+    });
+  }
 }

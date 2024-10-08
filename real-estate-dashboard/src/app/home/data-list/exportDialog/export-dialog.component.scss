@@ -1,0 +1,65 @@
+$dark-bg: #1e1e1e;
+$darker-bg: #2e2e2e;
+$light-text: #ccc;
+$lighter-text: #888;
+$highlight-color: #1b76ff;
+$debit-color: #ff6b6b;
+$credit-color: #4caf50;
+$border-color: #444;
+$label-color: #ffffff; // Bright white for better visibility
+$label-font-size: 16px; // Slightly larger font size
+$len: 300px;
+$time: 3000ms;
+
+.spinner-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+    background-color: $darker-bg;
+
+    h3 {
+        color: $light-text;
+        /* Match your theme */
+        font-weight: normal;
+        margin-bottom: 20px;
+        /* Space between message and spinner */
+        font-size: 18px;
+        text-align: center;
+    }
+
+    #infinity-outline {
+        fill: transparent;
+        stroke-width: 4;
+        stroke: $highlight-color;
+        stroke-dasharray: $len*0.01, $len;
+        stroke-dashoffset: 0;
+        animation: anim $time linear infinite;
+    }
+
+    #infinity-bg {
+        fill: transparent;
+        stroke-width: 4;
+        stroke: $light-text;
+        opacity: 0.2;
+    }
+
+    @keyframes anim {
+        12.5% {
+            stroke-dasharray: $len*0.14, $len;
+            stroke-dashoffset: -$len*0.11;
+        }
+
+        43.75% {
+            stroke-dasharray: $len*0.35, $len;
+            stroke-dashoffset: -$len*0.35;
+        }
+
+        100% {
+            stroke-dasharray: $len*0.01, $len;
+            stroke-dashoffset: -$len*0.99;
+        }
+    }
+}
