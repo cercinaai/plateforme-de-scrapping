@@ -26,3 +26,14 @@ services:
       - 3000
     depends_on:
       - mongodb
+  
+  frontend:
+    image: real-estate-dashboard:latest
+    container_name: real-estate-dashboard-container
+    restart: on-failure
+    ports:
+      - "3003:80"
+    expose:
+      - 3003
+    depends_on:
+      - backend

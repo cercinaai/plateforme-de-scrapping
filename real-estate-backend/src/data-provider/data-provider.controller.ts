@@ -136,12 +136,18 @@ export class DataProviderController {
     @Throttle({ short: { limit: 2, ttl: 1000 }, long: { limit: 5, ttl: 60000 } })
     @UseGuards(RealEstateAuthGuard)
     @Get('export-ads-csv')
-    async export_ads_csv(@Query() query: FilterAdsDto, @Res() res: Response) {
+    async export_ads_csv(@Query() query: FilterAdsDto): Promise<StreamableFile> {
         if (query.showTotal) delete query.showTotal;
         if (query.page) delete query.page;
         if (query.limit) delete query.limit;
         const ads_to_export = await this.dataProviderService.filterAdsList(query);
-        return this.csvParser.parse(ads_to_export).pipe(res);
+        const parsedData = this.csvParser.parse(ads_to_export);
+        return new StreamableFile(parsedData,
+            {
+                type: 'text/csv;',
+                disposition: `attachment; filename=realEstateAds-${new Date().getTime()}.csv`
+            }
+        );
     }
 
 }
