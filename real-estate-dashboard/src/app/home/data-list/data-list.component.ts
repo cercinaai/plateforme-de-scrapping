@@ -113,22 +113,17 @@ export class DataListComponent implements OnInit {
     sortOrder: 'ASC' | 'DESC'
   } = { sortBy: 'DATE', sortOrder: 'ASC' }
   displayedColumns: string[] = ['title', 'origin', 'price', 'surface', 'category', 'adAccuracy', "creationDate"];
-  dataSource = new MatTableDataSource<Ad_Model>([]);
+  dataSource!: MatTableDataSource<Ad_Model>;
   @ViewChild(MatPaginator) paginator!: MatPaginator;
+
   expend_filters = false;
+
   ngOnInit(): void {
+    this.dataSource = new MatTableDataSource<Ad_Model>();
     this._getData();
   }
 
-  private _getData(): void {
-    this.dataListService.getAds({ page: 1, limit: 20 }).pipe(first()).subscribe({
-      next: (ads) => {
-        this.dataSource.data = ads;
-        this.dataSource.paginator = this.paginator;
-      },
-      error: (err) => this.messageService.add({ severity: 'error', summary: 'Error', detail: err.message })
-    })
-  }
+
 
   public filterAds(): void {
     const filter = this._extract_filters();
@@ -367,9 +362,9 @@ export class DataListComponent implements OnInit {
     this.ads_filter.sortBy = value
   }
 
-
-
-
+  public navigateToOriginAds(ad: Ad_Model): void {
+    window.open(ad.url, '_blank');
+  }
   public priceFormat(value: number): string {
     return `${value}K`
   }
@@ -380,6 +375,17 @@ export class DataListComponent implements OnInit {
   public changePanelExpend(value: any) {
     this.expend_filters = value
   }
+
+  private _getData(): void {
+    this.dataListService.getAds({ page: 1, limit: 20 }).pipe(first()).subscribe({
+      next: (ads) => {
+        this.dataSource.data = ads;
+        this.dataSource.paginator = this.paginator;
+      },
+      error: (err) => this.messageService.add({ severity: 'error', summary: 'Error', detail: err.message })
+    })
+  }
+
   private _extract_filters(): any {
     const { date, origin, category, price, surface, romms, location, sortBy, sortOrder } = this.ads_filter;
     const filter: any = {}

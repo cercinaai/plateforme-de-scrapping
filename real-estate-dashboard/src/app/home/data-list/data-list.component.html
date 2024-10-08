@@ -275,7 +275,7 @@
         </ng-container>
 
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        <tr mat-row (click)="navigateToOriginAds(row)" *matRowDef="let row; columns: displayedColumns;"></tr>
     </table>
     <mat-paginator class="ads-paginator" (page)="pageChange($event)" [pageSizeOptions]="[10]"></mat-paginator>
 </div>
