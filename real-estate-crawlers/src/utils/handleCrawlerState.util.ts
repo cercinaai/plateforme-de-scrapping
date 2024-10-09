@@ -10,9 +10,11 @@ const logger = initLogger('GLOBAL-ERRORS');
 
 export const handleFailedCrawler = async (job: Job, ctx: PlaywrightCrawlingContext, error: Error) => {
     const { request, proxyInfo, page } = ctx;
+    const job_logger = initLogger(job.name);
     const failed_date = new Date();
     const screenshot_buffer = await page.screenshot({ fullPage: true });
     const screenshot_path = await uploadBufferIntoBucket(screenshot_buffer, `${job.name}-${failed_date.getTime()}`, 'crawlers-error-screenshots');
+    job_logger.error(error);
     await job.updateData({
         status: CRAWLER_STATUS.FAILED,
         total_data_grabbed: job.data.total_data_grabbed,
