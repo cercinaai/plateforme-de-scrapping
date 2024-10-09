@@ -49,7 +49,7 @@ export const selogerDefaultHandler = async (job: Job, context: PlaywrightCrawlin
         await job.updateData({ ...job.data, PAGE_REACHED: PAGE_REACHED, DATA_REACHED: DATA_REACHED, total_data_grabbed: job.data.total_data_grabbed + ads_numbers });
     }
     if (REGION_REACHED >= job.data.france_locality.length - 1) return;
-    await job.updateData({ ...job.data, REGION_REACHED: REGION_REACHED + 1, PAGE_REACHED: 1 });
+    await job.updateData({ ...job.data, DATA_REACHED: 0, REGION_REACHED: REGION_REACHED + 1, PAGE_REACHED: 1 });
     await enqueueLinks({ urls: [build_link(job)] });
 }
 

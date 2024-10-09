@@ -24,7 +24,7 @@ const clean_seloger_ad = async (data: any): Promise<Partial<realEstateAd>> => {
         },
         description: data.description || 'N/A',
         url: `https://www.seloger.com${data.classifiedURL}`,
-        pictureUrl: await uploadFileIntoBucket(data.photos[0].url, 's'),
+        pictureUrl: await uploadFileIntoBucket(data.photos[0] ? data.photos[0].url : null, 's'),
         pictureUrls: await uploadFilesIntoBucket(data.photos.map((photo: string) => extractImageUrl(photo)), 's'),
         location: {
             city: data.cityLabel,
@@ -63,7 +63,9 @@ const extractLandSurfaceFromTags = (tags: string[]): number | null => {
 const extractFloorFromTags = (tags: string[]): number | null => {
     try {
         const floorTag = tags.find(tag => tag.includes('Étage'));
-        return floorTag ? parseInt(floorTag.split(' ')[1].split('/')[0]) : null;
+        const extractedString = floorTag?.split(' ')[1].split('/')[0] || null;
+        if (!extractedString) return null;
+        return floorTag ? parseInt(extractedString) : null;
     } catch {
         return null;
     }
