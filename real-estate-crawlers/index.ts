@@ -3,7 +3,7 @@ import { initMongoDB } from "./src/config/mongodb.config";
 import { start_crawlers, start_crawlers_revision } from './src/crawlers/crawlers.queue';
 import { handleQueueUnexpectedError } from './src/utils/handleCrawlerState.util';
 import { config } from 'dotenv';
-import { generateDefaultCrawlersConfig } from './src/config/crawlers.config';
+import { generateDefaultCrawlersConfig, getCrawlersConfig } from './src/config/crawlers.config';
 
 
 // LOADS ENVIRONMENT VARIABLES
@@ -36,7 +36,8 @@ const server = http.createServer();
 
 
 server.on('request', async (req, res) => {
-    if (req.method === 'GET' && req.url === '/populate-database' && req.headers['x-api-key'] === process.env.CERCINA_DEFAULT_KEY) {
+    const { api_key } = await getCrawlersConfig();
+    if (req.method === 'GET' && req.url === '/populate-database' && req.headers['x-api-key'] === api_key) {
         await start_crawlers();
         res.end('Database populated.');
     } else {

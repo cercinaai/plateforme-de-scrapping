@@ -11,17 +11,14 @@ import { getCrawlersConfig } from '../config/crawlers.config';
 
 
 export const start_crawlers = async () => {
-    const config = await getCrawlersConfig();
-    if (!config.can_crawl) return;
+    const { can_crawl } = await getCrawlersConfig();
+    if (!can_crawl) return;
     const crawlers_queue = await create_crawler_queue();
     const crawlers_worker = await create_worker(crawlers_queue);
     const session_id = await create_initial_session()
-    crawlers_worker.on('completed', async (job) => handleCompletedJob(job, session_id));
-    crawlers_worker.on('failed', async (job, error) => handleFailedJob(job, error, session_id));
-    await crawlers_worker.run();
-    crawlers_worker.removeAllListeners();
-    await crawlers_worker.close();
-    await crawlers_queue.close();
+    crawlers_worker.addListener('completed', async (job) => await handleCompletedJob(job, session_id));
+    crawlers_worker.addListener('failed', async (job, error) => await handleFailedJob(job, error, session_id));
+    await waitForSession(crawlers_queue, crawlers_worker);
 }
 
 export const start_crawlers_revision = async () => { }
@@ -43,6 +40,20 @@ const create_worker = async (queue: Queue) => {
         if (job.name === CRAWLER_ORIGIN.BIENICI) return start_bienici_crawler(job);
     }, { ...initRedis(), autorun: false, concurrency: 1 });
     return crawlers_worker
+}
+
+const waitForSession = async (queue: Queue, worker: Worker) => {
+    await worker.run();
+    while (worker.isRunning()) {
+        const activeJobs = await queue.getActiveCount();
+        const waitingJobs = await queue.getWaitingCount();
+        if (activeJobs === 0 && waitingJobs === 0) break;
+        await new Promise(resolve => setTimeout(resolve, 120_000));
+    }
+    worker.removeAllListeners();
+    queue.removeAllListeners();
+    await worker.close();
+    await queue.close();
 }
 
 const create_initial_session = async (): Promise<string> => {
