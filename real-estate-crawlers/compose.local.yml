@@ -19,13 +19,13 @@ services:
     depends_on:
       - redis
   
-  crawlers:
-    build: 
-      context: .
-      dockerfile: ./docker/Dockerfile
-    container_name: crawlers-container
-    env_file:
-      - ./environments/development.env
-    depends_on:
-      - redis
+  # crawlers:
+  #   build: 
+  #     context: .
+  #     dockerfile: ./docker/Dockerfile
+  #   container_name: crawlers-container
+  #   env_file:
+  #     - ./environments/development.env
+  #   depends_on:
+  #     - redis
   

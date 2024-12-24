@@ -24,8 +24,6 @@ export const start_boncoin_crawler = async (job: Job) => {
     return statistics;
 }
 
-
-
 const initialize = async (job: Job) => {
     logger.info('Initializing boncoin crawler...');
     const { boncoin_limits } = await getCrawlersConfig();
@@ -57,4 +55,3 @@ const create_crawler = async (job: Job): Promise<PlaywrightCrawler> => {
         },
     }, boncoinConfig);
 }
-
