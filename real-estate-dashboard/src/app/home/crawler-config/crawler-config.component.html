@@ -20,18 +20,20 @@
         @if(crawler_config.can_crawl) {
         <ul class="command-list">
             <li id="show-api-key-container" (click)="toggleContainer('api_key')"><img width="100%" height="100%"
-                    src="assets/images/api-key.png" alt="Crawler Config Icon"></li>
-            <li (click)="toggleContainer('boncoin')"><img width="100%" height="100%" src="assets/images/crawler-bot.png"
-                    alt="Crawler Config Icon"></li>
-            <li (click)="toggleContainer('bienici')"><img width="100%" height="100%" src="assets/images/crawler-bot.png"
-                    alt="Crawler Config Icon"></li>
-            <li (click)="toggleContainer('logicimmo')"><img width="100%" height="100%"
-                    src="assets/images/crawler-bot.png" alt="Crawler Config Icon"></li>
-            <li (click)="toggleContainer('seloger')"><img width="100%" height="100%" src="assets/images/crawler-bot.png"
-                    alt="Crawler Config Icon"></li>
-            <li (click)="toggleContainer('proxy')"><img width="100%" height="100%" src="assets/images/proxy-image.png"
-                    alt="Crawler Config Icon"></li>
-            <p class="hey-felix lead"></p>
+                src="assets/images/api-key.png" alt="Crawler Config Icon"></li>
+        <li (click)="toggleContainer('boncoin')"><img width="100%" height="100%" src="assets/images/crawler-bot.png"
+                alt="Crawler Config Icon"></li>
+        <li (click)="toggleContainer('bienici')"><img width="100%" height="100%" src="assets/images/crawler-bot.png"
+                alt="Crawler Config Icon"></li>
+        <li (click)="toggleContainer('logicimmo')"><img width="100%" height="100%"
+                src="assets/images/crawler-bot.png" alt="Crawler Config Icon"></li>
+        <li (click)="toggleContainer('seloger')"><img width="100%" height="100%" src="assets/images/crawler-bot.png"
+                alt="Crawler Config Icon"></li>
+        <li (click)="toggleContainer('franceTravail')"><img width="100%" height="100%" src="assets/images/crawler-bot.png"
+                alt="Crawler Config Icon"></li>
+        <li (click)="toggleContainer('proxy')"><img width="100%" height="100%" src="assets/images/proxy-image.png"
+                alt="Crawler Config Icon"></li>
+        <p class="hey-felix lead"></p>
         </ul>
         }
     </div>
@@ -105,6 +107,18 @@
                     <img src="assets/images/crawler-bot.png" alt="Crawler Config Icon">
                     <img src="assets/images/leboncoin.svg" alt="Crawler Config Icon">
                 </div>
+                <div class="status-toggle">
+                    <span>Status: </span>
+                    <mat-slide-toggle
+                        class="boncoin"
+                        [checked]="crawler_config.boncoin_limits.status === 'active'"
+                        (change)="updateStatus('boncoin_limits')">
+                    </mat-slide-toggle>
+                    <span class="status-label" [ngClass]="crawler_config.boncoin_limits.status">
+                        {{ crawler_config.boncoin_limits.status === 'active' ? 'Active' : 'Inactive' }}
+                    </span>
+                </div>
+                
                 <div class="total-container">
                     <div class="circle-wrapper data">
                         <div class=" circle">
@@ -173,6 +187,18 @@
                     <img src="assets/images/crawler-bot.png" alt="Crawler Config Icon">
                     <img src="assets/images/Bien-dici.svg" alt="Crawler Config Icon">
                 </div>
+                <div class="status-toggle">
+                    <span>Status: </span>
+                    <mat-slide-toggle
+                        class="bienici"
+                        [checked]="crawler_config.bienici_limits.status === 'active'"
+                        (change)="updateStatus('bienici_limits')">
+                    </mat-slide-toggle>
+                    <span class="status-label" [ngClass]="crawler_config.bienici_limits.status">
+                        {{ crawler_config.bienici_limits.status === 'active' ? 'Active' : 'Inactive' }}
+                    </span>
+                </div>
+                
                 <div class="total-container">
                     <div class="circle-wrapper data">
                         <div class=" circle">
@@ -239,6 +265,17 @@
                     <img src="assets/images/crawler-bot.png" alt="Crawler Config Icon">
                     <img src="assets/images/logo_licom.svg" alt="Crawler Config Icon">
                 </div>
+                <div class="status-toggle">
+                    <span>Status: </span>
+                    <mat-slide-toggle
+                        class="logicimmo"
+                        [checked]="crawler_config.logicimmo_limits.status === 'active'"
+                        (change)="updateStatus('logicimmo_limits')">
+                    </mat-slide-toggle>
+                    <span class="status-label" [ngClass]="crawler_config.logicimmo_limits.status">
+                        {{ crawler_config.logicimmo_limits.status === 'active' ? 'Active' : 'Inactive' }}
+                    </span>
+                </div>
                 <div class="total-container">
                     <div class="circle-wrapper data">
                         <div class=" circle">
@@ -304,6 +341,17 @@
                     <img src="assets/images/crawler-bot.png" alt="Crawler Config Icon">
                     <img src="assets/images/seloger-logo.svg" alt="Crawler Config Icon">
                 </div>
+                <div class="status-toggle">
+                    <span>Status: </span>
+                    <mat-slide-toggle
+                        class="seloger"
+                        [checked]="crawler_config.seloger_config.status === 'active'"
+                        (change)="updateStatus('seloger_config')">
+                    </mat-slide-toggle>
+                    <span class="status-label" [ngClass]="crawler_config.seloger_config.status">
+                        {{ crawler_config.seloger_config.status === 'active' ? 'Active' : 'Inactive' }}
+                    </span>
+                </div>
                 <div class="total-container">
                     <div class="circle-wrapper data">
                         <div class=" circle">
@@ -362,6 +410,74 @@
         </div>
     </div>
     }
+    @case ('franceTravail') {
+        <div class="crawler-container active">
+            <div class="card-franceTravail">
+                <div class="title">
+                    <div class="logo">
+                        <img src="assets/images/crawler-bot.png" alt="Crawler Config Icon" />
+                        <img src="assets/images/header-logo2023-ft-fr.svg" alt="Crawler Config Icon" />
+                    </div>
+                    <div class="status-toggle">
+                        <span>Status: </span>
+                        <mat-slide-toggle
+                            class="franceTravail"
+                            [checked]="crawler_config.franceTravail_limits.status === 'active'"
+                            (change)="updateStatus('franceTravail_limits')">
+                        </mat-slide-toggle>
+                        <span class="status-label" [ngClass]="crawler_config.franceTravail_limits.status">
+                            {{ crawler_config.franceTravail_limits.status === 'active' ? 'Active' : 'Inactive' }}
+                        </span>
+                    </div>
+                </div>
+        
+                <!-- Configuration Section -->
+                <div class="config-section">
+                    <div class="input-container">
+                        <label for="franceTravail-nombre">Nombre d'offres à scraper:</label>
+                        <input 
+                            id="franceTravail-nombre" 
+                            type="number" 
+                            [(ngModel)]="crawler_config.franceTravail_limits.nombre" 
+                            class="nombre-input" 
+                            min="1" />
+                        <button class="save-button" (click)="updateNombre('franceTravail_limits')">
+                            <mat-icon>save</mat-icon> Enregistrer
+                        </button>
+                    </div>
+        
+                    <div class="circle-wrapper">
+                        <div class="circle">
+                            <div class="circle-inner">
+                                <input 
+                                    type="number" 
+                                    [(ngModel)]="crawler_config.franceTravail_limits.total" 
+                                    class="total-input" 
+                                    min="1" />
+                            </div>
+                            <svg viewBox="0 0 36 36" class="circular-chart franceTravail">
+                                <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                <path class="circle-bar" stroke-dasharray="100, 100"
+                                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                            </svg>
+                        </div>
+                        <div class="circle-label">Nombre total d'annonces</div>
+                    </div>
+                </div>
+        
+                <!-- Buttons Section -->
+                <div class="crud-button-container">
+                    <button class="save-total-button" (click)="saveCrawlerConfig()">
+                        <mat-icon>save</mat-icon> Enregistrer
+                    </button>
+                    <button class="reset-total-button" (click)="reset()">
+                        <mat-icon>restore_from_trash</mat-icon> Reinitialiser
+                    </button>
+                </div>
+               
+            </div>
+        </div>
+        }
     }
 </div>
 }

@@ -17,4 +17,15 @@ export class CrawlerConfigService {
     public updateCrawlerConfig(crawlerConfig: CrawlerConfig): Observable<CrawlerConfig> {
         return this.http.put<CrawlerConfig>(`${environment.api_url}/crawler-config/update-config`, crawlerConfig);
     }
+
+    public updateCrawlerStatus(target: string, status: string): Observable<CrawlerConfig> {
+        return this.http.put<CrawlerConfig>(`${environment.api_url}/crawler-config/update-status`, { target, status });
+    }
+    
+    public updateCrawlerTotal(target: string, nombre: number): Observable<CrawlerConfig> {
+        return this.http.put<CrawlerConfig>(`${environment.api_url}/crawler-config/update-nombre`, { target, nombre });
+    }
+    
+    
+    
 }

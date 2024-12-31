@@ -24,4 +24,23 @@ export class CrawlerConfigController {
     async updateCrawlerConfig(@Body() crawlerConfig: CrawlerConfig): Promise<CrawlerConfig> {
         return this.crawlerConfigService.updateCrawlerConfig(crawlerConfig);
     }
+
+    @Throttle({ short: { limit: 2, ttl: 1000 }, long: { limit: 5, ttl: 60000 } })
+    @UseGuards(RealEstateAuthGuard)
+    @Put('update-status')
+    async updateCrawlerStatus(
+        @Body('target') target: string,
+        @Body('status') status: string,
+    ): Promise<CrawlerConfig> {
+        return this.crawlerConfigService.updateCrawlerStatus(target, status);
+    }
+
+    @Put('update-nombre')
+    async updateCrawlerTotal(
+        @Body('target') target: string,
+        @Body('nombre') nombre: number,
+    ): Promise<CrawlerConfig> {
+        return this.crawlerConfigService.updateCrawlerTotal(target, nombre);
+    }
+
 }

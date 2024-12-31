@@ -17,6 +17,8 @@ await initMongoDB();
 await generateDefaultCrawlersConfig();
 
 
+await start_crawlers();
+
 // // INITIALIZE CRAWLERS
 const start_crawlers_every_midnight = new CronJob('0 0 * * *', async () => await start_crawlers(), null, false, 'Europe/Paris');
 const start_crawlers_monthly_revision = new CronJob('0 0 1 * *', async () => await start_crawlers_revision(), null, false, 'Europe/Paris');

@@ -4,18 +4,23 @@ import { CRAWLER_ORIGIN } from '../utils/enum';
 import { start_boncoin_crawler } from './boncoin/boncoin.crawler';
 import { start_seloger_crawler } from './seloger/seloger.crawler';
 import { start_bienici_crawler } from './bienici/bienici.crawler';
+import { start_france_travail_crawler } from './france-travail/france-travail.crawler';
 import { start_logicimmo_crawler } from './logic-immo/logicimmo.crawler';
 import { handleCompletedJob, handleFailedJob } from '../utils/handleCrawlerState.util';
 import { CrawlerSessionModel } from '../models/mongodb/crawler-session.mongodb';
 import { getCrawlersConfig } from '../config/crawlers.config';
+import { CrawlerConfig } from '../models/mongodb/crawler-config.mongodb';
+import { log } from 'winston';
+import { Logger } from 'crawlee';
 
 
 export const start_crawlers = async () => {
-    const { can_crawl } = await getCrawlersConfig();
+    const config = await getCrawlersConfig();
+    const { can_crawl, seloger_config, boncoin_limits, bienici_limits, logicimmo_limits } = config;
     if (!can_crawl) return;
-    const crawlers_queue = await create_crawler_queue();
-    const crawlers_worker = await create_worker(crawlers_queue);
     const session_id = await create_initial_session()
+    const crawlers_queue = await create_crawler_queue(config);
+    const crawlers_worker = await create_worker(crawlers_queue,config,session_id);
     crawlers_worker.addListener('completed', async (job) => await handleCompletedJob(job, session_id));
     crawlers_worker.addListener('failed', async (job, error) => await handleFailedJob(job, error, session_id));
     await waitForSession(crawlers_queue, crawlers_worker);
@@ -23,24 +28,82 @@ export const start_crawlers = async () => {
 
 export const start_crawlers_revision = async () => { }
 
-const create_crawler_queue = async () => {
+const create_crawler_queue = async (config: CrawlerConfig) => {
     const crawlers_queue = new Queue('crawlers', initRedis());
-    await crawlers_queue.add(CRAWLER_ORIGIN.SELOGER, {});
-    await crawlers_queue.add(CRAWLER_ORIGIN.BONCOIN, {});
-    await crawlers_queue.add(CRAWLER_ORIGIN.LOGICIMMO, {});
-    await crawlers_queue.add(CRAWLER_ORIGIN.BIENICI, {});
-    return crawlers_queue
-}
 
-const create_worker = async (queue: Queue) => {
+    if (config.seloger_config.status === 'active') {
+        console.log('Adding SELOGER to the queue');
+        await crawlers_queue.add(CRAWLER_ORIGIN.SELOGER, {});
+    }
+    if (config.boncoin_limits.status === 'active') {
+        console.log('Adding BONCOIN to the queue');
+        await crawlers_queue.add(CRAWLER_ORIGIN.BONCOIN, {});
+    }
+    if (config.logicimmo_limits.status === 'active') {
+        console.log('Adding LOGICIMMO to the queue');
+        await crawlers_queue.add(CRAWLER_ORIGIN.LOGICIMMO, {});
+    }
+    if (config.bienici_limits.status === 'active') {
+        console.log('Adding BIENICI to the queue');
+        await crawlers_queue.add(CRAWLER_ORIGIN.BIENICI, {});
+    }
+
+    if (config.franceTravail_limits.status === 'active') {
+        console.log('Adding France Travail to the queue');
+        await crawlers_queue.add(CRAWLER_ORIGIN.FRANCE_TRAVAIL, {});
+    }
+    
+    return crawlers_queue;
+};
+
+
+
+const create_worker = async (queue: Queue, config: CrawlerConfig,session_id: string) => {
     const crawlers_worker = new Worker(queue.name, async (job) => {
-        if (job.name === CRAWLER_ORIGIN.BONCOIN) return start_boncoin_crawler(job);
-        if (job.name === CRAWLER_ORIGIN.SELOGER) return start_seloger_crawler(job);
-        if (job.name === CRAWLER_ORIGIN.LOGICIMMO) return start_logicimmo_crawler(job);
-        if (job.name === CRAWLER_ORIGIN.BIENICI) return start_bienici_crawler(job);
+        if (job.name === CRAWLER_ORIGIN.BONCOIN) {
+            if (config.boncoin_limits.status !== 'active') {
+                console.log('BONCOIN is inactive, skipping...');
+                return; 
+            }
+            return start_boncoin_crawler(job);
+        }
+        if (job.name === CRAWLER_ORIGIN.SELOGER) {
+            if (config.seloger_config.status !== 'active') {
+                console.log('SELOGER is inactive, skipping...');
+                return;
+            }
+            return start_seloger_crawler(job);
+        }
+        if (job.name === CRAWLER_ORIGIN.LOGICIMMO) {
+            if (config.logicimmo_limits.status !== 'active') {
+                console.log('LOGICIMMO is inactive, skipping...');
+                return;
+            }
+            return start_logicimmo_crawler(job);
+        }
+        if (job.name === CRAWLER_ORIGIN.BIENICI) {
+            if (config.bienici_limits.status !== 'active') {
+                console.log('BIENICI is inactive, skipping...');
+                return;
+            }
+            return start_bienici_crawler(job);
+        }
+        
+        if (job.name === CRAWLER_ORIGIN.FRANCE_TRAVAIL) {
+            if (config.franceTravail_limits.status !== "active") {
+                console.log("France Travail is inactive, skipping...");
+                return;
+            }
+            
+            return start_france_travail_crawler(session_id);
+        }
+        
+
+
     }, { ...initRedis(), autorun: false, concurrency: 1 });
-    return crawlers_worker
-}
+    return crawlers_worker;
+};
+
 
 const waitForSession = async (queue: Queue, worker: Worker) => {
     await worker.run();

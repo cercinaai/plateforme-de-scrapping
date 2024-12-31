@@ -23,7 +23,7 @@ $boncoin-color: rgba(236, 90, 19, 1);
 $seloger-color: #E30513;
 $bienici-color: #fbba20;
 $logicimmo-color: rgb(0, 106, 161);
-
+$franceTravail-color: #0E4194;
 .back-button-container {
   position: fixed;
   /* Keeps it fixed even when scrolling */
@@ -266,7 +266,7 @@ $logicimmo-color: rgb(0, 106, 161);
         }
 
         &:nth-child(4) {
-          transform: translateX(35px) translateY(-55px);
+          transform: translateX(100px) translateY(-55px);
 
           &:hover {
             background-color: $logicimmo-color;
@@ -288,7 +288,7 @@ $logicimmo-color: rgb(0, 106, 161);
         }
 
         &:nth-child(5) {
-          transform: translateX(15px) translateY(-15px);
+          transform: translateX(80px) translateY(-15px);
 
           &:hover {
             background-color: $seloger-color;
@@ -310,7 +310,20 @@ $logicimmo-color: rgb(0, 106, 161);
         }
 
         &:nth-child(6) {
-          transform: translateX(-100px) translateY(45px);
+          transform: translateX(-60px) translateY(45px);
+
+          &:hover {
+            ~ {
+              .hey-felix {
+                &::after {
+                  content: "Modifier les limites du robot France Travail";
+                }
+              }
+            }
+          }
+        }
+        &:nth-child(7) {
+          transform: translateX(-230px) translateY(80px);
 
           &:hover {
             ~ {
@@ -323,6 +336,7 @@ $logicimmo-color: rgb(0, 106, 161);
           }
         }
       }
+
 
     }
 
@@ -371,7 +385,7 @@ $logicimmo-color: rgb(0, 106, 161);
 
     .hey-felix {
       position: relative;
-      transform: translateY(50px);
+      transform: translateY(90px);
       margin: 0;
 
       &::after {
@@ -1294,6 +1308,237 @@ $logicimmo-color: rgb(0, 106, 161);
         }
       }
     }
+    .card-franceTravail {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      padding: 0 20px 0 20px;
+      position: relative;
+      border-radius: 100px 20px 20px 100px;
+
+      .config-section {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 20px;
+  
+        .input-container {
+          flex: 1;
+          min-width: 200px;
+  
+          label {
+            display: block;
+            margin-bottom: 8px;
+            color: $light-text;
+            font-weight: bold;
+          }
+  
+          input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid $border-color;
+            border-radius: 4px;
+            background-color: $darker-bg;
+            color: $light-text;
+  
+            &:focus {
+              border-color: $highlight-color;
+              outline: none;
+              box-shadow: 0 0 5px $highlight-color;
+            }
+          }
+          
+        }
+        .save-button {
+          margin-top: 10px;
+          display: flex;
+          align-items: center;
+          background-color: $franceTravail-color;
+          color: $light-text;
+          border: none;
+          padding: 10px;
+          border-radius: 4px;
+          cursor: pointer;
+
+          &:hover {
+            background-color: darken($franceTravail-color, 10%);
+          }
+
+          mat-icon {
+            margin-right: 5px;
+          }
+        }
+        .circle-wrapper {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+      }
+      .crud-button-container {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+        justify-content: flex-end;
+      }
+      .title {
+        width: 100%;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+
+        .logo {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-right: 10px;
+
+          img {
+            width: 150px;
+          }
+        }
+
+        .total-container {
+          display: flex;
+          justify-content: end;
+          color: $franceTravail-color;
+        }
+      }
+
+      .crud-button-container {
+        display: flex;
+        justify-content: end;
+        flex-direction: row;
+        gap: 10px;
+        margin: 10px;
+
+        .save-total-button {
+          margin-top: 10px;
+          display: flex;
+          align-items: center;
+          background-color: $franceTravail-color;
+          color: $light-text;
+          border: none;
+          padding: 10px;
+          border-radius: 4px;
+          font-size: 14px;
+          cursor: pointer;
+          transition: background-color 0.3s ease;
+
+          &:hover {
+            background-color: darken($franceTravail-color, 10%);
+          }
+
+          mat-icon {
+            margin-right: 5px;
+          }
+        }
+
+        .reset-total-button {
+          margin-top: 10px;
+          display: flex;
+          align-items: center;
+          background-color: $light-text;
+          color: $darker-bg;
+          border: none;
+          padding: 10px;
+          border-radius: 4px;
+          font-size: 14px;
+          cursor: pointer;
+          transition: background-color 0.3s ease;
+
+          &:hover {
+            background-color: darken($light-text, 10%);
+          }
+
+          mat-icon {
+            margin-right: 5px;
+          }
+        }
+      }
+
+      .details {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+
+
+
+        .regions-container {
+          width: 100%;
+          max-height: 300px;
+          overflow-y: auto;
+          margin-bottom: 20px;
+
+          &::-webkit-scrollbar {
+            width: 6px;
+          }
+
+          &::-webkit-scrollbar-thumb {
+            background: $franceTravail-color;
+            border-radius: 3px;
+          }
+
+          .region-table {
+            width: 100%;
+            border-collapse: collapse;
+
+
+
+            thead {
+              background-color: $darker-bg;
+              color: $lighter-text;
+
+              th {
+                padding: 10px;
+                text-align: left;
+              }
+            }
+
+            tbody {
+              tr {
+                border-bottom: 1px solid $border-color;
+
+                &:hover {
+                  background-color: rgba(255, 255, 255, 0.05);
+                }
+
+                td {
+                  padding: 15px;
+                  text-align: left;
+                  color: $light-text;
+
+                  a {
+                    color: $highlight-color;
+                    text-decoration: none;
+
+                    &:hover {
+                      text-decoration: underline;
+                    }
+                  }
+
+                  .limit-input {
+                    width: 80px;
+                    padding: 5px;
+                    border: 1px solid $border-color;
+                    border-radius: 5px;
+                    background-color: $darker-bg;
+                    color: $light-text;
+
+                    &:focus {
+                      outline: none;
+                      border-color: $highlight-color;
+                      box-shadow: 0 0 5px $highlight-color;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
   }
 }
 
@@ -1664,5 +1909,56 @@ $logicimmo-color: rgb(0, 106, 161);
 @keyframes progress {
   0% {
     stroke-dasharray: 0 100;
+  }
+}
+.status-toggle {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+
+  span {
+    margin-right: 10px;
+    color: $light-text;
+    font-weight: bold;
+  }
+
+  .mat-slide-toggle {
+    --mdc-switch-selected-track-color: #{$credit-color};
+    --mdc-switch-selected-handle-color: #{lighten($credit-color, 10%)};
+    --mdc-switch-unselected-track-color: #{$debit-color};
+    --mdc-switch-unselected-handle-color: #{lighten($debit-color, 10%)};
+
+    &.boncoin {
+      --mdc-switch-selected-track-color: #{$boncoin-color};
+      --mdc-switch-selected-handle-color: #{lighten($boncoin-color, 10%)};
+    }
+
+    &.bienici {
+      --mdc-switch-selected-track-color: #{$bienici-color};
+      --mdc-switch-selected-handle-color: #{lighten($bienici-color, 10%)};
+    }
+
+    &.logicimmo {
+      --mdc-switch-selected-track-color: #{$logicimmo-color};
+      --mdc-switch-selected-handle-color: #{lighten($logicimmo-color, 10%)};
+    }
+
+    &.seloger {
+      --mdc-switch-selected-track-color: #{$seloger-color};
+      --mdc-switch-selected-handle-color: #{lighten($seloger-color, 10%)};
+    }
+  }
+
+  .status-label {
+    margin-left: 10px;
+    font-weight: bold;
+
+    &.active {
+      color: $credit-color;
+    }
+
+    &.inactive {
+      color: $debit-color;
+    }
   }
 }

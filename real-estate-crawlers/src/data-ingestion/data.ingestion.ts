@@ -5,7 +5,7 @@ import { selogerIngest } from "./seloger-ingest/seloger.ingest";
 import { boncoinIngest } from "./boncoin-ingest/boncoin.ingest";
 import { bieniciIngest } from "./bienici-ingest/bienici.ingest";
 import { logicimmoIngest } from "./logicimmo-ingest/logicimmo.ingest";
-
+import { franceTravailIngest } from "./france-travail-ingest/france-travail.ingest";
 const ingestion_queue = new Queue('data-ingestion', initRedis());
 
 new Worker(ingestion_queue.name, async (job) => {
@@ -13,6 +13,8 @@ new Worker(ingestion_queue.name, async (job) => {
     if (job.name === CRAWLER_ORIGIN.SELOGER) return selogerIngest(job);
     if (job.name === CRAWLER_ORIGIN.BIENICI) return bieniciIngest(job);
     if (job.name === CRAWLER_ORIGIN.LOGICIMMO) return logicimmoIngest(job);
+    if (job.name === CRAWLER_ORIGIN.FRANCE_TRAVAIL) return franceTravailIngest(job);
+
 }, { ...initRedis(), concurrency: 20 });
 
 

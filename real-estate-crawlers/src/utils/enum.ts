@@ -2,7 +2,8 @@ export enum CRAWLER_ORIGIN {
     BONCOIN = 'boncoin',
     SELOGER = 'seloger',
     BIENICI = 'bienici',
-    LOGICIMMO = 'logicimmo'
+    LOGICIMMO = 'logicimmo',
+    FRANCE_TRAVAIL = 'france-travail',
 }
 
 export enum CRAWLER_STATUS {

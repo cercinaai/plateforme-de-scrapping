@@ -38,6 +38,19 @@ export const bieniciConfig = new Configuration({
     headless: true,
 });
 
+export const franceTravailConfig = new Configuration({
+    logLevel: LogLevel.INFO,
+    purgeOnStart: true,
+    persistStorage: false,
+    storageClientOptions: {
+        persistStorage: false,
+        writeMetadata: false,
+    },
+    availableMemoryRatio: 0.5,
+    headless: true,
+});
+
+
 export const logicimmoConfig = new Configuration({
     logLevel: LogLevel.INFO,
     purgeOnStart: true,
@@ -65,7 +78,9 @@ export const generateDefaultCrawlersConfig = async () => {
             'http://hephaestus.p.shifter.io:10068',
             'http://hephaestus.p.shifter.io:10069'
         ],
+        
         seloger_config: {
+            status: "inactive",
             total: 10000,
             regions: [
                 { name: 'Île-de-France', link: ['2238'], limit: 19.9 },
@@ -84,6 +99,7 @@ export const generateDefaultCrawlersConfig = async () => {
             ]
         },
         boncoin_limits: {
+            status: "inactive",
             total: 10000,
             regions: [
                 { name: 'Île-de-France', link: 'r_12', limit: 19.65 },
@@ -105,6 +121,7 @@ export const generateDefaultCrawlersConfig = async () => {
             ]
         },
         logicimmo_limits: {
+            status: "inactive",
             total: 2699,
             regions: [
                 { name: 'Île-de-France', link: 'ile-de-france,1_0', limit: 20.86 },
@@ -125,7 +142,14 @@ export const generateDefaultCrawlersConfig = async () => {
             ]
         },
         bienici_limits: {
+            status: "inactive",
             total: 1500,
+            regions: []
+        },
+        franceTravail_limits: {
+            status: "active",
+            nombre:100,
+            total: 1000,
             regions: []
         },
     });

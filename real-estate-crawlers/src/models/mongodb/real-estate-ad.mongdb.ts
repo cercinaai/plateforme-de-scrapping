@@ -146,3 +146,5 @@ export interface EstateOption {
     parkingPlacesQuantity?: number | null;
     isRecent?: boolean | null;
 }
+
+

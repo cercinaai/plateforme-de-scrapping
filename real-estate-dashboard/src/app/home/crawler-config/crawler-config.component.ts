@@ -11,6 +11,8 @@ import { first } from 'rxjs';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { RouterModule } from '@angular/router';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+
 @Component({
   selector: 'app-crawler-config',
   standalone: true,
@@ -22,7 +24,8 @@ import { RouterModule } from '@angular/router';
     MatDividerModule,
     SplitterModule,
     ToastModule,
-    RouterModule
+    RouterModule,
+    MatSlideToggleModule
   ],
   providers: [CrawlerConfigService, MessageService],
   templateUrl: './crawler-config.component.html',
@@ -32,7 +35,7 @@ export class CrawlerConfigComponent implements OnInit {
   private crawlerConfigService = inject(CrawlerConfigService);
   private messageService = inject(MessageService);
   public crawler_config!: CrawlerConfig;
-  public containerToOpen!: 'api_key' | 'proxy' | 'boncoin' | 'bienici' | 'logicimmo' | 'seloger' | null;
+  public containerToOpen!: 'api_key' | 'proxy' | 'boncoin' | 'bienici' | 'logicimmo' | 'seloger' | 'franceTravail' | null;
   public keyGenerated: boolean = false;
   public proxyUrls: string[] = [];
   ngOnInit(): void {
@@ -49,7 +52,7 @@ export class CrawlerConfigComponent implements OnInit {
     this.activateCrawler();
   }
 
-  public toggleContainer(container: 'api_key' | 'proxy' | 'boncoin' | 'bienici' | 'logicimmo' | 'seloger'): void {
+  public toggleContainer(container: 'api_key' | 'proxy' | 'boncoin' | 'bienici' | 'logicimmo' | 'seloger' | 'franceTravail'): void {
     if (this.containerToOpen === container) {
       this.containerToOpen = null;
       return;
@@ -151,5 +154,37 @@ export class CrawlerConfigComponent implements OnInit {
     }
     return true;
   }
+
+  public updateStatus(target: string): void {
+    const targetConfig = (this.crawler_config as any)[target];
+    targetConfig.status = targetConfig.status === 'active' ? 'inactive' : 'active';
+
+    this.crawlerConfigService.updateCrawlerStatus(target, targetConfig.status).pipe(first()).subscribe({
+        next: (data) => {
+            this._grab_crawler_config(); // Recharge les données
+            this.messageService.add({ severity: 'success', summary: 'Success', detail: `${target.toUpperCase()} STATUS UPDATED` });
+        },
+        error: () => this.messageService.add({ severity: 'error', summary: 'Error', detail: `FAIL TO UPDATE ${target.toUpperCase()} STATUS` })
+    });
+}
+
+
+  
+public updateNombre(target: string): void {
+  const targetConfig = (this.crawler_config as any)[target];
+  console.log('Updating total to:', targetConfig.nombre); 
+
+  this.crawlerConfigService.updateCrawlerTotal(target, targetConfig.nombre).pipe(first()).subscribe({
+      next: (data) => {
+          console.log('Updated config:', data); // DEBUG
+          this.crawler_config = data;
+          this.messageService.add({ severity: 'success', summary: 'Success', detail: `${target.toUpperCase()} TOTAL UPDATED` });
+      },
+      error: () => this.messageService.add({ severity: 'error', summary: 'Error', detail: `FAIL TO UPDATE ${target.toUpperCase()} TOTAL` })
+  });
+}
+
+  
+
 
 }

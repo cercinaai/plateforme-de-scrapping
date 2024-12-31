@@ -20,8 +20,15 @@ export class SubCrawlerConfig {
   @Prop({ required: true })
   total: number;
 
+  @Prop ({ required: true })
+  nombre: number;
+
+
   @Prop({ required: true, type: [Region] })
   regions: Region[];
+
+  @Prop({ required: true, default: "inactive" })
+  status: string;
 }
 
 @Schema()
@@ -46,6 +53,9 @@ export class CrawlerConfig {
 
   @Prop({ type: SubCrawlerConfig, required: true })
   logicimmo_limits: SubCrawlerConfig;
+
+  @Prop({ type: SubCrawlerConfig, required: true })
+  franceTravail_limits: SubCrawlerConfig;
 }
 
 
