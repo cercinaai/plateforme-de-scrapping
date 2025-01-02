@@ -209,15 +209,7 @@ export const start_france_travail_crawler = async (session_id: string) => {
                         return { name, size, description };
                     };
 
-                    const getWorkHours = () => {
-                        const dtElements = Array.from(document.querySelectorAll("dt"));
-                        const workHoursDt = dtElements.find((el) => el.textContent?.trim() === "Durée du travail");
-                        if (workHoursDt) {
-                            const ddElement = workHoursDt.nextElementSibling;
-                            return ddElement?.textContent ? ddElement.textContent.trim() : null;
-                        }
-                        return null;
-                    };
+                    
 
                     const getExperience = () => {
                         return getText("[itemprop='experienceRequirements']"); // Example selector for experience
@@ -246,7 +238,7 @@ export const start_france_travail_crawler = async (session_id: string) => {
                         competences: getListItems(".skill-list .skill-competence [itemprop='skills']"),
                         savoirEtre: getListItems(".skill-list .skill-savoir .skill-name"),
                         company: getCompanyDetails(),
-                        workHours: getWorkHours(),
+                        workHours: getText('[itemprop="workHours"]'),
                         experience: getExperience(),
                         qualification: getQualification(),
                         industry: getIndustry(),
