@@ -201,6 +201,40 @@ export const start_france_travail_crawler = async (session_id: string) => {
                         }
                         return null;
                     };
+
+                    const getCompanyDetails = () => {
+                        const name = getText('h3.title'); 
+                        const size = getText('.description-aside p'); 
+                        const description = getText('.description-aside .italic'); 
+                        return { name, size, description };
+                    };
+
+                    const getWorkHours = () => {
+                        const dtElements = Array.from(document.querySelectorAll("dt"));
+                        const workHoursDt = dtElements.find((el) => el.textContent?.trim() === "Durée du travail");
+                        if (workHoursDt) {
+                            const ddElement = workHoursDt.nextElementSibling;
+                            return ddElement?.textContent ? ddElement.textContent.trim() : null;
+                        }
+                        return null;
+                    };
+
+                    const getExperience = () => {
+                        return getText("[itemprop='experienceRequirements']"); // Example selector for experience
+                    };
+
+                    const getQualification = () => {
+                        const qualificationElement = document.querySelector("[itemprop='qualifications']");
+                        return qualificationElement?.textContent?.trim() || null;
+                    };
+        
+                    const getIndustry = () => {
+                        const industryElement = document.querySelector("[itemprop='industry']");
+                        return industryElement?.textContent?.trim() || null;
+                    };
+
+
+
                     return {
                         title: getText('[itemprop="title"]'),
                         description: getText('[itemprop="description"]'),
@@ -211,6 +245,11 @@ export const start_france_travail_crawler = async (session_id: string) => {
                         formation: getListItems(".skill-list .skill-default [itemprop='educationRequirements']"),
                         competences: getListItems(".skill-list .skill-competence [itemprop='skills']"),
                         savoirEtre: getListItems(".skill-list .skill-savoir .skill-name"),
+                        company: getCompanyDetails(),
+                        workHours: getWorkHours(),
+                        experience: getExperience(),
+                        qualification: getQualification(),
+                        industry: getIndustry(),
                     };
                 });
 
