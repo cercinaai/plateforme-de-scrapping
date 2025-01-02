@@ -218,7 +218,6 @@ export const start_france_travail_crawler = async (session_id: string) => {
                     { upsert: true }
                 );
 
-                logger.info(`Saved offer: ${offer.id}`);
             } catch (error) {
                 stats.failedRequests++;
                 logger.error(`Failed to process offer ${offer.id}: ${error.message}`);
