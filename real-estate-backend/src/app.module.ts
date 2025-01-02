@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module';
 import { DataProviderModule } from './data-provider/data-provider.module';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { CrawlerConfigModule } from './crawler-config/crawler-config.module';
+import { JobOfferModule } from './job-offer/job-offer.module';
 
 const configEnv = (): ConfigModuleOptions => {
   if (!process.env.NODE_ENV || process.env.NODE_ENV !== 'production') {
@@ -37,7 +38,8 @@ const configEnv = (): ConfigModuleOptions => {
     }]),
     AuthModule,
     DataProviderModule,
-    CrawlerConfigModule
+    CrawlerConfigModule,
+    JobOfferModule,
   ],
   controllers: [AppController],
   providers: [AppService],

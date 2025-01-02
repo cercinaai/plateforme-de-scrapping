@@ -176,14 +176,39 @@ export const start_france_travail_crawler = async (session_id: string) => {
                 await page.goto(offer.link, { waitUntil: "domcontentloaded", timeout: 60000 });
 
                 const details = await page.evaluate(() => {
+                    const getListItems = (selector) =>
+                        Array.from(document.querySelectorAll(selector)).map((el) => el.textContent?.trim());
+                    
                     const getText = (selector) => document.querySelector(selector)?.textContent?.trim() || null;
+                    const getSalary = () => {
+                        const dtElements = Array.from(document.querySelectorAll("dt"));
+                        const salaireDt = dtElements.find((el) => el.textContent?.trim() === "Salaire");
+                        if (salaireDt) {
+                            const ddElement = salaireDt.nextElementSibling;
+                            return ddElement?.textContent ? ddElement.textContent.trim() : null;
+                        }
+                        return null;
+                    };
+
+                    const getContract = () => {
+                        const dtElements = Array.from(document.querySelectorAll("dt"));
+                        const contratDt = dtElements.find((el) => el.textContent?.trim() === "Type de contrat");
+                        if (contratDt) {
+                            const ddElement = contratDt.nextElementSibling;
+                            return ddElement?.textContent ? ddElement.textContent.trim() : null;
+                        }
+                        return null;
+                    };
                     return {
                         title: getText('[itemprop="title"]'),
                         description: getText('[itemprop="description"]'),
                         location: getText('[itemprop="address"] [itemprop="name"]'),
-                        salary: getText('[itemprop="baseSalary"]'),
-                        contract: getText('[itemprop="employmentType"]'),
+                        salary: getSalary(),
+                        contract: getContract(),
                         publicationDate: getText('[itemprop="datePosted"]'),
+                        formation: getListItems(".skill-list .skill-default [itemprop='educationRequirements']"),
+                        competences: getListItems(".skill-list .skill-competence [itemprop='skills']"),
+                        savoirEtre: getListItems(".skill-list .skill-savoir .skill-name"),
                     };
                 });
 

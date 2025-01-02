@@ -16,38 +16,44 @@ $primary_color: #ea3700;
   height: 100vh;
   background-color: $dark-bg;
 
-  .top {
-    text-align: center;
+  .top-row {
+    display: flex;
+    justify-content: center;
+    gap: 7rem;
     margin-bottom: 50px;
 
-    .navigation-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      cursor: pointer;
+    .top-item {
       text-align: center;
-      padding: 20px;
-      border: 2px solid $border-color;
-      border-radius: 10px;
-      background-color: $darker-bg;
-      transition: transform 0.3s ease, background-color 0.3s ease;
+    }
+  }
 
-      &:hover {
-        transform: scale(1.1);
-        background-color: $highlight-color;
-      }
+  .navigation-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    text-align: center;
+    padding: 20px;
+    border: 2px solid $border-color;
+    border-radius: 10px;
+    background-color: $darker-bg;
+    transition: transform 0.3s ease, background-color 0.3s ease;
 
-      img {
-        width: 80px;
-        height: 80px;
-        margin-bottom: 10px;
-      }
+    &:hover {
+      transform: scale(1.1);
+      background-color: $highlight-color;
+    }
 
-      h2 {
-        font-size: 24px;
-        font-weight: bold;
-        color: $light-text;
-      }
+    img {
+      width: 80px;
+      height: 80px;
+      margin-bottom: 10px;
+    }
+
+    h2 {
+      font-size: 24px;
+      font-weight: bold;
+      color: $light-text;
     }
   }
 
@@ -60,36 +66,6 @@ $primary_color: #ea3700;
     .bottom-left,
     .bottom-right {
       text-align: center;
-
-      .navigation-item {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        cursor: pointer;
-        text-align: center;
-        padding: 20px;
-        border: 2px solid $border-color;
-        border-radius: 10px;
-        background-color: $darker-bg;
-        transition: transform 0.3s ease, background-color 0.3s ease;
-
-        &:hover {
-          transform: scale(1.1);
-          background-color: $highlight-color;
-        }
-
-        img {
-          width: 80px;
-          height: 80px;
-          margin-bottom: 10px;
-        }
-
-        h2 {
-          font-size: 24px;
-          font-weight: bold;
-          color: $light-text;
-        }
-      }
     }
   }
 }

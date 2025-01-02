@@ -1,0 +1,24 @@
+<h2 mat-dialog-title>{{ data?.title || 'Titre indisponible' }}</h2>
+<mat-dialog-content>
+  <p><strong>Entreprise:</strong> {{ data?.company?.name || 'Non spécifiée' }}</p>
+  <p><strong>Lieu:</strong> {{ data?.location || 'Non spécifié' }}</p>
+  <p><strong>Contrat:</strong> {{ data?.contract || 'Non spécifié' }}</p>
+  <p><strong>Salaire:</strong> {{ data?.salary || 'Non spécifié' }}</p>
+  <p><strong>Date de publication:</strong> {{ data?.publicationDate  || 'Non spécifiée' }}</p>
+  <p><strong>Description:</strong></p>
+  <p>{{ data?.description || 'Pas de description disponible' }}</p>
+  <p><strong>Expérience requise:</strong> {{ data?.experience || 'Non spécifiée' }}</p>
+  <p><strong>Qualification:</strong> {{ data?.qualification || 'Non spécifiée' }}</p>
+  <p><strong>Horaires de travail:</strong> {{ data?.workHours || 'Non spécifiées' }}</p>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="close()">Fermer</button>
+  <a
+    mat-button
+    color="primary"
+    [href]="data?.link || '#'"
+    [attr.target]="data?.link ? '_blank' : null"
+    [disabled]="!data?.link"
+    >Voir l'offre originale</a
+  >
+</mat-dialog-actions>

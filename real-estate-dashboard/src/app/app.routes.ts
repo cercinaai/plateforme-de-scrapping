@@ -6,6 +6,7 @@ import { CrawlerSessionComponent } from './home/crawler-session/crawler-session.
 import { DataListComponent } from './home/data-list/data-list.component';
 import { NavigationComponent } from './home/navigation/navigation.component';
 import { CrawlerConfigComponent } from './home/crawler-config/crawler-config.component';
+import { JobOfferListComponent } from './home/job-offer-list/job-offer-list.component';
 
 export const routes: Routes = [
     {
@@ -34,6 +35,10 @@ export const routes: Routes = [
             {
                 path: 'data-list',
                 component: DataListComponent
+            },
+            {
+                path: 'offers-list',
+                component: JobOfferListComponent
             },
             {
                 path: 'crawler-config',

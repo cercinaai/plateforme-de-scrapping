@@ -13,6 +13,9 @@ const jobOffersSchema = new Schema({
     experience: { type: String },
     qualification: { type: String },
     industry: { type: String },
+    formation: { type: [String] }, 
+    competences: { type: [String] },
+    savoirEtre: { type: [String] },
     company: {
         name: { type: String },
         size: { type: String },

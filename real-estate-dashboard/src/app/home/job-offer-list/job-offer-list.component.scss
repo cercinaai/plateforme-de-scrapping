@@ -1,0 +1,520 @@
+$dark-bg: #1e1e1e;
+$darker-bg: #2e2e2e;
+$light-text: #ccc;
+$lighter-text: #888;
+$highlight-color: #1b76ff;
+$debit-color: #ff6b6b;
+$credit-color: #4caf50;
+$border-color: #444;
+$label-color: #ffffff; // Bright white for better visibility
+$label-font-size: 16px; // Slightly larger font size
+
+.filters-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 10px;
+    gap: 10px;
+    background-color: $dark-bg;
+
+    .navigation-buttons {
+        margin-right: 5px;
+        height: 100%;
+
+        .filter-button {
+            display: flex;
+            align-items: center;
+            background-color: $label-color;
+            color: $darker-bg;
+            border: none;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 14px;
+            margin: 3px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            text-decoration: none;
+
+            &:hover {
+                background-color: darken($highlight-color, 10%);
+                color: $light-text;
+            }
+
+            &:focus {
+                outline: none;
+            }
+
+            mat-icon {
+                margin-right: 5px;
+            }
+        }
+
+
+    }
+
+    .filter-section {
+        display: flex;
+        flex-direction: row;
+        align-items: start;
+        justify-content: center;
+        margin-right: 5px;
+        margin-left: 5px;
+        flex-wrap: wrap;
+        gap: 8px;
+
+        .date-filter-section {
+
+            .filter-expansion-panel {
+                background-color: $darker-bg;
+                border-radius: 10px;
+                box-shadow: none;
+
+                mat-expansion-panel-header {
+                    background-color: $darker-bg;
+                    padding: 10px;
+                    border-radius: 10px;
+
+                    mat-panel-title {
+                        font-size: $label-font-size;
+                        font-weight: bold;
+                        color: $light-text;
+                    }
+
+                    ::ng-deep svg {
+                        fill: $light-text;
+                    }
+                }
+
+                .date-filter-content {
+                    display: flex;
+                    flex-direction: column;
+
+                    label {
+                        margin-bottom: 5px;
+                        color: $light-text;
+                    }
+
+                    input[type="date"] {
+                        background-color: $darker-bg;
+                        border: 1px solid $border-color;
+                        color: $light-text;
+                        padding: 5px;
+                        border-radius: 4px;
+                        margin-bottom: 10px;
+                        width: 100%;
+                        font-size: 14px;
+
+                        &::-webkit-calendar-picker-indicator {
+                            filter: invert(1);
+                        }
+                    }
+                }
+            }
+        }
+
+        .origin-filter-section {
+
+            .filter-expansion-panel {
+                background-color: $darker-bg;
+                border-radius: 10px;
+                box-shadow: none;
+
+                mat-expansion-panel-header {
+                    background-color: $darker-bg;
+                    padding: 10px;
+                    border-radius: 10px;
+
+                    mat-panel-title {
+                        font-size: $label-font-size;
+                        font-weight: bold;
+                        color: $light-text;
+                    }
+
+                    ::ng-deep svg {
+                        fill: $light-text;
+                    }
+                }
+
+                .origin-filter-content {
+                    display: flex;
+                    flex-direction: column;
+
+                    .origin-chips {
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: space-around;
+                        margin-bottom: 15px;
+                        flex-wrap: wrap;
+
+                        .chip {
+                            background-color: $dark-bg;
+                            color: $light-text;
+                            padding: 8px 12px;
+                            margin: 2px;
+                            border-radius: 20px;
+                            font-size: 14px;
+                            cursor: pointer;
+                            transition: background-color 0.3s ease;
+
+                            &:hover {
+                                background-color: $highlight-color;
+                            }
+
+                            &.active {
+                                background-color: $highlight-color;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        .category-filter-section {
+
+            .filter-expansion-panel {
+                background-color: $darker-bg;
+                border-radius: 10px;
+                box-shadow: none;
+
+                mat-expansion-panel-header {
+                    background-color: $darker-bg;
+                    padding: 10px;
+                    border-radius: 10px;
+
+                    mat-panel-title {
+                        font-size: $label-font-size;
+                        font-weight: bold;
+                        color: $light-text;
+                    }
+
+                    ::ng-deep svg {
+                        fill: $light-text;
+                    }
+                }
+
+                .category-filter-content {
+                    display: flex;
+                    flex-direction: column;
+
+                    .category-chips {
+                        display: flex;
+                        flex-direction: column;
+                        margin-bottom: 15px;
+                        flex-wrap: wrap;
+
+                        .chip {
+                            background-color: $dark-bg;
+                            color: $light-text;
+                            padding: 8px 12px;
+                            margin: 2px;
+                            border-radius: 20px;
+                            font-size: 14px;
+                            cursor: pointer;
+                            transition: background-color 0.3s ease;
+
+                            &:hover {
+                                background-color: $highlight-color;
+                            }
+
+                            &.active {
+                                background-color: $highlight-color;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        .price-filter-section {
+
+            .filter-expansion-panel {
+                background-color: $darker-bg;
+                border-radius: 10px;
+                box-shadow: none;
+
+                mat-expansion-panel-header {
+                    background-color: $darker-bg;
+                    padding: 10px;
+                    border-radius: 10px;
+
+                    mat-panel-title {
+                        font-size: $label-font-size;
+                        font-weight: bold;
+                        color: $light-text;
+                    }
+
+                    ::ng-deep svg {
+                        fill: $light-text;
+                    }
+                }
+
+                .price-filter-content {
+                    display: flex;
+                    flex-direction: column;
+
+                    .range-section {
+                        display: flex;
+                        flex-direction: column;
+                        width: 100%;
+
+                        label {
+                            color: $light-text;
+                            font-size: $label-font-size;
+                            font-weight: bold;
+                        }
+
+                        mat-slider {
+                            width: 80%;
+                        }
+                    }
+                }
+            }
+        }
+
+        .map-filter-section {
+
+            .filter-expansion-panel {
+                background-color: $darker-bg;
+                border-radius: 10px;
+                box-shadow: none;
+
+                mat-expansion-panel-header {
+                    background-color: $darker-bg;
+                    padding: 10px;
+                    border-radius: 10px;
+
+                    mat-panel-title {
+                        font-size: $label-font-size;
+                        font-weight: bold;
+                        color: $light-text;
+                    }
+
+                    ::ng-deep svg {
+                        fill: $light-text;
+                    }
+                }
+
+                .map-filter-content {
+                    display: flex;
+                    flex-direction: column;
+
+                    .location-filter {
+                        label {
+                            display: block;
+                            color: $light-text;
+                            font-size: $label-font-size;
+                            font-weight: bold;
+                            margin-top: 10px;
+                        }
+
+                        input[type="text"],
+                        input[type="number"] {
+                            background-color: $darker-bg;
+                            border: 1px solid $border-color;
+                            color: $light-text;
+                            padding: 5px;
+                            border-radius: 4px;
+                            margin-bottom: 10px;
+                            width: 100%;
+                            font-size: 14px;
+
+                            &::placeholder {
+                                color: $lighter-text;
+                            }
+
+                            &:focus {
+                                border-color: $highlight-color;
+                                outline: none;
+                            }
+                        }
+
+                        .location-radio {
+                            color: $light-text;
+                            margin-bottom: 10px;
+                            display: block;
+
+                            ::ng-deep label {
+                                color: $light-text;
+                            }
+
+                            .mat-radio-outer-circle {
+                                border-color: $highlight-color;
+                            }
+
+                            .mat-radio-inner-circle {
+                                background-color: $highlight-color;
+                            }
+
+                            .mat-radio-button.mat-accent .mat-radio-ripple .mat-ripple-element {
+                                background-color: $highlight-color;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        .order-by-section {
+
+            .filter-expansion-panel {
+                background-color: $darker-bg;
+                border-radius: 10px;
+                box-shadow: none;
+
+                mat-expansion-panel-header {
+                    background-color: $darker-bg;
+                    padding: 10px;
+                    border-radius: 10px;
+
+                    mat-panel-title {
+                        font-size: $label-font-size;
+                        font-weight: bold;
+                        color: $light-text;
+                    }
+
+                    ::ng-deep svg {
+                        fill: $light-text;
+                    }
+                }
+
+                .order-by-content {
+                    display: flex;
+                    flex-direction: column;
+
+                    .order-by-radio {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 10px;
+                        color: $light-text;
+                        margin-bottom: 10px;
+
+                        ::ng-deep label {
+                            color: $light-text;
+                        }
+
+                        .mat-radio-outer-circle {
+                            border-color: $highlight-color;
+                        }
+
+                        .mat-radio-inner-circle {
+                            background-color: $highlight-color;
+                        }
+
+                        .mat-radio-button.mat-accent .mat-radio-ripple .mat-ripple-element {
+                            background-color: $highlight-color;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    .search-buttons {
+        margin-left: 5px;
+        display: flex;
+        align-items: start;
+        justify-content: center;
+        flex-wrap: wrap;
+        height: 100%;
+
+        .filter-button {
+            display: flex;
+            align-items: center;
+            background-color: $highlight-color;
+            color: $light-text;
+            border: none;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 14px;
+            margin: 3px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+
+            &:hover {
+                background-color: darken($highlight-color, 10%);
+            }
+
+            &:focus {
+                outline: none;
+            }
+
+            mat-icon {
+                margin-right: 5px;
+            }
+        }
+
+        .export-button {
+            background-color: $credit-color;
+
+            &:hover {
+                background-color: darken($credit-color, 10%);
+            }
+        }
+
+        .clear-button {
+            background-color: $debit-color;
+
+            &:hover {
+                background-color: darken($debit-color, 10%);
+            }
+        }
+    }
+}
+
+
+.ads-list {
+    margin-top: 10px;
+    padding: 20px;
+
+    .ads-table {
+        width: 100%;
+        background-color: $darker-bg;
+        padding: 15px;
+        color: #ccc;
+        border-radius: 10px 10px 0 0;
+
+        .mat-mdc-row .mat-mdc-cell {
+            border-bottom: 1px solid transparent;
+            border-top: 1px solid transparent;
+            cursor: pointer;
+        }
+
+        .mat-mdc-row:hover .mat-mdc-cell {
+            border-color: currentColor;
+        }
+
+        .demo-row-is-clicked {
+            background-color: $highlight-color;
+        }
+
+        ::ng-deep th {
+            color: $label-color;
+        }
+
+        ::ng-deep td {
+            color: $light-text;
+        }
+    }
+
+    .ads-paginator {
+        background-color: $darker-bg;
+        padding: 15px;
+        border-radius: 0 0 10px 10px;
+
+        ::ng-deep * {
+            color: $light-text;
+        }
+
+        ::ng-deep svg {
+            fill: $light-text;
+        }
+    }
+}
+
+::ng-deep .export-dialog mat-dialog-container {
+    border-color: $darker-bg;
+    box-shadow: none;
+}
