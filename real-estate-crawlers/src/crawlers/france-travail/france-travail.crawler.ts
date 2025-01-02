@@ -83,7 +83,9 @@ export const start_france_travail_crawler = async (session_id: string) => {
         const jobOffers: { id: string; link: string }[] = [];
 
         logger.info("Launching Puppeteer to initialize session...");
-        const browser = await puppeteer.launch({ headless: true });
+        const browser = await puppeteer.launch({ headless: true ,
+            args: ['--no-sandbox', '--disable-setuid-sandbox']
+         });
         const page = await browser.newPage();
         await page.goto(baseURL, { waitUntil: "domcontentloaded" });
 
