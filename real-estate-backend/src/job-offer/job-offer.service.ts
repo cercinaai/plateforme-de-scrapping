@@ -43,4 +43,9 @@ export class JobOfferService {
 
     return this.jobOfferModel.find(query).exec();
   }
+
+  async findById(id: string): Promise<JobOffers | null> {
+    return this.jobOfferModel.findById(id).exec();
+  }
+  
 }
