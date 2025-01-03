@@ -17,7 +17,12 @@ export interface Company {
     qualification?: string;
     industry?: string;
     company?: Company;
-    publicationDate?: string | null; // Autoriser null ici
+    publicationDate?: string | null; 
+    savoirEtre?: string;
+    formation?: string[];
+
+    //data?.competences
+    competences?: string[];
   }
   
   

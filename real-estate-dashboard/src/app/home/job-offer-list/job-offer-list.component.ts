@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, OnInit, ViewChild, inject ,HostListener } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatPaginatorModule, MatPaginator, PageEvent } from '@angular/material/paginator';
@@ -15,6 +15,9 @@ import { RouterModule } from '@angular/router';
 import { JobOfferService } from '../../services/job-offer.service';
 import { JobOffer } from '../../models/job-offer';
 import { JobOfferDetailsComponent } from '../job-offer-details/job-offer-details.component';
+
+// import mat-card 
+import { MatCardModule } from '@angular/material/card';
 
 @Component({
   selector: 'app-job-offer-list',
@@ -33,6 +36,7 @@ import { JobOfferDetailsComponent } from '../job-offer-details/job-offer-details
     MatDividerModule,
     MatSelectModule,
     MatDialogModule,
+    MatCardModule
   ],
   templateUrl: './job-offer-list.component.html',
   styleUrls: ['./job-offer-list.component.scss'],
@@ -41,11 +45,11 @@ export class JobOfferListComponent implements OnInit {
   private jobOfferService = inject(JobOfferService);
   private dialog = inject(MatDialog);
 
-  public displayedColumns: string[] = ['title', 'location', 'salary', 'contract', 'publicationDate', 'actions'];
+  public displayedColumns: string[] = ['title', 'company', 'location', 'contract', 'salary', 'publicationDate'];
   public dataSource!: MatTableDataSource<JobOffer>;
   public isLoading = false;
   public expandFilters = false;
-
+  showBackToTop = false;
   public filters: {
     keyword?: string;
     location?: string;
@@ -55,7 +59,8 @@ export class JobOfferListComponent implements OnInit {
     qualification?: string;
     specialties?: string[];
   } = {};
-  
+
+  public jobOffers: JobOffer[] = [];
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
@@ -64,14 +69,16 @@ export class JobOfferListComponent implements OnInit {
     this.loadJobOffers();
   }
 
+  ngAfterViewInit(): void {
+    this.dataSource.paginator = this.paginator;
+  }
+
   loadJobOffers(filters: any = {}): void {
     this.isLoading = true;
     this.jobOfferService.getJobOffers(filters).subscribe({
       next: (offers) => {
-        this.dataSource.data = offers.map((offer) => ({
-          ...offer,
-        }));
-        this.dataSource.paginator = this.paginator;
+        this.jobOffers = offers;
+        this.dataSource.data = offers;
         this.isLoading = false;
       },
       error: (err) => {
@@ -80,32 +87,16 @@ export class JobOfferListComponent implements OnInit {
       },
     });
   }
-  
+
   applyFilters(): void {
     this.expandFilters = false;
-    console.log('Filters applied:', this.filters);
     this.loadJobOffers(this.filters);
   }
-  
+
   clearFilters(): void {
     this.filters = {};
-    this.expandFilters = false;
     this.loadJobOffers();
   }
-  
-  
-
-  // applyFilters(): void {
-  //   this.expandFilters = false;
-  //   console.log('Filters:', this.filters);
-  //   this.loadJobOffers(); // Update this to pass filter params if applicable
-  // }
-
-  // clearFilters(): void {
-  //   this.filters = {};
-  //   this.expandFilters = false;
-  //   this.loadJobOffers();
-  // }
 
   openJobDetails(offer: JobOffer): void {
     this.dialog.open(JobOfferDetailsComponent, {
@@ -115,7 +106,7 @@ export class JobOfferListComponent implements OnInit {
     });
   }
 
-  pageChange(event: PageEvent): void {
-    console.log('Page event:', event);
-  }
+  
+
 }
+
