@@ -15,6 +15,8 @@ import { Logger } from 'crawlee';
 
 
 export const start_crawlers = async () => {
+    console.log(new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' }));
+
     const config = await getCrawlersConfig();
     const { can_crawl, seloger_config, boncoin_limits, bienici_limits, logicimmo_limits } = config;
     if (!can_crawl) return;
