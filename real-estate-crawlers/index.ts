@@ -92,7 +92,7 @@ const runAtSpecificTime = async (hour: number, minute: number, callback: Functio
 };
 
 // Schedule `start_crawlers` to run at midnight (00:00)
-runAtSpecificTime(11, 40, async () => {
+runAtSpecificTime(10, 45, async () => {
     console.log(`[${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}] Starting midnight scraping job...`);
     try {
         await start_crawlers();
