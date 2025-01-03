@@ -16,83 +16,49 @@ await initMongoDB();
 // CONFIGURATE CRAWLERS
 await generateDefaultCrawlersConfig();
 
-//console.log(new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' }));
 
 //await start_crawlers();
 
 // // INITIALIZE CRAWLERS
-// const start_crawlers_every_midnight = new CronJob(
-//     '0 0 * * *', 
-//     async () => {
-//         console.log(`[${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}] Starting midnight scraping job...`);
-//         try {
-//             await start_crawlers();
-//             console.log("Midnight scraping job completed successfully.");
-//         } catch (error) {
-//             console.error("Error during midnight scraping job:", error);
-//         }
-//     },
-//     null,
-//     false, // Ensure it starts manually
-//     'Europe/Paris'
-// );
+// const start_crawlers_every_midnight = new CronJob('0 0 * * *', async () => await start_crawlers(), null, false, 'Europe/Paris');
 // const start_crawlers_monthly_revision = new CronJob('0 0 1 * *', async () => await start_crawlers_revision(), null, false, 'Europe/Paris');
-
-// console.log(`[${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}] Initializing cron job for 11:00 AM...`);
-
-// const start_crawlers_at_11_am = new CronJob(
-//     '5 11 * * *', 
-//     async () => {
-//         console.log(`[${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}] Starting scraping job at 11:00 AM...`);
-//         try {
-//             await start_crawlers();
-//             console.log("Scraping job at 11:00 AM completed successfully.");
-//         } catch (error) {
-//             console.error("Error during scraping job at 11:00 AM:", error);
-//         }
-//     },
-//     null,
-//     true,
-//     'Europe/Paris'
-// );
-
-// console.log(`[${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}] Cron job for 11:00 AM initialized.`);
-
-
 
 // // // // SCHEDULE CRAWLERS
 // start_crawlers_every_midnight.start();
 // start_crawlers_monthly_revision.start();
-// start_crawlers_at_10_17_am.start();
-const runAtSpecificTime = async (hour: number, minute: number, callback: Function) => {
-    const now = new Date();
-    const nextRun = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        now.getDate(),
-        hour,
-        minute,
-        0,
-        0
-    );
 
-    if (now > nextRun) {
-        // If the time has already passed for today, schedule for tomorrow
-        nextRun.setDate(nextRun.getDate() + 1);
+const runAtSpecificTime = async (hour: number, minute: number, callback: Function, timeZone: string = 'Europe/Paris') => {
+    const now = new Date();
+    const formatter = new Intl.DateTimeFormat('en-US', {
+        timeZone,
+        hour: 'numeric',
+        minute: 'numeric',
+        second: 'numeric',
+        hour12: false,
+    });
+
+    const [formattedHour, formattedMinute] = formatter.format(now).split(':').map(Number);
+    let nextRun = new Date(now);
+
+    // Adjust the next run date based on the time in the specified timezone
+    if (formattedHour > hour || (formattedHour === hour && formattedMinute >= minute)) {
+        nextRun.setDate(nextRun.getDate() + 1); // Schedule for the next day
     }
 
+    nextRun.setHours(hour, minute, 0, 0);
+
     const delay = nextRun.getTime() - now.getTime();
-    console.log(`Next run scheduled in ${delay / 1000 / 60} minutes.`);
+    console.log(`[${now.toLocaleString('fr-FR', { timeZone })}] Next run scheduled for ${nextRun.toLocaleString('fr-FR', { timeZone })}, which is in ${Math.round(delay / 1000 / 60)} minutes.`);
 
     setTimeout(async () => {
         await callback();
-        // Schedule the next run
-        runAtSpecificTime(hour, minute, callback);
+        runAtSpecificTime(hour, minute, callback, timeZone); // Schedule the next run
     }, delay);
 };
 
+
 // Schedule `start_crawlers` to run at midnight (00:00)
-runAtSpecificTime(10, 45, async () => {
+runAtSpecificTime(0, 0, async () => {
     console.log(`[${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}] Starting midnight scraping job...`);
     try {
         await start_crawlers();
