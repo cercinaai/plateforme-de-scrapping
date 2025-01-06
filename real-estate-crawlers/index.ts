@@ -27,7 +27,12 @@ await generateDefaultCrawlersConfig();
 // start_crawlers_every_midnight.start();
 // start_crawlers_monthly_revision.start();
 
-const runAtSpecificTime = async (hour: number, minute: number, callback: Function, timeZone: string = 'Europe/Paris') => {
+const runAtSpecificTime = async (
+    hour: number,
+    minute: number,
+    callback: Function,
+    timeZone: string = 'Europe/Paris'
+) => {
     const now = new Date();
     const formatter = new Intl.DateTimeFormat('en-US', {
         timeZone,
@@ -38,26 +43,30 @@ const runAtSpecificTime = async (hour: number, minute: number, callback: Functio
     });
 
     const [formattedHour, formattedMinute] = formatter.format(now).split(':').map(Number);
-    let nextRun = new Date(now);
+    let nextRun = new Date();
 
-    // Adjust the next run date based on the time in the specified timezone
+    // Calculate the next run date
+    nextRun.setHours(hour, minute, 0, 0);
+
     if (formattedHour > hour || (formattedHour === hour && formattedMinute >= minute)) {
         nextRun.setDate(nextRun.getDate() + 1); // Schedule for the next day
     }
-
-    nextRun.setHours(hour, minute, 0, 0);
 
     const delay = nextRun.getTime() - now.getTime();
     console.log(`[${now.toLocaleString('fr-FR', { timeZone })}] Next run scheduled for ${nextRun.toLocaleString('fr-FR', { timeZone })}, which is in ${Math.round(delay / 1000 / 60)} minutes.`);
 
     setTimeout(async () => {
-        await callback();
-        runAtSpecificTime(hour, minute, callback, timeZone); // Schedule the next run
+        try {
+            console.log(`[${new Date().toLocaleString('fr-FR', { timeZone })}] Starting scheduled job...`);
+            await callback();
+            console.log("Scheduled job completed successfully.");
+        } catch (error) {
+            console.error("Error during scheduled job:", error);
+        }
+        runAtSpecificTime(hour, minute, callback, timeZone);
     }, delay);
 };
 
-
-// Schedule `start_crawlers` to run at midnight (00:00)
 runAtSpecificTime(23, 0, async () => {
     console.log(`[${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}] Starting midnight scraping job...`);
     try {
@@ -66,7 +75,7 @@ runAtSpecificTime(23, 0, async () => {
     } catch (error) {
         console.error("Error during midnight scraping job:", error);
     }
-});
+}, 'Europe/Paris');
 
 
 // LISTEN FOR UNEXPECTED ERRORS
