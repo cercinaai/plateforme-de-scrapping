@@ -52,13 +52,13 @@ export class OpenAIService {
 {
   "specialties": ["Infirmier en soins généraux", "Soins à domicile"],
   "experience": "Entre 1 et 3 ans",
+  "CompanyName": "ASSOCIATION NATIONALE DE PREVENTION EN A",
   "workHours": "Temps plein",
   "location": "Paris, Hauts-de-Seine, Île-de-France",
   "contract": "CDI",
   "formation": "Bac+2 : Diplôme d'État Infirmier (DEI)",
   "salary": "Salaire brut 350.000 Euros",
   "CompanyEmail": "contact@addictions-france.org",
-  "CompanyName": "ASSOCIATION NATIONALE DE PREVENTION EN A"
   "SavoirEtre": ["Empathie", "Travail en équipe"]
 
 }

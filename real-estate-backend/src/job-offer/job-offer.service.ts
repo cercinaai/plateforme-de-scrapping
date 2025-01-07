@@ -16,11 +16,11 @@ export class JobOfferService {
   async onModuleInit() {
     console.log('JobOfferService initialized. Starting job offer processing...');
 
-    setTimeout(() => {
-      this.processAllJobOffers().catch(error => {
-        console.error('Failed to process job offers on startup:', error);
-      });
-    }, 0);
+    // setTimeout(() => {
+    //   this.processAllJobOffers().catch(error => {
+    //     console.error('Failed to process job offers on startup:', error);
+    //   });
+    // }, 0);
   }
 
 
