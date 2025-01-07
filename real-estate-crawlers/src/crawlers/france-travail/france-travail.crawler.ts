@@ -257,10 +257,10 @@ export const start_france_travail_crawler = async (session_id: string) => {
                     { upsert: true, new: true }
                 );
 
-                const openAIResponse = await axios.post(
-                    'http://annonces.mercimozart.com:3000/job-offers/process-single',
-                    savedOffer.toObject()
-                );
+                // const openAIResponse = await axios.post(
+                //     'http://annonces.mercimozart.com:3000/job-offers/process-single',
+                //     savedOffer.toObject()
+                // );
 
             } catch (error) {
                 stats.failedRequests++;
