@@ -13,6 +13,10 @@ export class Company {
 
   @Prop()
   description?: string;
+
+
+  @Prop()
+  email?: string;
 }
 
 export const CompanySchema = SchemaFactory.createForClass(Company);
@@ -69,6 +73,8 @@ export class JobOffers {
 
   @Prop()
   formation?: string[];
+
+
 
 }
 

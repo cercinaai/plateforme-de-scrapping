@@ -15,8 +15,8 @@ export class OpenAIService {
 
   async processJobOffer(jobOffer: JobOffers): Promise<Partial<JobOffers>> {
     const prompt = `
-Vous allez analyser une offre d'emploi et la reformuler sous forme structurée en JSON. Voici les détails de l'offre d'emploi brute :
-Job offer details:
+  Vous allez analyser une offre d'emploi et la reformuler sous forme structurée en JSON. Voici les détails de l'offre d'emploi brute :
+  Job offer details:
     Title: ${jobOffer.title}
     Description: ${jobOffer.description}
     Location: ${jobOffer.location}
@@ -25,7 +25,10 @@ Job offer details:
     Experience: ${jobOffer.experience}
     Qualification: ${jobOffer.qualification}
     Formation: ${jobOffer.formation}
-    Salary: ${jobOffer.salary}
+    Salary: ${jobOffer.salary}        
+    Company Name: ${jobOffer.company.name}
+    SavoirEtre: ${jobOffer.savoirEtre || "Non spécifié"}
+
 ### Consignes :
 - Reformulez les détails de l'offre d'emploi en respectant les catégories suivantes :
   1. **Specialités** : Choisir parmi les options suivantes :
@@ -39,6 +42,12 @@ Job offer details:
   7. **Salaire** :\n
       - Si un chiffre est mentionné, reformulez sous la forme : 'Salaire brut XXX Euros'.\n
       - Si aucun chiffre n'est mentionné, indiquez : 'Salaire non disponible'.
+  8. **Company Email** : Générez automatiquement un email d'entreprise basé sur le nom de la société Company Name.\n
+       - Exemple : Pour la société "ASSOCIATION NATIONALE DE PREVENTION EN A",son email  'contact@addictions-france.org'.
+  9. **Savoir-être** : Choisir parmi les options suivantes :\n
+      - Empathie, Travail en équipe, Capacité d'écoute, Rigueur et organisation.\n
+      - Si le champ savoir-être est vide ou "Non spécifié", choisissez automatiquement une ou plusieurs options parmi : Empathie, Travail en équipe, Capacité d'écoute, Rigueur et organisation, en fonction des informations de l'offre.\n
+        
 ### Exemple de réponse attendue en JSON :
 {
   "specialties": ["Infirmier en soins généraux", "Soins à domicile"],
@@ -47,7 +56,10 @@ Job offer details:
   "location": "Paris, Hauts-de-Seine, Île-de-France",
   "contract": "CDI",
   "formation": "Bac+2 : Diplôme d'État Infirmier (DEI)",
-  "salary": "Salaire brut 350.000 Euros"
+  "salary": "Salaire brut 350.000 Euros",
+  "CompanyEmail": "contact@addictions-france.org",
+    "SavoirEtre": ["Empathie", "Travail en équipe"]
+
 }
 Analysez les données fournies et reformulez-les en respectant ce format.
 `;
@@ -62,7 +74,6 @@ Analysez les données fournies et reformulez-les en respectant ce format.
     });
     const result = response.choices[0].message.content.trim();
     const cleanedResult = this.cleanOpenAIResponse(result);
-    console.log('Cleaned OpenAI response:', cleanedResult);
     return this.parseOpenAIResponse(cleanedResult);
 }
 
@@ -89,6 +100,10 @@ Analysez les données fournies et reformulez-les en respectant ce format.
         contract: parsedResponse.contract || '',
         formation: parsedResponse.formation ? [parsedResponse.formation] : [],
         salary: parsedResponse.salary || '',
+        company: {
+          email: parsedResponse.CompanyEmail || '',
+        },
+        savoirEtre: parsedResponse.SavoirEtre || [],
       };
     } catch (error) {
       console.error('Failed to parse OpenAI response:', response, error);
