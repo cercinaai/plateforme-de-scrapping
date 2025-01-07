@@ -85,7 +85,7 @@ Analysez les données fournies et reformulez-les en respectant ce format.
         experience: parsedResponse.experience || '',
         workHours: parsedResponse.workHours || '',
         location: parsedResponse.location || '',
-        contract: parsedResponse.contractType || '',
+        contract: parsedResponse.contract || '',
         formation: parsedResponse.requiredEducation ? [parsedResponse.requiredEducation] : [],
         salary: parsedResponse.salary || '',
       };
