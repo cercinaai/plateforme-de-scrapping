@@ -18,7 +18,7 @@ await generateDefaultCrawlersConfig();
 await updateCrawlerConfig();
 
 
-await start_crawlers();
+//await start_crawlers();
 
 // // INITIALIZE CRAWLERS
 // const start_crawlers_every_midnight = new CronJob('0 0 * * *', async () => await start_crawlers(), null, false, 'Europe/Paris');
