@@ -2,7 +2,9 @@ export interface Company {
     name?: string;
     size?: string;
     description?: string;
+    email?: string;
   }
+ 
   
   export interface JobOffer {
     _id: string;
@@ -17,12 +19,12 @@ export interface Company {
     qualification?: string;
     industry?: string;
     company?: Company;
-    publicationDate?: string | null; 
-    savoirEtre?: string;
+    publicationDate?: string | null;
+    savoirEtre?: string[]; 
     formation?: string[];
-
-    //data?.competences
     competences?: string[];
+    specialties?: string[]; 
   }
+  
   
   
