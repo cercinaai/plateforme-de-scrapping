@@ -15,7 +15,6 @@ export class JobOfferService {
   
   async onModuleInit() {
     console.log('JobOfferService initialized. Starting job offer processing...');
-    await this.deleteOffersWithNullCompanyName();
 
     setTimeout(() => {
       this.processAllJobOffers().catch(error => {

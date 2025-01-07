@@ -58,7 +58,8 @@ export class OpenAIService {
   "formation": "Bac+2 : Diplôme d'État Infirmier (DEI)",
   "salary": "Salaire brut 350.000 Euros",
   "CompanyEmail": "contact@addictions-france.org",
-    "SavoirEtre": ["Empathie", "Travail en équipe"]
+  "CompanyName": "ASSOCIATION NATIONALE DE PREVENTION EN A"
+  "SavoirEtre": ["Empathie", "Travail en équipe"]
 
 }
 Analysez les données fournies et reformulez-les en respectant ce format.
@@ -102,6 +103,7 @@ Analysez les données fournies et reformulez-les en respectant ce format.
         salary: parsedResponse.salary || '',
         company: {
           email: parsedResponse.CompanyEmail || '',
+          name: parsedResponse.CompanyName|| '',
         },
         savoirEtre: parsedResponse.SavoirEtre || [],
       };
