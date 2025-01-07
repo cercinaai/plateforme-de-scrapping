@@ -15,6 +15,8 @@ export class JobOfferService {
   
   async onModuleInit() {
     console.log('JobOfferService initialized. Starting job offer processing...');
+    await this.deleteOffersWithNullCompanyName();
+
     setTimeout(() => {
       this.processAllJobOffers().catch(error => {
         console.error('Failed to process job offers on startup:', error);
@@ -91,7 +93,14 @@ async processAndUpdateJobOffer(jobOffer: JobOffers) {
   }
 
 
-
+  async deleteOffersWithNullCompanyName(): Promise<void> {
+    try {
+      const result = await this.jobOfferModel.deleteMany({ 'company.name': null }).exec();
+      console.log(`${result.deletedCount} job offers with null company name were deleted.`);
+    } catch (error) {
+      console.error('Error deleting job offers with null company name:', error);
+    }
+  }
 
   
 }
