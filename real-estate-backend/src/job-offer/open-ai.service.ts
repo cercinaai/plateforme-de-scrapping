@@ -62,6 +62,7 @@ Analysez les données fournies et reformulez-les en respectant ce format.
     });
     const result = response.choices[0].message.content.trim();
     const cleanedResult = this.cleanOpenAIResponse(result);
+    console.log('Cleaned OpenAI response:', cleanedResult);
     return this.parseOpenAIResponse(cleanedResult);
 }
 
@@ -86,7 +87,7 @@ Analysez les données fournies et reformulez-les en respectant ce format.
         workHours: parsedResponse.workHours || '',
         location: parsedResponse.location || '',
         contract: parsedResponse.contract || '',
-        formation: parsedResponse.requiredEducation ? [parsedResponse.requiredEducation] : [],
+        formation: parsedResponse.formation ? [parsedResponse.formation] : [],
         salary: parsedResponse.salary || '',
       };
     } catch (error) {
