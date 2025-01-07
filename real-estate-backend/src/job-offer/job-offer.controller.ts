@@ -1,6 +1,6 @@
 import { Body, Controller, Param,Get, Post, HttpException, HttpStatus } from "@nestjs/common";
 import { JobOfferService } from "./job-offer.service";
-
+import { JobOffers } from "../models/JobOffers.schema";
 @Controller("job-offers")
 export class JobOfferController {
   constructor(private readonly jobOfferService: JobOfferService) {}
@@ -40,6 +40,19 @@ export class JobOfferController {
     } catch (error) {
       throw new HttpException(
         "Failed to fetch job offer",
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+
+  @Post("test-ai-processing")
+  async testAIProcessing(@Body() jobOffer: JobOffers) {
+    try {
+      const processedJobOffer = await this.jobOfferService.processAndUpdateJobOffer(jobOffer);
+      return processedJobOffer;
+    } catch (error) {
+      throw new HttpException(
+        "Failed to process job offer with AI",
         HttpStatus.INTERNAL_SERVER_ERROR
       );
     }

@@ -3,7 +3,7 @@ import { initMongoDB } from "./src/config/mongodb.config";
 import { start_crawlers, start_crawlers_revision } from './src/crawlers/crawlers.queue';
 import { handleQueueUnexpectedError } from './src/utils/handleCrawlerState.util';
 import { config } from 'dotenv';
-import { generateDefaultCrawlersConfig, getCrawlersConfig } from './src/config/crawlers.config';
+import { generateDefaultCrawlersConfig, getCrawlersConfig ,updateCrawlerConfig} from './src/config/crawlers.config';
 
 
 // LOADS ENVIRONMENT VARIABLES
@@ -15,6 +15,7 @@ await initMongoDB();
 
 // CONFIGURATE CRAWLERS
 await generateDefaultCrawlersConfig();
+await updateCrawlerConfig();
 
 
 //await start_crawlers();

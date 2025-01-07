@@ -53,19 +53,23 @@ export class JobOffers {
   qualification?: string;
 
   @Prop()
-  formation?: [string];
-
-  @Prop()
   competences?: [string];
-    
-  @Prop()
-  savoirEtre?: [string];
 
   @Prop()
   industry?: string;
 
   @Prop({ type: CompanySchema })
   company?: Company;
+
+  @Prop()
+  specialties?: string[];
+
+  @Prop()
+  savoirEtre?: string[];
+
+  @Prop()
+  formation?: string[];
+
 }
 
 export const JobOffersSchema = SchemaFactory.createForClass(JobOffers);

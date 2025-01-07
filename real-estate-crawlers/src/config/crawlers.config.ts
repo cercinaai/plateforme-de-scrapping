@@ -153,7 +153,7 @@ export const generateDefaultCrawlersConfig = async () => {
             regions: []
         },
     });
-}
+} 
 
 
 export const getCrawlersConfig = async (): Promise<CrawlerConfig> => {
