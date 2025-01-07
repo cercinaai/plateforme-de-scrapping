@@ -27,7 +27,7 @@ export class JobOfferService {
   
   async processAllJobOffers() {
     console.log('Fetching all job offers from the database...');
-    const jobOffers = await this.jobOfferModel.find().exec(); // Si nécessaire, ajoute un filtre pour limiter les offres.
+    const jobOffers = await this.jobOfferModel.find().exec(); 
     console.log(`Found ${jobOffers.length} job offers to process.`);
 
     for (const jobOffer of jobOffers) {
@@ -46,6 +46,17 @@ async processAndUpdateJobOffer(jobOffer: JobOffers) {
       await this.jobOfferModel.findByIdAndUpdate(jobOffer._id, updatedFields).exec();
     } else {
       console.log(`No updates were made for job offer with ID: ${jobOffer._id}`);
+    }
+  }
+
+  async processSingleJobOffer(jobOffer: JobOffers): Promise<Partial<JobOffers>> {
+    try {
+      const updatedFields = await this.openAIService.processJobOffer(jobOffer);
+      await this.jobOfferModel.findByIdAndUpdate(jobOffer._id, updatedFields).exec();
+      return updatedFields;
+    } catch (error) {
+      console.error('Failed to process single job offer:', error);
+      throw new Error('Error processing the job offer.');
     }
   }
 

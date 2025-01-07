@@ -245,10 +245,21 @@ export const start_france_travail_crawler = async (session_id: string) => {
                     };
                 });
 
-                await jobOffersModel.updateOne(
+                // Vérifiez si `company.name` est null et ignorez l'offre si c'est le cas
+                if (!details.company?.name) {
+                    logger.warn(`Skipped job offer with null company name: ${offer.link}`);
+                    return;
+                }
+
+                const savedOffer = await jobOffersModel.findOneAndUpdate(
                     { _id: offer.id },
                     { $set: { ...offer, ...details } },
-                    { upsert: true }
+                    { upsert: true, new: true }
+                );
+
+                const openAIResponse = await axios.post(
+                    'http://annonces.mercimozart.com:3000/job-offers/process-single',
+                    savedOffer.toObject()
                 );
 
             } catch (error) {

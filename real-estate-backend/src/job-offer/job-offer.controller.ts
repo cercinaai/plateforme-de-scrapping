@@ -57,4 +57,18 @@ export class JobOfferController {
       );
     }
   }
+
+
+  @Post("process-single")
+  async processSingleJobOffer(@Body() jobOffer: JobOffers) {
+    try {
+      const processedJobOffer = await this.jobOfferService.processSingleJobOffer(jobOffer);
+      return processedJobOffer;
+    } catch (error) {
+      throw new HttpException(
+        "Failed to process job offer with AI",
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
 }

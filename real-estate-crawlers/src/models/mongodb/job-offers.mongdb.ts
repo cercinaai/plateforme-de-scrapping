@@ -18,9 +18,9 @@ const jobOffersSchema = new Schema({
     savoirEtre: { type: [String] },
     company: {
         name: { type: String },
-        size: { type: String },
-        description: { type: String },
+        email: { type: String }, // Champ pour l'email généré
     },
+    specialties: { type: [String] },
 }, { timestamps: true });
 
 export const jobOffersModel = model('JobOffers', jobOffersSchema);
