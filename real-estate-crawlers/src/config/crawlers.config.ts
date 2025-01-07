@@ -148,7 +148,7 @@ export const generateDefaultCrawlersConfig = async () => {
         },
         franceTravail_limits: {
             status: "active",
-            nombre:1020,
+            nombre:0,
             total: 1000,
             regions: []
         },
@@ -248,7 +248,7 @@ export const updateCrawlerConfig = async () => {
         },
         franceTravail_limits: {
             status: "active",
-            nombre:1020,
+            nombre:0,
             total: 1000,
             regions: []
         }
