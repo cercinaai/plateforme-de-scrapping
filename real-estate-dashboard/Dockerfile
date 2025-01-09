@@ -13,19 +13,20 @@ RUN npm install
 COPY . .
 
 # Build the Angular app in production mode
-RUN npm run build --prod
+RUN npm run build
 
-# Use Nginx to serve the Angular application
+# Step 2: Serve the Angular application with Nginx
 FROM nginx:alpine
+
 
 # Copy the built Angular app from the previous stage
 COPY --from=build /usr/src/app/dist/real-estate-dashboard/browser /usr/share/nginx/html
 
-# Copy a custom nginx configuration
+# Copy custom Nginx configuration file
 COPY nginx.conf /etc/nginx/nginx.conf
 
 # Expose port 80
 EXPOSE 80
 
-# Start Nginx
+# Start Nginx server
 CMD ["nginx", "-g", "daemon off;"]
