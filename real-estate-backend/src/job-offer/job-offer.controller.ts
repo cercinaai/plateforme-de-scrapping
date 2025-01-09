@@ -71,4 +71,16 @@ export class JobOfferController {
       );
     }
   }
+
+  @Get('company-names')
+async getOffersWithCompanyName() {
+    try {
+        return await this.jobOfferService.findOffersWithCompanyName();
+    } catch (error) {
+        throw new HttpException(
+            'Failed to fetch job offers with company names',
+            HttpStatus.INTERNAL_SERVER_ERROR
+        );
+    }
+}
 }

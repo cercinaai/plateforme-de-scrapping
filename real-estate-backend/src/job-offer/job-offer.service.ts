@@ -111,5 +111,22 @@ async processAndUpdateJobOffer(jobOffer: JobOffers) {
     }
   }
 
+
+  async findOffersWithCompanyName(): Promise<{ companyName: string }[]> {
+    try {
+        // Recherche des offres avec un nom d'entreprise non nul
+        const offers = await this.jobOfferModel
+            .find({ 'company.name': { $ne: null } }) // Filtrer sur les noms d'entreprise non nuls
+            .limit(100) // Limiter à 100 résultats
+            .select('company.name') // Sélectionner uniquement le champ `company.name`
+            .exec();
+
+        // Mapper les résultats pour ne retourner que le nom de l'entreprise
+        return offers.map(offer => ({ companyName: offer.company?.name || '' }));
+    } catch (error) {
+        console.error('Error fetching job offers with company name:', error);
+        throw new Error('Failed to fetch job offers with company name.');
+    }
+}
   
 }

@@ -42,8 +42,9 @@ export class OpenAIService {
   7. **Salaire** :\n
       - Si un chiffre est mentionné, reformulez sous la forme : 'Salaire brut XXX Euros'.\n
       - Si aucun chiffre n'est mentionné, indiquez : 'Salaire non disponible'.
-  8. **Company Email** : Générez automatiquement un email d'entreprise basé sur le nom de la société Company Name.\n
-       - Exemple : Pour la société "ASSOCIATION NATIONALE DE PREVENTION EN A",son email  'contact@addictions-france.org'.
+  8. **Email de l'entreprise** :\n 
+  - Effectuez une recherche pour trouver l'email professionnel de l'entreprise, en utilisant le nom de l'entreprise fourni dans les données.\n 
+  - Si aucun email ne peut être trouvé, indiquez : "Email non disponible".\n
   9. **Savoir-être** : Choisir parmi les options suivantes :\n
       - Empathie, Travail en équipe, Capacité d'écoute, Rigueur et organisation.\n
       - Si le champ savoir-être est vide ou "Non spécifié", choisissez automatiquement une ou plusieurs options parmi : Empathie, Travail en équipe, Capacité d'écoute, Rigueur et organisation, en fonction des informations de l'offre.\n

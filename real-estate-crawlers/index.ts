@@ -15,7 +15,7 @@ await initMongoDB();
 
 // CONFIGURATE CRAWLERS
 await generateDefaultCrawlersConfig();
-await updateCrawlerConfig();
+//await updateCrawlerConfig();
 
 
 //await start_crawlers();

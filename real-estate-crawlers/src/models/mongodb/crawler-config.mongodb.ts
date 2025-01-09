@@ -51,7 +51,16 @@ const CrawlerConfigSchema = new Schema<CrawlerConfig>({
             link: { type: String, required: true },
             limit: { type: Number, required: true }
         }]
-    }
+    },
+    leboncoinGolf_limits: {
+        status: { type: String, default: "inactive" },
+        total: { type: Number, required: true },
+        regions: [{
+          name: { type: String, required: true },
+          link: { type: String, required: true },
+          limit: { type: Number, required: true }
+        }]
+      },
 })
 
 
@@ -87,4 +96,10 @@ export interface CrawlerConfig {
         total: number;
         regions: Array<{ name: string, link: string, limit: number }>
     };
+    leboncoinGolf_limits: {
+        status: string;
+        total: number;
+        regions: Array<{ name: string, link: string, limit: number }>
+    };
+   
 }

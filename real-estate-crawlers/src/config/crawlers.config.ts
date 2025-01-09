@@ -63,6 +63,17 @@ export const logicimmoConfig = new Configuration({
     headless: true
 });
 
+export const leboncoinGolfConfig = new Configuration({
+    logLevel: LogLevel.ERROR,
+    purgeOnStart: true,
+    persistStorage: false,
+    storageClientOptions: {
+      persistStorage: false,
+      writeMetadata: false,
+    },
+    availableMemoryRatio: 0.5,
+    headless: true,
+  });
 
 
 export const generateDefaultCrawlersConfig = async () => {
@@ -148,10 +159,17 @@ export const generateDefaultCrawlersConfig = async () => {
         },
         franceTravail_limits: {
             status: "active",
-            nombre:100,
+            nombre:10,
             total: 1000,
             regions: []
         },
+        leboncoinGolf_limits: {
+            status: "inactive",
+            total: 1000,
+            regions: [
+              { name: 'All France', link: '', limit: 100 },
+            ]
+          },
     });
 } 
 
@@ -248,10 +266,17 @@ export const updateCrawlerConfig = async () => {
         },
         franceTravail_limits: {
             status: "active",
-            nombre:100,
+            nombre:10,
             total: 1000,
             regions: []
-        }
+        },
+        leboncoinGolf_limits: {
+            status: "inactive",
+            total: 1000,
+            regions: [
+              { name: 'All France', link: '', limit: 100 },
+            ]
+          },
 
     };
 

@@ -256,9 +256,9 @@ export const start_france_travail_crawler = async (session_id: string) => {
                     { $set: { ...offer, ...details } },
                     { upsert: true, new: true }
                 );
-
+                console.log(savedOffer.id);
                 const openAIResponse = await axios.post(
-                    'http://annonces.mercimozart.com:3000/job-offers/process-single',
+                    'http://localhost:3000/job-offers/process-single',
                     savedOffer.toObject()
                 );
 
