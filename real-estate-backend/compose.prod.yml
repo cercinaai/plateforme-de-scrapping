@@ -34,8 +34,7 @@ services:
       - "80:80"
     depends_on:
       - backend
-    volumes:
-    - /usr/share/nginx/html:/usr/share/nginx/html  
+      
 
 volumes:
   mongo_data:
