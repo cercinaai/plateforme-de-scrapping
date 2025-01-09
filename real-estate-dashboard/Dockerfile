@@ -15,14 +15,17 @@ COPY . .
 # Build the Angular app in production mode
 RUN npm run build --prod
 
-# Step 2: Serve the Angular application with Nginx
-FROM alpine:3.17
-
-WORKDIR /frontend
+# Use Nginx to serve the Angular application
+FROM nginx:alpine
 
 # Copy the built Angular app from the previous stage
-COPY --from=build /usr/src/app/dist/real-estate-dashboard/browser .
+COPY --from=build /usr/src/app/dist/real-estate-dashboard/browser /usr/share/nginx/html
 
+# Copy a custom nginx configuration
+COPY nginx.conf /etc/nginx/nginx.conf
 
-CMD ["sh", "-c", "echo 'Angular app built and copied!'"]
+# Expose port 80
+EXPOSE 80
 
+# Start Nginx
+CMD ["nginx", "-g", "daemon off;"]
