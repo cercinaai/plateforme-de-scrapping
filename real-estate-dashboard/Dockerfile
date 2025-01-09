@@ -22,8 +22,6 @@ FROM nginx:alpine
 # Copy the built Angular app from the previous stage
 COPY --from=build /usr/src/app/dist/real-estate-dashboard/browser /usr/share/nginx/html
 
-# Copy custom Nginx configuration file
-COPY nginx.conf /etc/nginx/nginx.conf
 
 # Expose port 80
 EXPOSE 80
