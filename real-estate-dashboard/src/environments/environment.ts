@@ -1,4 +1,4 @@
 export const environment = {
     production: true,
-    api_url: 'http://annonces.mercimozart.com:3000',
+    api_url: 'https://annonces.mercimozart.com/job-offers',
 };
