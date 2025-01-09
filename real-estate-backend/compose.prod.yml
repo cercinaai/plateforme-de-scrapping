@@ -31,8 +31,8 @@ services:
     build:
       context: ./real-estate-dashboard
       dockerfile: Dockerfile
-    ports:
-      - "8080:80"
+    volumes:
+      - frontend_data:/usr/share/nginx/html
     depends_on:
       - backend
 
