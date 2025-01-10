@@ -28,11 +28,8 @@ services:
     image: ${DASHBOARD_IMAGE}:latest
     container_name: frontend-container
     restart: on-failure
-    build:
-      context: ./real-estate-dashboard
-      dockerfile: Dockerfile
-    volumes:
-      - frontend_data:/usr/share/nginx/html 
+    ports:
+      - "80:80"
     depends_on:
       - backend
 

@@ -1,27 +1,32 @@
-# Étape 1 : Construire l'application Angular
+# Use the official Node.js image as the base image
 FROM node:22.5.1 AS build
 
+# Set the working directory
 WORKDIR /usr/src/app
 
-COPY package.json ./
+COPY package.json .
 
+# Install dependencies
 RUN npm install
 
+# Copy the entire project to the working directory
 COPY . .
 
-RUN npm run build --prod
+# Build the Angular app in production mode
+RUN npm run build
 
-# Étape 2 : Utiliser NGINX pour servir l'application
+# Step 2: Serve the Angular application with Nginx
 FROM nginx:alpine
 
+
+# Copy the built Angular app from the previous stage
 COPY --from=build /usr/src/app/dist/real-estate-dashboard/browser /usr/share/nginx/html
 
-# Supprime la configuration par défaut de NGINX
-RUN rm /etc/nginx/conf.d/default.conf
+# Copy custom Nginx configuration file
+COPY nginx.conf /etc/nginx/nginx.conf
 
-# Copie votre configuration NGINX personnalisée
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-
+# Expose port 80
 EXPOSE 80
 
+# Start Nginx server
 CMD ["nginx", "-g", "daemon off;"]
