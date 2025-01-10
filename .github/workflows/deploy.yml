@@ -1,146 +1,205 @@
-name: Build and Deploy
+name: CI/CD
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
 
 env:
-  BACKEND_IMAGE: ghcr.io/cercinaai/real-estate-backend:${{ github.sha }}
-  DASHBOARD_IMAGE: ghcr.io/cercinaai/real-estate-dashboard:${{ github.sha }}
-  CRAWLERS_IMAGE: ghcr.io/cercinaai/real-estate-crawlers:${{ github.sha }}
-  MONGO_USER: ${{ secrets.MONGO_USER }}
-  MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
-  MONGO_DATABASE: ${{ secrets.MONGO_DATABASE }}
-  SERVER_IP_ADDRESS: ${{ secrets.SERVER_IP_ADDRESS }}
+  BACKEND_IMAGE: ghcr.io/cercinaai/real-estate-backend
+  DASHBOARD_IMAGE: ghcr.io/cercinaai/real-estate-dashboard
+  CRAWLERS_IMAGE: ghcr.io/cercinaai/real-estate-crawlers
 
 jobs:
-  build_backend:
+  build-backend:
     name: Build Backend
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v1
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v2
         with:
           registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build and push Backend image
-        uses: docker/build-push-action@v2
-        with:
-          context: ./real-estate-backend
-          file: ./real-estate-backend/docker/Dockerfile
-          push: true
-          tags: |
-            ${{ env.BACKEND_IMAGE }}
-            ghcr.io/cercinaai/real-estate-backend:latest
+          username: ${{ secrets.GHCR_USERNAME }}
+          password: ${{ secrets.GHCR_PAT }}
 
-  build_dashboard:
+      - name: Build and Push Backend Image
+        run: |
+          cd real-estate-backend
+          docker build -t $BACKEND_IMAGE:${{ github.sha }} -f ./docker/Dockerfile .
+          docker tag $BACKEND_IMAGE:${{ github.sha }} $BACKEND_IMAGE:latest
+          docker push $BACKEND_IMAGE:${{ github.sha }}
+          docker push $BACKEND_IMAGE:latest
+
+  build-dashboard:
     name: Build Dashboard
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v1
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v2
         with:
           registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build and push Dashboard image
-        uses: docker/build-push-action@v2
-        with:
-          context: ./real-estate-dashboard
-          push: true
-          tags: |
-            ${{ env.DASHBOARD_IMAGE }}
-            ghcr.io/cercinaai/real-estate-dashboard:latest
+          username: ${{ secrets.GHCR_USERNAME }}
+          password: ${{ secrets.GHCR_PAT }}
 
-  build_crawlers:
+      - name: Build and Push Dashboard Image
+        run: |
+          cd real-estate-dashboard
+          docker build -t $DASHBOARD_IMAGE:${{ github.sha }} .
+          docker tag $DASHBOARD_IMAGE:${{ github.sha }} $DASHBOARD_IMAGE:latest
+          docker push $DASHBOARD_IMAGE:${{ github.sha }}
+          docker push $DASHBOARD_IMAGE:latest
+
+  build-crawlers:
     name: Build Crawlers
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v1
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v2
         with:
           registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build and push Crawlers image
-        uses: docker/build-push-action@v2
-        with:
-          context: ./real-estate-crawlers
-          file: ./real-estate-crawlers/docker/Dockerfile
-          push: true
-          tags: |
-            ${{ env.CRAWLERS_IMAGE }}
-            ghcr.io/cercinaai/real-estate-crawlers:latest
+          username: ${{ secrets.GHCR_USERNAME }}
+          password: ${{ secrets.GHCR_PAT }}
+
+      - name: Build and Push Crawlers Image
+        run: |
+          cd real-estate-crawlers
+          docker build -t $CRAWLERS_IMAGE:${{ github.sha }} -f ./docker/Dockerfile .
+          docker tag $CRAWLERS_IMAGE:${{ github.sha }} $CRAWLERS_IMAGE:latest
+          docker push $CRAWLERS_IMAGE:${{ github.sha }}
+          docker push $CRAWLERS_IMAGE:latest
 
   deploy_backend:
     name: Deploy Backend
-    needs: [build_backend, build_dashboard]
     runs-on: ubuntu-latest
+    needs: [build-backend,build-dashboard]
+
     steps:
-      - uses: actions/checkout@v2
-      - name: Install SSH client
-        run: sudo apt-get install -y openssh-client
-      - name: Deploy to backend server
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
-          BACKEND_HOST: ${{ secrets.BACKEND_HOST }}
-          BACKEND_ENV_KEYS: ${{ secrets.BACKEND_ENV_KEYS }}
+      - name: Checkout Code
+        uses: actions/checkout@v3
+  
+      - name: Setup SSH
         run: |
-          eval $(ssh-agent -s)
-          echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > /tmp/deploy_key
+          chmod 600 /tmp/deploy_key
           mkdir -p ~/.ssh
-          chmod 700 ~/.ssh
-          echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
-          chmod 644 ~/.ssh/known_hosts
-          ssh haythem@$BACKEND_HOST "docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}"
-          ssh haythem@$BACKEND_HOST "docker pull ${{ env.BACKEND_IMAGE }}"
-          ssh haythem@$BACKEND_HOST "docker pull ${{ env.DASHBOARD_IMAGE }}"
-          scp real-estate-backend/compose.prod.yml haythem@$BACKEND_HOST:/home/haythem/real-estate-backend/
-          echo "$BACKEND_ENV_KEYS" > production.env
-          scp production.env haythem@$BACKEND_HOST:/home/haythem/real-estate-backend/environments/production.env
-          scp -r real-estate-backend/bin haythem@$BACKEND_HOST:/home/haythem/real-estate-backend/
-          ssh haythem@$BACKEND_HOST "export BACKEND_IMAGE=${{ env.BACKEND_IMAGE }} && export DASHBOARD_IMAGE=${{ env.DASHBOARD_IMAGE }} && docker compose -f /home/haythem/real-estate-backend/compose.prod.yml down"
-          ssh haythem@$BACKEND_HOST "export BACKEND_IMAGE=${{ env.BACKEND_IMAGE }} && export DASHBOARD_IMAGE=${{ env.DASHBOARD_IMAGE }} && docker image prune -f"
-          ssh haythem@$BACKEND_HOST "export BACKEND_IMAGE=${{ env.BACKEND_IMAGE }} && export DASHBOARD_IMAGE=${{ env.DASHBOARD_IMAGE }} && docker compose -f /home/haythem/real-estate-backend/compose.prod.yml up -d"
+          ssh-keyscan -H ${{ secrets.BACKEND_HOST }} >> ~/.ssh/known_hosts
+  
+      - name: Debug SSH Connection
+        run: |
+          ssh -i /tmp/deploy_key -o StrictHostKeyChecking=no -vvv haythem@${{ secrets.BACKEND_HOST }} echo "SSH connection successful"
+  
+      - name: Deploy Backend
+        run: |
+          ssh -i /tmp/deploy_key -o StrictHostKeyChecking=no haythem@${{ secrets.BACKEND_HOST }} <<'EOF'
+          set -e
+      
+          export BACKEND_IMAGE=${{ env.BACKEND_IMAGE }}
+          export DASHBOARD_IMAGE=${{ env.DASHBOARD_IMAGE }}
+      
+          # Login to Docker registry
+          echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
+      
+          # Docker pull
+          docker pull $BACKEND_IMAGE:latest
+          docker pull $DASHBOARD_IMAGE:latest
+      
+          # Create directories on the server
+          mkdir -p /home/haythem/real-estate-backend/environments
+          EOF
+      
+      - name: Transfer Files
+        run: |
+          scp -i /tmp/deploy_key -o StrictHostKeyChecking=no real-estate-backend/compose.prod.yml haythem@${{ secrets.BACKEND_HOST }}:/home/haythem/real-estate-backend/
+          scp -i /tmp/deploy_key -o StrictHostKeyChecking=no -r real-estate-backend/bin haythem@${{ secrets.BACKEND_HOST }}:/home/haythem/real-estate-backend/
+
+
+      - name: Restart Backend Services
+        run: |
+          ssh -i /tmp/deploy_key -o StrictHostKeyChecking=no haythem@${{ secrets.BACKEND_HOST }} <<'EOF'
+          set -e
+  
+          export BACKEND_IMAGE=${{ env.BACKEND_IMAGE }}
+          export DASHBOARD_IMAGE=${{ env.DASHBOARD_IMAGE }}
+  
+          # Stop existing containers
+          docker compose -f /home/haythem/real-estate-backend/compose.prod.yml down
+  
+          # Clean up unused images
+          docker image prune -f
+  
+          # Start the updated containers
+          docker compose -f /home/haythem/real-estate-backend/compose.prod.yml up -d
+          EOF
+
+
 
   deploy_crawlers:
     name: Deploy Crawlers
-    needs: [build_crawlers]
     runs-on: ubuntu-latest
+    needs: build-crawlers
+  
     steps:
-      - uses: actions/checkout@v2
-      - name: Install SSH client
-        run: sudo apt-get install -y openssh-client
-      - name: Deploy to crawlers server
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
-          CRAWLERS_HOST: ${{ secrets.CRAWLERS_HOST }}
-          CRAWLERS_ENV_KEYS: ${{ secrets.CRAWLERS_ENV_KEYS }}
+      - name: Checkout Code
+        uses: actions/checkout@v3
+  
+      - name: Setup SSH
         run: |
-          eval $(ssh-agent -s)
-          echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > /tmp/deploy_key
+          chmod 600 /tmp/deploy_key
           mkdir -p ~/.ssh
-          chmod 700 ~/.ssh
-          echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
-          chmod 644 ~/.ssh/known_hosts
-          ssh haythem@$CRAWLERS_HOST "docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}"
-          ssh haythem@$CRAWLERS_HOST "docker pull ${{ env.CRAWLERS_IMAGE }}"
-          scp real-estate-crawlers/compose.prod.yml haythem@$CRAWLERS_HOST:/home/haythem/real-estate-crawlers/
-          echo "$CRAWLERS_ENV_KEYS" > production.env
-          scp production.env haythem@$CRAWLERS_HOST:/home/haythem/real-estate-crawlers/environments/production.env
-          scp -r real-estate-crawlers/entrypoints haythem@$CRAWLERS_HOST:/home/haythem/real-estate-crawlers/
-          ssh haythem@$CRAWLERS_HOST "export CRAWLERS_IMAGE=${{ env.CRAWLERS_IMAGE }} && docker compose -f /home/haythem/real-estate-crawlers/compose.prod.yml down"
-          ssh haythem@$CRAWLERS_HOST "export CRAWLERS_IMAGE=${{ env.CRAWLERS_IMAGE }} && docker image prune -f"
-          ssh haythem@$CRAWLERS_HOST "export CRAWLERS_IMAGE=${{ env.CRAWLERS_IMAGE }} && docker compose -f /home/haythem/real-estate-crawlers/compose.prod.yml up -d"
+          ssh-keyscan -H ${{ secrets.CRAWLERS_HOST }} >> ~/.ssh/known_hosts
+  
+      - name: Debug SSH Connection
+        run: |
+          ssh -i /tmp/deploy_key -o StrictHostKeyChecking=no -vvv haythem@${{ secrets.CRAWLERS_HOST }} echo "SSH connection successful"
+  
+      - name: Deploy Crawlers
+        run: |
+          ssh -i /tmp/deploy_key -o StrictHostKeyChecking=no haythem@${{ secrets.CRAWLERS_HOST }} <<'EOF'
+          set -e
+  
+          export CRAWLERS_IMAGE=${{ env.CRAWLERS_IMAGE }}
+  
+          # Login to Docker registry
+          echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
+  
+          # Docker pull
+          docker pull $CRAWLERS_IMAGE:latest
+  
+          # Create directories on the server
+          mkdir -p /home/haythem/real-estate-crawlers/environments
+          EOF
+  
+      - name: Transfer Files
+        run: |
+          scp -i /tmp/deploy_key -o StrictHostKeyChecking=no real-estate-crawlers/compose.prod.yml haythem@${{ secrets.CRAWLERS_HOST }}:/home/haythem/real-estate-crawlers/
+          scp -i /tmp/deploy_key -o StrictHostKeyChecking=no -r real-estate-crawlers/entrypoints haythem@${{ secrets.CRAWLERS_HOST }}:/home/haythem/real-estate-crawlers/
+  
+      - name: Restart Crawlers Services
+        run: |
+          ssh -i /tmp/deploy_key -o StrictHostKeyChecking=no haythem@${{ secrets.CRAWLERS_HOST }} <<'EOF'
+          set -e
+  
+          export CRAWLERS_IMAGE=${{ env.CRAWLERS_IMAGE }}
+  
+          # Stop existing containers
+          docker compose -f /home/haythem/real-estate-crawlers/compose.prod.yml down
+  
+          # Clean up unused images
+          docker image prune -f
+  
+          # Start the updated containers
+          docker compose -f /home/haythem/real-estate-crawlers/compose.prod.yml up -d
+          EOF
