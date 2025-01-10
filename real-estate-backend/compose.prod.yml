@@ -52,3 +52,5 @@ services:
 volumes:
   mongo_data:
     external: true
+  frontend_data:
+    external: true  
