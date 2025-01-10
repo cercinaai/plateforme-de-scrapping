@@ -122,7 +122,7 @@ jobs:
     
             # Start new containers
             docker compose -f /home/haythem/real-estate-backend/compose.prod.yml up -d
-            EOF
+          EOF
   
 
 
