@@ -140,7 +140,7 @@ jobs:
           docker image prune -f
   
           # Start the updated containers
-          docker compose -f /home/haythem/real-estate-backend/compose.prod.yml up -d nginx
+          docker compose -f /home/haythem/real-estate-backend/compose.prod.yml up -d
           EOF
 
 
