@@ -91,22 +91,39 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build_backend, build_dashboard]
     steps:
-      - name: Deploy Backend
+      - name: Setup SSH
         run: |
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > /tmp/deploy_key
           chmod 600 /tmp/deploy_key
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.BACKEND_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy Backend
+        run: |
           ssh -i /tmp/deploy_key -o StrictHostKeyChecking=no haythem@${{ secrets.BACKEND_HOST }} << 'EOF'
-          export BACKEND_IMAGE=${{ env.BACKEND_IMAGE }}
-          export DASHBOARD_IMAGE=${{ env.DASHBOARD_IMAGE }}
-          docker login -u "${{ secrets.CI_REGISTRY_USER }}" -p "${{ secrets.CI_REGISTRY_PASSWORD }}" ghcr.io
-          docker pull $BACKEND_IMAGE:latest
-          docker pull $DASHBOARD_IMAGE:latest
-          scp real-estate-backend/compose.prod.yml haythem@${{ secrets.BACKEND_HOST }}:/home/haythem/real-estate-backend/
-          scp ${{ secrets.BACKEND_ENV_KEYS }} haythem@${{ secrets.BACKEND_HOST }}:/home/haythem/real-estate-backend/environments/production.env
-          docker compose -f /home/haythem/real-estate-backend/compose.prod.yml down
-          docker image prune -f
-          docker compose -f /home/haythem/real-estate-backend/compose.prod.yml up -d
-          EOF
+            export BACKEND_IMAGE=${{ env.BACKEND_IMAGE }}
+            export DASHBOARD_IMAGE=${{ env.DASHBOARD_IMAGE }}
+          
+            # Login to the Docker registry
+            docker login -u "${{ secrets.CI_REGISTRY_USER }}" -p "${{ secrets.CI_REGISTRY_PASSWORD }}" ghcr.io
+            
+            # Pull the latest images
+            docker pull $BACKEND_IMAGE:latest
+            docker pull $DASHBOARD_IMAGE:latest
+    
+            # Copy necessary files
+            mkdir -p /home/haythem/real-estate-backend/environments
+            scp real-estate-backend/compose.prod.yml /home/haythem/real-estate-backend/
+            echo "${{ secrets.BACKEND_ENV_KEYS }}" > /home/haythem/real-estate-backend/environments/production.env
+    
+            # Stop and prune old containers
+            docker compose -f /home/haythem/real-estate-backend/compose.prod.yml down
+            docker image prune -f
+    
+            # Start new containers
+            docker compose -f /home/haythem/real-estate-backend/compose.prod.yml up -d
+            EOF
+  
 
 
   deploy_crawlers:
