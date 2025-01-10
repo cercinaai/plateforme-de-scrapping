@@ -96,15 +96,18 @@ jobs:
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > /tmp/deploy_key
           chmod 600 /tmp/deploy_key
           ssh -i /tmp/deploy_key -o StrictHostKeyChecking=no haythem@${{ secrets.BACKEND_HOST }} << 'EOF'
-            docker login -u "${{ secrets.CI_REGISTRY_USER }}" -p "${{ secrets.CI_REGISTRY_PASSWORD }}" ghcr.io
-            docker pull $BACKEND_IMAGE:latest
-            docker pull $DASHBOARD_IMAGE:latest
-            scp real-estate-backend/compose.prod.yml haythem@$BACKEND_HOST:/home/haythem/real-estate-backend/
-            scp ${{ secrets.BACKEND_ENV_KEYS }} haythem@$BACKEND_HOST:/home/haythem/real-estate-backend/environments/production.env
-            docker compose -f /home/haythem/real-estate-backend/compose.prod.yml down
-            docker image prune -f
-            docker compose -f /home/haythem/real-estate-backend/compose.prod.yml up -d
+          export BACKEND_IMAGE=${{ env.BACKEND_IMAGE }}
+          export DASHBOARD_IMAGE=${{ env.DASHBOARD_IMAGE }}
+          docker login -u "${{ secrets.CI_REGISTRY_USER }}" -p "${{ secrets.CI_REGISTRY_PASSWORD }}" ghcr.io
+          docker pull $BACKEND_IMAGE:latest
+          docker pull $DASHBOARD_IMAGE:latest
+          scp real-estate-backend/compose.prod.yml haythem@${{ secrets.BACKEND_HOST }}:/home/haythem/real-estate-backend/
+          scp ${{ secrets.BACKEND_ENV_KEYS }} haythem@${{ secrets.BACKEND_HOST }}:/home/haythem/real-estate-backend/environments/production.env
+          docker compose -f /home/haythem/real-estate-backend/compose.prod.yml down
+          docker image prune -f
+          docker compose -f /home/haythem/real-estate-backend/compose.prod.yml up -d
           EOF
+
 
   deploy_crawlers:
     name: Deploy Crawlers
