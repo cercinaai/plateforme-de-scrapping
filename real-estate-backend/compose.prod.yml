@@ -32,7 +32,7 @@ services:
       context: ./real-estate-dashboard
       dockerfile: Dockerfile
     volumes:
-      - frontend_data:/usr/share/nginx/html
+      - frontend_data:/usr/share/nginx/html 
     depends_on:
       - backend
 
