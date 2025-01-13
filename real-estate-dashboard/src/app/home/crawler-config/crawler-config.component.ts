@@ -34,6 +34,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 export class CrawlerConfigComponent implements OnInit {
   private crawlerConfigService = inject(CrawlerConfigService);
   private messageService = inject(MessageService);
+  
   public crawler_config!: CrawlerConfig;
   public containerToOpen!: 'api_key' | 'proxy' | 'boncoin' | 'bienici' | 'logicimmo' | 'seloger' | 'franceTravail' | null;
   public keyGenerated: boolean = false;
@@ -183,6 +184,19 @@ public updateNombre(target: string): void {
       error: () => this.messageService.add({ severity: 'error', summary: 'Error', detail: `FAIL TO UPDATE ${target.toUpperCase()} TOTAL` })
   });
 }
+
+public migrateJobOffers(): void {
+  this.crawlerConfigService.migrateJobOffers().pipe(first()).subscribe({
+    next: () => {
+      this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Job offers migrated successfully!' });
+    },
+    error: (err) => {
+      this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to migrate job offers' });
+      console.error('Migration error:', err);
+    }
+  });
+}
+
 
   
 

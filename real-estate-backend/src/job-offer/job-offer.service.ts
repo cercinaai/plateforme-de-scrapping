@@ -3,12 +3,20 @@ import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { JobOffers, JobOffersDocument } from "../models/JobOffers.schema";
 import { OpenAIService } from './open-ai.service';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { JobOfferEntity } from '../models/job-offers.entity';
+import { EntrepriseEntity } from '../models/entreprise.entity';
 
 @Injectable()
 export class JobOfferService {
   constructor(
     @InjectModel(JobOffers.name) private jobOfferModel: Model<JobOffersDocument>,
-    private openAIService: OpenAIService
+    private openAIService: OpenAIService,
+    @InjectRepository(JobOfferEntity)
+    private jobOfferRepository: Repository<JobOfferEntity>,
+    @InjectRepository(EntrepriseEntity) private entrepriseRepository: Repository<EntrepriseEntity>,
+
   ) {}
 
  
@@ -128,5 +136,80 @@ async processAndUpdateJobOffer(jobOffer: JobOffers) {
         throw new Error('Failed to fetch job offers with company name.');
     }
 }
-  
+
+async migrateJobOffersFromMongoToMySQL() {
+  try {
+    const mongoJobOffers = await this.jobOfferModel.find().exec();
+
+    for (const mongoOffer of mongoJobOffers) {
+      let entreprise = await this.entrepriseRepository.findOne({
+        where: { nom: mongoOffer.company?.name },
+      });
+
+      if (!entreprise) {
+        entreprise = this.entrepriseRepository.create({
+          nom: mongoOffer.company?.name,
+          email: mongoOffer.company?.email,
+          emails: [mongoOffer.company?.email],
+        });
+        await this.entrepriseRepository.save(entreprise);
+      }
+
+      const jobOfferEntity = this.jobOfferRepository.create({
+        id: mongoOffer._id,
+        titre: mongoOffer.title,
+        description: mongoOffer.description,
+        localisation: mongoOffer.location,
+        type_de_contrat: mongoOffer.contract,
+        salaire_brut: mongoOffer.salary,
+        competences: mongoOffer.competences,
+        savoir_etre: mongoOffer.savoirEtre,
+        specialite: mongoOffer.specialties?.join(', '),
+        occupation: mongoOffer.workHours,
+        experience: mongoOffer.experience,
+        formation: mongoOffer.formation?.join(', '),
+        qualite_pro: mongoOffer.qualification,
+        secteur_activite: mongoOffer.industry,
+        duree_de_l_offre: 'jusqu’à fermeture', // ou autre valeur par défaut
+        entreprise,
+      });
+
+      await this.jobOfferRepository.save(jobOfferEntity);
+    }
+
+    console.log('Migration completed!');
+  } catch (error) {
+    console.error('Error migrating job offers:', error);
+    throw new Error('Migration failed');
+  }
+}
+
+
+//return number of job offer in mysql 
+async countJobOffers(): Promise<number> {
+  try {
+    console.log('Starting count of job offers...');
+    const count = await this.jobOfferRepository.count();
+    console.log('Count successful:', count);
+    return count;
+  } catch (error) {
+    console.error('Error counting job offers:', error);
+    throw new Error('Failed to count job offers');
+  }
+}
+
+// retun number of entreprise 
+async countEntreprises(): Promise<number> {
+  try {
+    console.log('Starting count of entreprises...');
+    const count = await this.entrepriseRepository.count();
+    console.log('Count successful:', count);
+    return count;
+  } catch (error) {
+    console.error('Error counting entreprises:', error);
+    throw new Error('Failed to count entreprises');
+  }
+}
+
+
 }

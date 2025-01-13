@@ -9,6 +9,10 @@ import { DataProviderModule } from './data-provider/data-provider.module';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { CrawlerConfigModule } from './crawler-config/crawler-config.module';
 import { JobOfferModule } from './job-offer/job-offer.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { JobOfferEntity } from './models/job-offers.entity';
+import { EntrepriseEntity } from './models/entreprise.entity';
+
 
 const configEnv = (): ConfigModuleOptions => {
   if (!process.env.NODE_ENV || process.env.NODE_ENV !== 'production') {
@@ -31,6 +35,16 @@ const configEnv = (): ConfigModuleOptions => {
         }
       }),
       inject: [ConfigService]
+    }),
+    TypeOrmModule.forRoot({
+      type: 'mysql',
+      host: process.env.MYSQL_HOST,
+      port: +process.env.MYSQL_PORT,
+      username: process.env.MYSQL_USERNAME, 
+      password: process.env.MYSQL_PASSWORD,
+      database: process.env.MYSQL_DATABASE,
+      entities: [JobOfferEntity, EntrepriseEntity],
+      synchronize: true, 
     }),
     ThrottlerModule.forRoot([{
       ttl: 60000,

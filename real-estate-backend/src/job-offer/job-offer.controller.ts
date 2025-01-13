@@ -17,6 +17,39 @@ export class JobOfferController {
     }
   }
 
+  @Get('count')
+async countJobOffers() {
+  try {
+    console.log('Fetching job offer count...');
+    const count = await this.jobOfferService.countJobOffers();
+    console.log('Job offer count fetched:', count);
+    return { count };
+  } catch (error) {
+    console.error('Error in countJobOffers API:', error);
+    throw new HttpException(
+      `Failed to count job offers: ${error.message}`,
+      HttpStatus.INTERNAL_SERVER_ERROR,
+    );
+  }
+}
+@Get('countEntreprises')
+async countEntreprises() {
+  try {
+    console.log('Fetching entreprise count...');
+    const count = await this.jobOfferService.countEntreprises();
+    console.log('Entreprise count fetched:', count);
+    return { count };
+  } catch (error) {
+    console.error('Error in countEntreprises API:', error);
+    throw new HttpException(
+      `Failed to count entreprises: ${error.message}`,
+      HttpStatus.INTERNAL_SERVER_ERROR,
+    );
+  }
+}
+
+
+
   @Post()
   async getFilteredJobOffers(@Body() filters: any) {
     try {
@@ -83,4 +116,21 @@ async getOffersWithCompanyName() {
         );
     }
 }
+
+
+@Post('migrate')
+async migrateJobOffers() {
+  try {
+    await this.jobOfferService.migrateJobOffersFromMongoToMySQL();
+    return { message: 'Job offers migrated successfully!' };
+  } catch (error) {
+    throw new HttpException(
+      `Failed to migrate job offers: ${error.message}`,
+      HttpStatus.INTERNAL_SERVER_ERROR,
+    );
+  }
+}
+
+
+
 }

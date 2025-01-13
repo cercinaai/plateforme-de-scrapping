@@ -24,4 +24,5 @@ export class JobOfferService {
   public getJobOffers(filters: any = {}): Observable<JobOffer[]> {
     return this.http.post<JobOffer[]>(`${environment.api_url}/job-offers`, filters);
   }
+
 }

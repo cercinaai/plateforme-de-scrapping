@@ -25,7 +25,11 @@ export class CrawlerConfigService {
     public updateCrawlerTotal(target: string, nombre: number): Observable<CrawlerConfig> {
         return this.http.put<CrawlerConfig>(`${environment.api_url}/crawler-config/update-nombre`, { target, nombre });
     }
-    
+
+    public migrateJobOffers(): Observable<any> {
+  return this.http.post(`${environment.api_url}/job-offers/migrate`, {});
+    }
+
     
     
 }
