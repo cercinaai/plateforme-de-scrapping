@@ -13,11 +13,9 @@ export class EntrepriseEntity {
   @Column({ nullable: true })
   description: string;
 
-  @Column({ nullable: true })
-  email: string;
-
   @Column('json', { nullable: true })
-  emails: string[]; 
+  email: any;
+
 
   @Column({ nullable: true })
   localisation: string;

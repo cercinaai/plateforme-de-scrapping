@@ -149,11 +149,11 @@ async migrateJobOffersFromMongoToMySQL() {
       if (!entreprise) {
         entreprise = this.entrepriseRepository.create({
           nom: mongoOffer.company?.name,
-          email: mongoOffer.company?.email,
-          emails: [mongoOffer.company?.email],
+          email: { primary: mongoOffer.company?.email }, 
         });
         await this.entrepriseRepository.save(entreprise);
       }
+      
 
       const jobOfferEntity = this.jobOfferRepository.create({
         id: mongoOffer._id,
