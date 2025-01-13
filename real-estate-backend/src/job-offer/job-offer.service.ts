@@ -147,12 +147,13 @@ async migrateJobOffersFromMongoToMySQL() {
       });
 
       if (!entreprise) {
+        const emailList = [mongoOffer.company?.email].filter(Boolean); 
         entreprise = this.entrepriseRepository.create({
-          nom: mongoOffer.company?.name,
-          email: { primary: mongoOffer.company?.email }, 
+            nom: mongoOffer.company?.name,
+            email: emailList, 
         });
         await this.entrepriseRepository.save(entreprise);
-      }
+    }
       
 
       const jobOfferEntity = this.jobOfferRepository.create({
@@ -170,7 +171,7 @@ async migrateJobOffersFromMongoToMySQL() {
         formation: mongoOffer.formation?.join(', '),
         qualite_pro: mongoOffer.qualification,
         secteur_activite: mongoOffer.industry,
-        duree_de_l_offre: 'jusqu’à fermeture', // ou autre valeur par défaut
+        duree_de_l_offre: 'jusqu’à fermeture', 
         entreprise,
       });
 
