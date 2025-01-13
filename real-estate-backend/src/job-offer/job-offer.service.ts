@@ -142,30 +142,38 @@ async migrateJobOffersFromMongoToMySQL() {
     const mongoJobOffers = await this.jobOfferModel.find().exec();
 
     for (const mongoOffer of mongoJobOffers) {
-      // Vérifier les données avant de continuer
       if (!mongoOffer.company?.name) {
         console.warn('Skipping job offer due to missing company name:', mongoOffer);
         continue;
       }
 
-      // Rechercher ou créer l'entité Entreprise
+      // Construire une liste d'emails
+      const emailList = Array.isArray(mongoOffer.company?.email)
+        ? mongoOffer.company.email
+        : [mongoOffer.company?.email].filter(Boolean);
+
+      // Vérifier ou créer l'entreprise
       let entreprise = await this.entrepriseRepository.findOne({
         where: { nom: mongoOffer.company?.name },
       });
 
       if (!entreprise) {
-        const emailList = [mongoOffer.company?.email].filter(Boolean); // Filtrer les emails non définis
         entreprise = await this.entrepriseRepository.save(
           this.entrepriseRepository.create({
             nom: mongoOffer.company?.name,
             email: emailList,
           }),
         );
+      }
 
-        if (!entreprise.id) {
-          throw new Error(`Failed to save entreprise: ${mongoOffer.company?.name}`);
-        }
-        console.log('Entreprise sauvegardée avec ID :', entreprise.id);
+      // Vérifier si l'offre d'emploi existe déjà
+      const existingJobOffer = await this.jobOfferRepository.findOne({
+        where: { titre: mongoOffer.title, entreprise: { id: entreprise.id } },
+      });
+
+      if (existingJobOffer) {
+        console.log(`Job offer already exists: ${mongoOffer.title}`);
+        continue; // Passer à la prochaine offre
       }
 
       // Créer et sauvegarder une nouvelle offre d'emploi
@@ -175,8 +183,8 @@ async migrateJobOffersFromMongoToMySQL() {
         localisation: mongoOffer.location,
         type_de_contrat: mongoOffer.contract,
         salaire_brut: mongoOffer.salary,
-        competences: mongoOffer.competences,
-        savoir_etre: mongoOffer.savoirEtre,
+        competences: mongoOffer.competences?.join(', '),
+        savoir_etre: mongoOffer.savoirEtre?.join(', '),
         specialite: mongoOffer.specialties?.join(', '),
         occupation: mongoOffer.workHours,
         experience: mongoOffer.experience,
@@ -184,7 +192,7 @@ async migrateJobOffersFromMongoToMySQL() {
         qualite_pro: mongoOffer.qualification,
         secteur_activite: mongoOffer.industry,
         duree_de_l_offre: 'jusqu’à fermeture',
-        entreprise, // Relation avec l'entreprise
+        entreprise,
       });
 
       await this.jobOfferRepository.save(jobOfferEntity);
@@ -197,6 +205,7 @@ async migrateJobOffersFromMongoToMySQL() {
     throw new Error('Migration failed');
   }
 }
+
 
 
 

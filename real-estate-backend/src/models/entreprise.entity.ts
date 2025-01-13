@@ -1,51 +1,50 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
 import { JobOfferEntity } from './job-offers.entity';
-import { OneToMany } from 'typeorm';
 
 @Entity('entreprises')
 export class EntrepriseEntity {
   @PrimaryGeneratedColumn('increment')
-  id: number; // Correspond à `BIGINT(20) UNSIGNED` dans la base de données MySQL
+  id: number; 
 
-  @Column()
+  @Column({ unique: true })
   nom: string;
-
-  @Column({ nullable: true })
+  
+  @Column({ type: 'text', nullable: true })
   description: string;
 
   @Column('json', { nullable: true })
-  email: any;
+  email: string[];
 
-  @Column({ nullable: true })
+  @Column({ length: 255, nullable: true })
   localisation: string;
 
-  @Column({ nullable: true })
+  @Column({ length: 20, nullable: true })
   numero_telephone: string;
 
-  @Column({ default: 0 })
+  @Column({ type: 'int', default: 0 })
   statistiques_cles: number;
 
-  @Column({ nullable: true })
+  @Column({ length: 255, nullable: true })
   logo: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'text', nullable: true })
   valeurs: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'text', nullable: true })
   specialites: string;
 
-  @Column({ nullable: true })
+  @Column({ length: 50, nullable: true })
   taille_entreprise: string;
 
-  @Column({ nullable: true })
+  @Column({ length: 255 })
   password: string;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'datetime' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ type: 'datetime' })
   updatedAt: Date;
 
-  @OneToMany(() => JobOfferEntity, (jobOffer) => jobOffer.entreprise)
+  @OneToMany(() => JobOfferEntity, (jobOffer) => jobOffer.entreprise, { cascade: true })
   jobOffers: JobOfferEntity[];
 }
