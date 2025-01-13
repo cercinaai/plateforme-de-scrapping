@@ -149,15 +149,17 @@ async migrateJobOffersFromMongoToMySQL() {
 
       if (!entreprise) {
         const emailList = [mongoOffer.company?.email].filter(Boolean);
-
-        // Créer et sauvegarder une nouvelle entreprise
+      
         entreprise = await this.entrepriseRepository.save(
           this.entrepriseRepository.create({
             nom: mongoOffer.company?.name,
             email: emailList,
           }),
         );
+      
+        console.log('Entreprise sauvegardée avec ID :', entreprise.id); // Vérifiez ici
       }
+      
 
       // Créer et sauvegarder une nouvelle offre d'emploi
       const jobOfferEntity = this.jobOfferRepository.create({
