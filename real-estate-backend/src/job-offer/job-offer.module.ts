@@ -8,14 +8,16 @@ import { ConfigModule } from '@nestjs/config';
 import { JobOfferEntity } from '../models/job-offers.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { EntrepriseEntity } from '../models/entreprise.entity';
-
+import { HunterData, HunterDataSchema } from 'src/models/EmailsHunter.schema';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: JobOffers.name, schema: JobOffersSchema }]),
+    MongooseModule.forFeature([{ name: HunterData.name, schema: HunterDataSchema }]),
     ConfigModule,
     TypeOrmModule.forFeature([JobOfferEntity]), 
     TypeOrmModule.forFeature([EntrepriseEntity]),
+
   ],
   controllers: [JobOfferController],
   providers: [JobOfferService, OpenAIService],

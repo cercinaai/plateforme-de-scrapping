@@ -1,4 +1,5 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
+import axios from 'axios';
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { JobOffers, JobOffersDocument } from "../models/JobOffers.schema";
@@ -7,6 +8,7 @@ import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { JobOfferEntity } from '../models/job-offers.entity';
 import { EntrepriseEntity } from '../models/entreprise.entity';
+import { HunterData, HunterDataDocument } from "../models/EmailsHunter.schema";
 
 @Injectable()
 export class JobOfferService {
@@ -16,6 +18,7 @@ export class JobOfferService {
     @InjectRepository(JobOfferEntity)
     private jobOfferRepository: Repository<JobOfferEntity>,
     @InjectRepository(EntrepriseEntity) private entrepriseRepository: Repository<EntrepriseEntity>,
+    @InjectModel(HunterData.name) private hunterDataModel: Model<HunterDataDocument>
 
   ) {}
 
@@ -237,5 +240,111 @@ async countEntreprises(): Promise<number> {
   }
 }
 
+
+async fetchAndEnrichJobOffers(): Promise<void> {
+  try {
+    // Récupérer les 200 nouvelles offres triées par date de publication
+    const jobOffers = await this.jobOfferModel
+      .find()
+      .sort({ publicationDate: -1 })
+      .limit(200)
+      .exec();
+
+      //console afficher le nombre des offer collecte
+    console.log(`Fetched ${jobOffers.length} job offers for enrichment.`);
+
+    const processedCompanies = new Set<string>();
+
+    for (const offer of jobOffers) {
+      const companyName = offer.company?.name;
+
+      if (companyName && !processedCompanies.has(companyName)) {
+        processedCompanies.add(companyName);
+
+        // Vérifier si la société existe déjà dans HunterData
+        const existingData = await this.hunterDataModel.findOne({ organization: companyName }).exec();
+
+        if (!existingData) {
+          try {
+            // Appeler l'API Hunter pour récupérer les données
+            const response = await axios.get(
+              `https://api.hunter.io/v2/domain-search?company=${encodeURIComponent(companyName)}&api_key=b0c3bfce9118edbbda084927b82b238132e238e0`
+            );
+
+            const hunterData = response.data?.data;
+
+            if (hunterData) {
+              // Créer un document HunterData
+              const newHunterData = new this.hunterDataModel({
+                domain: hunterData.domain,
+                disposable: hunterData.disposable,
+                webmail: hunterData.webmail,
+                accept_all: hunterData.accept_all,
+                pattern: hunterData.pattern,
+                organization: hunterData.organization,
+                description: hunterData.description,
+                industry: hunterData.industry,
+                twitter: hunterData.twitter,
+                facebook: hunterData.facebook,
+                linkedin: hunterData.linkedin,
+                instagram: hunterData.instagram,
+                youtube: hunterData.youtube,
+                technologies: hunterData.technologies,
+                country: hunterData.country,
+                state: hunterData.state,
+                city: hunterData.city,
+                postal_code: hunterData.postal_code,
+                street: hunterData.street,
+                headcount: hunterData.headcount,
+                company_type: hunterData.company_type,
+                emails: hunterData.emails?.map(email => ({
+                  value: email.value,
+                  type: email.type,
+                  confidence: email.confidence,
+                  first_name: email.first_name,
+                  last_name: email.last_name,
+                  position: email.position,
+                  seniority: email.seniority,
+                  department: email.department,
+                  linkedin: email.linkedin,
+                  twitter: email.twitter,
+                  phone_number: email.phone_number,
+                  verification_status: email.verification?.status,
+                  verification_date: email.verification?.date,
+                })),
+                linked_domains: hunterData.linked_domains,
+              });
+
+              await newHunterData.save();
+              console.log(`Hunter data saved for company: ${companyName}`);
+            }
+          } catch (error) {
+            console.error(`Failed to fetch Hunter data for company: ${companyName}`, error);
+          }
+        } else {
+          console.log(`Hunter data already exists for company: ${companyName}`);
+        }
+      }
+    }
+
+    console.log('Job offers enrichment completed.');
+  } catch (error) {
+    console.error('Error enriching job offers with Hunter data:', error);
+    throw new Error('Failed to enrich job offers with Hunter data.');
+  }
+}
+async fetchCompaniesAndEmails(): Promise<{ organization: string, emails: string[] }[]> {
+  try {
+    const hunterData = await this.hunterDataModel.find().exec();
+
+    return hunterData.map(data => ({
+      organization: data.organization,
+      emails: data.emails.map(email => email.value),
+    }));
+  } catch (error) {
+    console.error('Error fetching companies and emails:', error);
+    throw new Error('Failed to fetch companies and emails');
+  }
+}
 
 }

@@ -5,6 +5,20 @@ import { JobOffers } from "../models/JobOffers.schema";
 export class JobOfferController {
   constructor(private readonly jobOfferService: JobOfferService) {}
 
+
+  @Get('companies-and-emails')
+  async getCompaniesAndEmails() {
+    try {
+      return await this.jobOfferService.fetchCompaniesAndEmails();
+    } catch (error) {
+      throw new HttpException(
+        'Failed to fetch companies and emails',
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+
+  
   @Get()
   async getAllJobOffers() {
     try {
@@ -47,6 +61,7 @@ async countEntreprises() {
     );
   }
 }
+
 
 
 
@@ -130,6 +145,21 @@ async migrateJobOffers() {
     );
   }
 }
+
+@Post('fetch-enrich')
+async fetchAndEnrichJobOffers() {
+  try {
+    await this.jobOfferService.fetchAndEnrichJobOffers();
+    return { message: 'Job offers enriched successfully!' };
+  } catch (error) {
+    console.error('Error in fetchAndEnrichJobOffers API:', error);
+    throw new HttpException(
+      `Failed to enrich job offers: ${error.message}`,
+      HttpStatus.INTERNAL_SERVER_ERROR,
+    );
+  }
+}
+
 
 
 
