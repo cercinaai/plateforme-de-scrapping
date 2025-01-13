@@ -3,7 +3,7 @@ import { EntrepriseEntity } from './entreprise.entity';
 
 @Entity('job_offers')
 export class JobOfferEntity {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn()
   id: string;
 
   @ManyToOne(() => EntrepriseEntity, (entreprise) => entreprise.id, { nullable: false, onDelete: 'CASCADE' })

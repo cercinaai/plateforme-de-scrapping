@@ -4,7 +4,7 @@ import { OneToMany } from 'typeorm';
 
 @Entity('entreprises')
 export class EntrepriseEntity {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn()
   id: string;
 
   @Column()
