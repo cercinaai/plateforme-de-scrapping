@@ -157,7 +157,6 @@ async migrateJobOffersFromMongoToMySQL() {
       
 
       const jobOfferEntity = this.jobOfferRepository.create({
-        id: mongoOffer._id,
         titre: mongoOffer.title,
         description: mongoOffer.description,
         localisation: mongoOffer.location,
