@@ -142,20 +142,24 @@ async migrateJobOffersFromMongoToMySQL() {
     const mongoJobOffers = await this.jobOfferModel.find().exec();
 
     for (const mongoOffer of mongoJobOffers) {
+      // Rechercher l'entreprise par son nom
       let entreprise = await this.entrepriseRepository.findOne({
         where: { nom: mongoOffer.company?.name },
       });
 
       if (!entreprise) {
-        const emailList = [mongoOffer.company?.email].filter(Boolean); 
-        entreprise = this.entrepriseRepository.create({
-            nom: mongoOffer.company?.name,
-            email: emailList, 
-        });
-        await this.entrepriseRepository.save(entreprise);
-    }
-      
+        const emailList = [mongoOffer.company?.email].filter(Boolean);
 
+        // Créer et sauvegarder une nouvelle entreprise
+        entreprise = await this.entrepriseRepository.save(
+          this.entrepriseRepository.create({
+            nom: mongoOffer.company?.name,
+            email: emailList,
+          }),
+        );
+      }
+
+      // Créer et sauvegarder une nouvelle offre d'emploi
       const jobOfferEntity = this.jobOfferRepository.create({
         titre: mongoOffer.title,
         description: mongoOffer.description,
@@ -170,8 +174,8 @@ async migrateJobOffersFromMongoToMySQL() {
         formation: mongoOffer.formation?.join(', '),
         qualite_pro: mongoOffer.qualification,
         secteur_activite: mongoOffer.industry,
-        duree_de_l_offre: 'jusqu’à fermeture', 
-        entreprise,
+        duree_de_l_offre: 'jusqu’à fermeture',
+        entreprise, // Relation avec l'entreprise sauvegardée
       });
 
       await this.jobOfferRepository.save(jobOfferEntity);
@@ -183,6 +187,7 @@ async migrateJobOffersFromMongoToMySQL() {
     throw new Error('Migration failed');
   }
 }
+
 
 
 //return number of job offer in mysql 
