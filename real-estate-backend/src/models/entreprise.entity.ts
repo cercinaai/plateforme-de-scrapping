@@ -4,9 +4,8 @@ import { OneToMany } from 'typeorm';
 
 @Entity('entreprises')
 export class EntrepriseEntity {
-    @PrimaryGeneratedColumn('increment')
-    id: number;
-    
+  @PrimaryGeneratedColumn('increment')
+  id: number; // Correspond à `BIGINT(20) UNSIGNED` dans la base de données MySQL
 
   @Column()
   nom: string;
@@ -16,7 +15,7 @@ export class EntrepriseEntity {
 
   @Column('json', { nullable: true })
   email: any;
-  
+
   @Column({ nullable: true })
   localisation: string;
 
@@ -47,8 +46,6 @@ export class EntrepriseEntity {
   @UpdateDateColumn()
   updatedAt: Date;
 
-
   @OneToMany(() => JobOfferEntity, (jobOffer) => jobOffer.entreprise)
   jobOffers: JobOfferEntity[];
 }
-

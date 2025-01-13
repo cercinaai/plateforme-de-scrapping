@@ -142,24 +142,31 @@ async migrateJobOffersFromMongoToMySQL() {
     const mongoJobOffers = await this.jobOfferModel.find().exec();
 
     for (const mongoOffer of mongoJobOffers) {
-      // Rechercher l'entreprise par son nom
+      // Vérifier les données avant de continuer
+      if (!mongoOffer.company?.name) {
+        console.warn('Skipping job offer due to missing company name:', mongoOffer);
+        continue;
+      }
+
+      // Rechercher ou créer l'entité Entreprise
       let entreprise = await this.entrepriseRepository.findOne({
         where: { nom: mongoOffer.company?.name },
       });
 
       if (!entreprise) {
-        const emailList = [mongoOffer.company?.email].filter(Boolean);
-      
+        const emailList = [mongoOffer.company?.email].filter(Boolean); // Filtrer les emails non définis
         entreprise = await this.entrepriseRepository.save(
           this.entrepriseRepository.create({
             nom: mongoOffer.company?.name,
             email: emailList,
           }),
         );
-      
-        console.log('Entreprise sauvegardée avec ID :', entreprise.id); // Vérifiez ici
+
+        if (!entreprise.id) {
+          throw new Error(`Failed to save entreprise: ${mongoOffer.company?.name}`);
+        }
+        console.log('Entreprise sauvegardée avec ID :', entreprise.id);
       }
-      
 
       // Créer et sauvegarder une nouvelle offre d'emploi
       const jobOfferEntity = this.jobOfferRepository.create({
@@ -177,10 +184,11 @@ async migrateJobOffersFromMongoToMySQL() {
         qualite_pro: mongoOffer.qualification,
         secteur_activite: mongoOffer.industry,
         duree_de_l_offre: 'jusqu’à fermeture',
-        entreprise, // Relation avec l'entreprise sauvegardée
+        entreprise, // Relation avec l'entreprise
       });
 
       await this.jobOfferRepository.save(jobOfferEntity);
+      console.log(`Job offer saved: ${jobOfferEntity.titre}`);
     }
 
     console.log('Migration completed!');
@@ -189,6 +197,8 @@ async migrateJobOffersFromMongoToMySQL() {
     throw new Error('Migration failed');
   }
 }
+
+
 
 
 
