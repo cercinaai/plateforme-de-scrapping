@@ -10,8 +10,10 @@ export class JobOfferEntity {
   id: number;
 
   @ManyToOne(() => EntrepriseEntity, (entreprise) => entreprise.jobOffers, { nullable: false, onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'entreprise_id' })
-  entreprise: EntrepriseEntity;
+@JoinColumn({ name: 'entreprise_id' })
+@Column({ type: 'bigint', unsigned: true }) 
+entreprise: EntrepriseEntity;
+
 
   @Column()
   titre: string;
