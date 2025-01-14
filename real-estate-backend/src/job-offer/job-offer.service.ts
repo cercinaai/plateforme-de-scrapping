@@ -256,7 +256,6 @@ async countEntreprises(): Promise<number> {
 
 async fetchAndEnrichJobOffers(): Promise<void> {
   try {
-    // Récupérer les 200 nouvelles offres triées par date de publication
     const jobOffers = await this.jobOfferModel
       .find()
       .sort({ publicationDate: -1 })

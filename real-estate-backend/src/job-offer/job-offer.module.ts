@@ -9,7 +9,7 @@ import { JobOfferEntity } from '../models/job-offers.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { EntrepriseEntity } from '../models/entreprise.entity';
 import { HunterData, HunterDataSchema } from 'src/models/EmailsHunter.schema';
-
+import { AnymailData,AnymailDataSchema } from 'src/models/anymailDataModel.schema';
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: JobOffers.name, schema: JobOffersSchema }]),
@@ -17,6 +17,7 @@ import { HunterData, HunterDataSchema } from 'src/models/EmailsHunter.schema';
     ConfigModule,
     TypeOrmModule.forFeature([JobOfferEntity]), 
     TypeOrmModule.forFeature([EntrepriseEntity]),
+    MongooseModule.forFeature([{ name: AnymailData.name, schema: AnymailDataSchema }]),
 
   ],
   controllers: [JobOfferController],
