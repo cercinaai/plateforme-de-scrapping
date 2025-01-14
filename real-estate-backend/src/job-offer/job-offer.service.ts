@@ -9,7 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { JobOfferEntity } from '../models/job-offers.entity';
 import { EntrepriseEntity } from '../models/entreprise.entity';
 import { HunterData, HunterDataDocument } from "../models/EmailsHunter.schema";
-
+import { AnymailData,AnymailDataDocument } from 'src/models/anymailDataModel.schema';
 @Injectable()
 export class JobOfferService {
   constructor(
@@ -18,7 +18,8 @@ export class JobOfferService {
     @InjectRepository(JobOfferEntity)
     private jobOfferRepository: Repository<JobOfferEntity>,
     @InjectRepository(EntrepriseEntity) private entrepriseRepository: Repository<EntrepriseEntity>,
-    @InjectModel(HunterData.name) private hunterDataModel: Model<HunterDataDocument>
+    @InjectModel(HunterData.name) private hunterDataModel: Model<HunterDataDocument>,
+    @InjectModel(AnymailData.name) private anymailDataModel: Model<AnymailDataDocument>
 
   ) {}
 
@@ -262,96 +263,77 @@ async fetchAndEnrichJobOffers(): Promise<void> {
       .limit(200)
       .exec();
 
-      //console afficher le nombre des offer collecte
     console.log(`Fetched ${jobOffers.length} job offers for enrichment.`);
 
     const processedCompanies = new Set<string>();
+    let companiesFound = 0;
+    let emailsFound = 0;
 
     for (const offer of jobOffers) {
       const companyName = offer.company?.name;
 
       if (companyName && !processedCompanies.has(companyName)) {
         processedCompanies.add(companyName);
+        companiesFound++;
 
-        // Vérifier si la société existe déjà dans HunterData
-        const existingData = await this.hunterDataModel.findOne({ organization: companyName }).exec();
+        const existingData = await this.anymailDataModel.findOne({ companyName }).exec();
 
         if (!existingData) {
           try {
-            // Appeler l'API Hunter pour récupérer les données
-            const response = await axios.get(
-              `https://api.hunter.io/v2/domain-search?company=${encodeURIComponent(companyName)}&api_key=b0c3bfce9118edbbda084927b82b238132e238e0`
+            const response = await axios.post(
+              `https://api.anymailfinder.com/v5.0/search/company.json`,
+              { company_name: companyName },
+              {
+                headers: {
+                  Authorization: `Bearer yTzIE9FoViEPQfs0mqWCbFnF`,
+                  'Content-Type': 'application/json',
+                },
+              }
             );
 
-            const hunterData = response.data?.data;
+            const anymailData = response.data;
 
-            if (hunterData) {
-              // Créer un document HunterData
-              const newHunterData = new this.hunterDataModel({
-                domain: hunterData.domain,
-                disposable: hunterData.disposable,
-                webmail: hunterData.webmail,
-                accept_all: hunterData.accept_all,
-                pattern: hunterData.pattern,
-                organization: hunterData.organization,
-                description: hunterData.description,
-                industry: hunterData.industry,
-                twitter: hunterData.twitter,
-                facebook: hunterData.facebook,
-                linkedin: hunterData.linkedin,
-                instagram: hunterData.instagram,
-                youtube: hunterData.youtube,
-                technologies: hunterData.technologies,
-                country: hunterData.country,
-                state: hunterData.state,
-                city: hunterData.city,
-                postal_code: hunterData.postal_code,
-                street: hunterData.street,
-                headcount: hunterData.headcount,
-                company_type: hunterData.company_type,
-                emails: hunterData.emails?.map(email => ({
-                  value: email.value,
-                  type: email.type,
-                  confidence: email.confidence,
-                  first_name: email.first_name,
-                  last_name: email.last_name,
-                  position: email.position,
-                  seniority: email.seniority,
-                  department: email.department,
-                  linkedin: email.linkedin,
-                  twitter: email.twitter,
-                  phone_number: email.phone_number,
-                  verification_status: email.verification?.status,
-                  verification_date: email.verification?.date,
+            if (anymailData.success) {
+              emailsFound += anymailData.results.emails.length;
+
+              const newAnymailData = new this.anymailDataModel({
+                companyName: anymailData.input.company_name,
+                emails: anymailData.results.emails.map(email => ({
+                  address: email,
+                  confidence: 1, 
+                  type: "unknown", 
                 })),
-                linked_domains: hunterData.linked_domains,
+                total_count: anymailData.results.total_count,
+                validation: anymailData.results.validation,
               });
 
-              await newHunterData.save();
-              console.log(`Hunter data saved for company: ${companyName}`);
+              await newAnymailData.save();
+              console.log(`Anymail data saved for company: ${companyName}`);
             }
           } catch (error) {
-            console.error(`Failed to fetch Hunter data for company: ${companyName}`, error);
+            console.error(`Failed to fetch Anymail data for company: ${companyName}`, error);
           }
         } else {
-          console.log(`Hunter data already exists for company: ${companyName}`);
+          console.log(`Anymail data already exists for company: ${companyName}`);
         }
       }
     }
 
-    console.log('Job offers enrichment completed.');
+    console.log(`Job offers enrichment completed. Processed ${companiesFound} companies and found emails for ${emailsFound} companies.`);
   } catch (error) {
-    console.error('Error enriching job offers with Hunter data:', error);
-    throw new Error('Failed to enrich job offers with Hunter data.');
+    console.error('Error enriching job offers with Anymail data:', error);
+    throw new Error('Failed to enrich job offers with Anymail data.');
   }
 }
+
+
 async fetchCompaniesAndEmails(): Promise<{ organization: string, emails: string[] }[]> {
   try {
-    const hunterData = await this.hunterDataModel.find().exec();
+    const hunterData = await this.anymailDataModel.find().exec();
 
     return hunterData.map(data => ({
-      organization: data.organization,
-      emails: data.emails.map(email => email.value),
+      organization: data.companyName,
+      emails: data.emails.map(email => email.address),
     }));
   } catch (error) {
     console.error('Error fetching companies and emails:', error);
