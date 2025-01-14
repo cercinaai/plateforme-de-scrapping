@@ -376,4 +376,19 @@ async enrichEntreprisesWithEmails(): Promise<void> {
   }
 }
 
+
+async getEntreprisesWithEmails(): Promise<{ id: number; nom: string; emails: string[] }[]> {
+  try {
+    const entreprises = await this.entrepriseRepository.find();
+    return entreprises.map((entreprise) => ({
+      id: entreprise.id,
+      nom: entreprise.nom,
+      emails: entreprise.email ? entreprise.email.split(',').map((email) => email.trim()) : [],
+    }));
+  } catch (error) {
+    console.error('Error fetching entreprises with emails:', error);
+    throw new Error('Failed to fetch entreprises with emails.');
+  }
+}
+
 }

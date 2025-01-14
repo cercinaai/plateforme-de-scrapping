@@ -6,6 +6,20 @@ export class JobOfferController {
   constructor(private readonly jobOfferService: JobOfferService) {}
 
 
+  @Get('entreprises-emails')
+async getEntreprisesWithEmails() {
+  try {
+    return await this.jobOfferService.getEntreprisesWithEmails();
+  } catch (error) {
+    console.error('Error in getEntreprisesWithEmails API:', error);
+    throw new HttpException(
+      'Failed to fetch entreprises with emails',
+      HttpStatus.INTERNAL_SERVER_ERROR,
+    );
+  }
+}
+
+
   @Get('companies-and-emails')
   async getCompaniesAndEmails() {
     try {
@@ -18,6 +32,19 @@ export class JobOfferController {
     }
   }
 
+  @Post('enrich-entreprises-emails')
+  async enrichEntreprisesWithEmails() {
+    try {
+      await this.jobOfferService.enrichEntreprisesWithEmails();
+      return { message: 'Entreprises enriched with emails successfully!' };
+    } catch (error) {
+      console.error('Error in enrichEntreprisesWithEmails API:', error);
+      throw new HttpException(
+        'Failed to enrich entreprises with emails',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
   
   @Get()
   async getAllJobOffers() {
@@ -160,19 +187,6 @@ async fetchAndEnrichJobOffers() {
   }
 }
 
-@Get('enrich-entreprises-emails')
-async enrichEntreprisesWithEmails() {
-  try {
-    await this.jobOfferService.enrichEntreprisesWithEmails();
-    return { message: 'Entreprises enriched with emails successfully!' };
-  } catch (error) {
-    console.error('Error in enrichEntreprisesWithEmails API:', error);
-    throw new HttpException(
-      'Failed to enrich entreprises with emails',
-      HttpStatus.INTERNAL_SERVER_ERROR,
-    );
-  }
-}
 
 
 
