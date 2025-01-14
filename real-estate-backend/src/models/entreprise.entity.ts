@@ -3,7 +3,7 @@ import { JobOfferEntity } from './job-offers.entity';
 
 @Entity('entreprises')
 export class EntrepriseEntity {
-  @PrimaryGeneratedColumn('increment')
+  @PrimaryGeneratedColumn()
   id: number;
 
 
