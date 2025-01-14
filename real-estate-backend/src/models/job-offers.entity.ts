@@ -3,15 +3,12 @@ import { EntrepriseEntity } from './entreprise.entity';
 
 @Entity('job_offers')
 export class JobOfferEntity {
-  @PrimaryGeneratedColumn('increment')
+  @PrimaryGeneratedColumn({ type: 'bigint', unsigned: true })
   id: number;
 
   @ManyToOne(() => EntrepriseEntity, (entreprise) => entreprise.jobOffers, { nullable: false, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'entreprise_id' })
   entreprise: EntrepriseEntity;
-
-  @Column({ type: 'bigint', unsigned: true }) 
-  entreprise_id: number;
 
   @Column()
   titre: string;

@@ -140,85 +140,85 @@ async processAndUpdateJobOffer(jobOffer: JobOffers) {
     }
 }
 
-async migrateJobOffersFromMongoToMySQL() {
-  try {
-    const mongoJobOffers = await this.jobOfferModel.find().exec();
+    async migrateJobOffersFromMongoToMySQL() {
+      try {
+        const mongoJobOffers = await this.jobOfferModel.find().exec();
 
-    for (const mongoOffer of mongoJobOffers) {
-      if (!mongoOffer.company?.name) {
-        console.warn('Skipping job offer due to missing company name:', mongoOffer);
-        continue;
+        for (const mongoOffer of mongoJobOffers) {
+          if (!mongoOffer.company?.name) {
+            console.warn('Skipping job offer due to missing company name:', mongoOffer);
+            continue;
+          }
+
+          // Construire une liste d'emails
+          const emailList = Array.isArray(mongoOffer.company?.email)
+            ? mongoOffer.company.email
+            : [mongoOffer.company?.email].filter(Boolean);
+
+          // Vérifier ou créer l'entreprise
+          let entreprise = await this.entrepriseRepository.findOne({
+            where: { nom: mongoOffer.company?.name },
+          });
+
+          if (!entreprise) {
+            entreprise = await this.entrepriseRepository.save(
+              this.entrepriseRepository.create({
+                nom: mongoOffer.company?.name,
+                email: JSON.stringify(emailList), // Sauvegarde des emails sous forme de JSON
+              }),
+            );
+          }
+
+          // Vérifier si l'offre d'emploi existe déjà
+          const existingJobOffer = await this.jobOfferRepository.findOne({
+            where: { titre: mongoOffer.title, entreprise: { id: entreprise.id } },
+          });
+
+          if (existingJobOffer) {
+            console.log(`Job offer already exists: ${mongoOffer.title}`);
+            continue; // Passer à la prochaine offre
+          }
+
+          // Préparer les champs
+          const competences = mongoOffer.competences ? JSON.stringify(mongoOffer.competences) : null;
+          const savoirEtre = mongoOffer.savoirEtre ? JSON.stringify(mongoOffer.savoirEtre) : null;
+          const formation = mongoOffer.formation ? JSON.stringify(mongoOffer.formation) : null;
+          const specialite = mongoOffer.specialties ? JSON.stringify(mongoOffer.specialties) : null;
+          const salaireBrut = mongoOffer.salary ? JSON.stringify([mongoOffer.salary]) : null;
+          const experience = mongoOffer.experience ? JSON.stringify([mongoOffer.experience]) : null;
+          const occupation = mongoOffer.workHours ? JSON.stringify([mongoOffer.workHours]) : null;
+          const qualitePro = mongoOffer.qualification ? JSON.stringify([mongoOffer.qualification]) : null;
+          const secteurActivite = mongoOffer.industry ? JSON.stringify([mongoOffer.industry]) : null;
+
+          // Créer et sauvegarder une nouvelle offre d'emploi
+          const jobOfferEntity = this.jobOfferRepository.create({
+            titre: mongoOffer.title,
+            description: mongoOffer.description,
+            localisation: mongoOffer.location,
+            type_de_contrat: mongoOffer.contract || null,
+            salaire_brut: salaireBrut,
+            competences,
+            savoir_etre: savoirEtre,
+            specialite,
+            occupation,
+            experience,
+            formation,
+            qualite_pro: qualitePro,
+            secteur_activite: secteurActivite,
+            duree_de_l_offre: 'jusqu’à fermeture',
+            entreprise,
+          });
+
+          await this.jobOfferRepository.save(jobOfferEntity);
+          console.log(`Job offer saved: ${jobOfferEntity.titre}`);
+        }
+
+        console.log('Migration completed!');
+      } catch (error) {
+        console.error('Error migrating job offers:', error);
+        throw new Error('Migration failed');
       }
-
-      // Construire une liste d'emails
-      const emailList = Array.isArray(mongoOffer.company?.email)
-        ? mongoOffer.company.email
-        : [mongoOffer.company?.email].filter(Boolean);
-
-      // Vérifier ou créer l'entreprise
-      let entreprise = await this.entrepriseRepository.findOne({
-        where: { nom: mongoOffer.company?.name },
-      });
-
-      if (!entreprise) {
-        entreprise = await this.entrepriseRepository.save(
-          this.entrepriseRepository.create({
-            nom: mongoOffer.company?.name,
-            email: JSON.stringify(emailList), // Sauvegarde des emails sous forme de JSON
-          }),
-        );
-      }
-
-      // Vérifier si l'offre d'emploi existe déjà
-      const existingJobOffer = await this.jobOfferRepository.findOne({
-        where: { titre: mongoOffer.title, entreprise: { id: entreprise.id } },
-      });
-
-      if (existingJobOffer) {
-        console.log(`Job offer already exists: ${mongoOffer.title}`);
-        continue; // Passer à la prochaine offre
-      }
-
-      // Préparer les champs
-      const competences = mongoOffer.competences ? JSON.stringify(mongoOffer.competences) : null;
-      const savoirEtre = mongoOffer.savoirEtre ? JSON.stringify(mongoOffer.savoirEtre) : null;
-      const formation = mongoOffer.formation ? JSON.stringify(mongoOffer.formation) : null;
-      const specialite = mongoOffer.specialties ? JSON.stringify(mongoOffer.specialties) : null;
-      const salaireBrut = mongoOffer.salary ? JSON.stringify([mongoOffer.salary]) : null;
-      const experience = mongoOffer.experience ? JSON.stringify([mongoOffer.experience]) : null;
-      const occupation = mongoOffer.workHours ? JSON.stringify([mongoOffer.workHours]) : null;
-      const qualitePro = mongoOffer.qualification ? JSON.stringify([mongoOffer.qualification]) : null;
-      const secteurActivite = mongoOffer.industry ? JSON.stringify([mongoOffer.industry]) : null;
-
-      // Créer et sauvegarder une nouvelle offre d'emploi
-      const jobOfferEntity = this.jobOfferRepository.create({
-        titre: mongoOffer.title,
-        description: mongoOffer.description,
-        localisation: mongoOffer.location,
-        type_de_contrat: mongoOffer.contract || null,
-        salaire_brut: salaireBrut,
-        competences,
-        savoir_etre: savoirEtre,
-        specialite,
-        occupation,
-        experience,
-        formation,
-        qualite_pro: qualitePro,
-        secteur_activite: secteurActivite,
-        duree_de_l_offre: 'jusqu’à fermeture',
-        entreprise,
-      });
-
-      await this.jobOfferRepository.save(jobOfferEntity);
-      console.log(`Job offer saved: ${jobOfferEntity.titre}`);
     }
-
-    console.log('Migration completed!');
-  } catch (error) {
-    console.error('Error migrating job offers:', error);
-    throw new Error('Migration failed');
-  }
-}
 
 
 
