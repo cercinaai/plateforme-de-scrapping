@@ -140,91 +140,91 @@ async processAndUpdateJobOffer(jobOffer: JobOffers) {
     }
 }
 
-// async migrateJobOffersFromMongoToMySQL() {
-//   try {
-//     const mongoJobOffers = await this.jobOfferModel.find().exec();
+async migrateJobOffersFromMongoToMySQL() {
+  try {
+    const mongoJobOffers = await this.jobOfferModel.find().exec();
 
-//     for (const mongoOffer of mongoJobOffers) {
-//       if (!mongoOffer.company?.name) {
-//         console.warn('Skipping job offer due to missing company name:', mongoOffer);
-//         continue;
-//       }
+    for (const mongoOffer of mongoJobOffers) {
+      if (!mongoOffer.company?.name) {
+        console.warn('Skipping job offer due to missing company name:', mongoOffer);
+        continue;
+      }
 
-//       // Construire une liste d'emails
-//       const emailList = Array.isArray(mongoOffer.company?.email)
-//         ? mongoOffer.company.email
-//         : [mongoOffer.company?.email].filter(Boolean);
+      // Construire une liste d'emails
+      const emailList = Array.isArray(mongoOffer.company?.email)
+        ? mongoOffer.company.email
+        : [mongoOffer.company?.email].filter(Boolean);
 
-//       // Vérifier ou créer l'entreprise
-//       let entreprise = await this.entrepriseRepository.findOne({
-//         where: { nom: mongoOffer.company?.name },
-//       });
+      // Vérifier ou créer l'entreprise
+      let entreprise = await this.entrepriseRepository.findOne({
+        where: { nom: mongoOffer.company?.name },
+      });
 
-//       if (!entreprise) {
-//         entreprise = await this.entrepriseRepository.save(
-//           this.entrepriseRepository.create({
-//             nom: mongoOffer.company?.name,
-//             email:JSON.stringify(emailList)
-//           }),
-//         );
-//       }
+      if (!entreprise) {
+        entreprise = await this.entrepriseRepository.save(
+          this.entrepriseRepository.create({
+            nom: mongoOffer.company?.name,
+            email:JSON.stringify(emailList)
+          }),
+        );
+      }
 
-//       // Vérifier si l'offre d'emploi existe déjà
-//       const existingJobOffer = await this.jobOfferRepository.findOne({
-//         where: { titre: mongoOffer.title, entreprise: { id: entreprise.id } },
-//       });
+      // Vérifier si l'offre d'emploi existe déjà
+      const existingJobOffer = await this.jobOfferRepository.findOne({
+        where: { titre: mongoOffer.title, entreprise: { id: entreprise.id } },
+      });
 
-//       if (existingJobOffer) {
-//         console.log(`Job offer already exists: ${mongoOffer.title}`);
-//         continue; // Passer à la prochaine offre
-//       }
+      if (existingJobOffer) {
+        console.log(`Job offer already exists: ${mongoOffer.title}`);
+        continue; // Passer à la prochaine offre
+      }
 
-//       // Préparer les champs
-//       const competences = mongoOffer.competences?.join(', ') || null;
-//       const savoirEtre = mongoOffer.savoirEtre?.join(', ') || null;
-//       const formation = mongoOffer.formation?.join(', ') || null;
-//       const specialite = mongoOffer.specialties?.join(', ') || null;
+      // Préparer les champs
+      const competences = mongoOffer.competences?.join(', ') || null;
+      const savoirEtre = mongoOffer.savoirEtre?.join(', ') || null;
+      const formation = mongoOffer.formation?.join(', ') || null;
+      const specialite = mongoOffer.specialties?.join(', ') || null;
 
-//       const jobOfferEntity = this.jobOfferRepository.create({
-//         titre: mongoOffer.title,
-//         description: mongoOffer.description,
-//         localisation: mongoOffer.location,
-//         type_de_contrat: ['CDI', 'CDD', 'intérim', 'saisonnier', 'stage', 'autres'].includes(mongoOffer.contract)
-//           ? mongoOffer.contract
-//           : 'autres',
-//         salaire_brut: ['salaire précis', 'fourchette salariale', 'non précisé'].includes(mongoOffer.salary)
-//           ? mongoOffer.salary
-//           : 'non précisé',
-//         competences,
-//         savoir_etre: savoirEtre,
-//         specialite,
-//         occupation: ['Full-time', 'flexible', 'Part-time'].includes(mongoOffer.workHours)
-//           ? mongoOffer.workHours
-//           : 'Full-time',
-//         experience: ['sans experience', '1 à 3 ans', '3 à 5 ans', '5 à 10 ans', 'plus de 10 ans'].includes(mongoOffer.experience)
-//           ? mongoOffer.experience
-//           : 'sans experience',
-//         formation,
-//         qualite_pro: ['technicien', 'cadre de santé', 'auxiliaire médical'].includes(mongoOffer.qualification)
-//           ? mongoOffer.qualification
-//           : 'technicien',
-//         secteur_activite: ['soins hospitaliers', 'maison de retraite', 'clinique privée', 'soins à domicile'].includes(mongoOffer.industry)
-//           ? mongoOffer.industry
-//           : 'soins hospitaliers',
-//         duree_de_l_offre: 'jusqu’à fermeture',
-//         entreprise,
-//       });
+      const jobOfferEntity = this.jobOfferRepository.create({
+        titre: mongoOffer.title,
+        description: mongoOffer.description,
+        localisation: mongoOffer.location,
+        type_de_contrat: ['CDI', 'CDD', 'intérim', 'saisonnier', 'stage', 'autres'].includes(mongoOffer.contract)
+          ? mongoOffer.contract
+          : 'autres',
+        salaire_brut: ['salaire précis', 'fourchette salariale', 'non précisé'].includes(mongoOffer.salary)
+          ? mongoOffer.salary
+          : 'non précisé',
+        competences,
+        savoir_etre: savoirEtre,
+        specialite,
+        occupation: ['Full-time', 'flexible', 'Part-time'].includes(mongoOffer.workHours)
+          ? mongoOffer.workHours
+          : 'Full-time',
+        experience: ['sans experience', '1 à 3 ans', '3 à 5 ans', '5 à 10 ans', 'plus de 10 ans'].includes(mongoOffer.experience)
+          ? mongoOffer.experience
+          : 'sans experience',
+        formation,
+        qualite_pro: ['technicien', 'cadre de santé', 'auxiliaire médical'].includes(mongoOffer.qualification)
+          ? mongoOffer.qualification
+          : 'technicien',
+        secteur_activite: ['soins hospitaliers', 'maison de retraite', 'clinique privée', 'soins à domicile'].includes(mongoOffer.industry)
+          ? mongoOffer.industry
+          : 'soins hospitaliers',
+        duree_de_l_offre: 'jusqu’à fermeture',
+        entreprise,
+      });
 
-//       await this.jobOfferRepository.save(jobOfferEntity);
-//       console.log(`Job offer saved: ${jobOfferEntity.titre}`);
-//     }
+      await this.jobOfferRepository.save(jobOfferEntity);
+      console.log(`Job offer saved: ${jobOfferEntity.titre}`);
+    }
 
-//     console.log('Migration completed!');
-//   } catch (error) {
-//     console.error('Error migrating job offers:', error);
-//     throw new Error('Migration failed');
-//   }
-// }
+    console.log('Migration completed!');
+  } catch (error) {
+    console.error('Error migrating job offers:', error);
+    throw new Error('Migration failed');
+  }
+}
 
 
 

@@ -133,18 +133,18 @@ async getOffersWithCompanyName() {
 }
 
 
-// @Post('migrate')
-// async migrateJobOffers() {
-//   try {
-//     await this.jobOfferService.migrateJobOffersFromMongoToMySQL();
-//     return { message: 'Job offers migrated successfully!' };
-//   } catch (error) {
-//     throw new HttpException(
-//       `Failed to migrate job offers: ${error.message}`,
-//       HttpStatus.INTERNAL_SERVER_ERROR,
-//     );
-//   }
-// }
+@Post('migrate')
+async migrateJobOffers() {
+  try {
+    await this.jobOfferService.migrateJobOffersFromMongoToMySQL();
+    return { message: 'Job offers migrated successfully!' };
+  } catch (error) {
+    throw new HttpException(
+      `Failed to migrate job offers: ${error.message}`,
+      HttpStatus.INTERNAL_SERVER_ERROR,
+    );
+  }
+}
 
 @Post('fetch-enrich')
 async fetchAndEnrichJobOffers() {

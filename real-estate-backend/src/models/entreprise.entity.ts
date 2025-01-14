@@ -3,7 +3,7 @@ import { JobOfferEntity } from './job-offers.entity';
 
 @Entity('entreprises')
 export class EntrepriseEntity {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn('increment')
   id: number;
 
 
@@ -46,7 +46,7 @@ export class EntrepriseEntity {
   @UpdateDateColumn({ type: 'datetime' })
   updatedAt: Date;
 
-  // @OneToMany(() => JobOfferEntity, (jobOffer) => jobOffer.entreprise, { cascade: true })
-  // jobOffers: JobOfferEntity[];
+  @OneToMany(() => JobOfferEntity, (jobOffer) => jobOffer.entreprise, { cascade: true })
+  jobOffers: JobOfferEntity[];
 }
 
