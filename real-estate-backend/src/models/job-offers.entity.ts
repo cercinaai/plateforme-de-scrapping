@@ -10,9 +10,11 @@ export class JobOfferEntity {
   id: number;
 
   @ManyToOne(() => EntrepriseEntity, (entreprise) => entreprise.jobOffers, { nullable: false, onDelete: 'CASCADE' })
-@JoinColumn({ name: 'entreprise_id' })
-@Column({ type: 'bigint', unsigned: true }) 
-entreprise: EntrepriseEntity;
+  @JoinColumn({ name: 'entreprise_id' })
+  entreprise: EntrepriseEntity;
+
+  @Column({ type: 'bigint', unsigned: true }) // Alignez explicitement sur BIGINT UNSIGNED
+  entreprise_id: number;
 
 
   @Column()
