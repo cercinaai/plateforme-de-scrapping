@@ -164,7 +164,7 @@ async migrateJobOffersFromMongoToMySQL() {
         entreprise = await this.entrepriseRepository.save(
           this.entrepriseRepository.create({
             nom: mongoOffer.company?.name,
-            email:JSON.stringify(emailList)
+            email: JSON.stringify(emailList), // Sauvegarde des emails sous forme de JSON
           }),
         );
       }
@@ -180,37 +180,31 @@ async migrateJobOffersFromMongoToMySQL() {
       }
 
       // Préparer les champs
-      const competences = mongoOffer.competences?.join(', ') || null;
-      const savoirEtre = mongoOffer.savoirEtre?.join(', ') || null;
-      const formation = mongoOffer.formation?.join(', ') || null;
-      const specialite = mongoOffer.specialties?.join(', ') || null;
+      const competences = mongoOffer.competences ? JSON.stringify(mongoOffer.competences) : null;
+      const savoirEtre = mongoOffer.savoirEtre ? JSON.stringify(mongoOffer.savoirEtre) : null;
+      const formation = mongoOffer.formation ? JSON.stringify(mongoOffer.formation) : null;
+      const specialite = mongoOffer.specialties ? JSON.stringify(mongoOffer.specialties) : null;
+      const salaireBrut = mongoOffer.salary ? JSON.stringify([mongoOffer.salary]) : null;
+      const experience = mongoOffer.experience ? JSON.stringify([mongoOffer.experience]) : null;
+      const occupation = mongoOffer.workHours ? JSON.stringify([mongoOffer.workHours]) : null;
+      const qualitePro = mongoOffer.qualification ? JSON.stringify([mongoOffer.qualification]) : null;
+      const secteurActivite = mongoOffer.industry ? JSON.stringify([mongoOffer.industry]) : null;
 
+      // Créer et sauvegarder une nouvelle offre d'emploi
       const jobOfferEntity = this.jobOfferRepository.create({
         titre: mongoOffer.title,
         description: mongoOffer.description,
         localisation: mongoOffer.location,
-        type_de_contrat: ['CDI', 'CDD', 'intérim', 'saisonnier', 'stage', 'autres'].includes(mongoOffer.contract)
-          ? mongoOffer.contract
-          : 'autres',
-        salaire_brut: ['salaire précis', 'fourchette salariale', 'non précisé'].includes(mongoOffer.salary)
-          ? mongoOffer.salary
-          : 'non précisé',
+        type_de_contrat: mongoOffer.contract || null,
+        salaire_brut: salaireBrut,
         competences,
         savoir_etre: savoirEtre,
         specialite,
-        occupation: ['Full-time', 'flexible', 'Part-time'].includes(mongoOffer.workHours)
-          ? mongoOffer.workHours
-          : 'Full-time',
-        experience: ['sans experience', '1 à 3 ans', '3 à 5 ans', '5 à 10 ans', 'plus de 10 ans'].includes(mongoOffer.experience)
-          ? mongoOffer.experience
-          : 'sans experience',
+        occupation,
+        experience,
         formation,
-        qualite_pro: ['technicien', 'cadre de santé', 'auxiliaire médical'].includes(mongoOffer.qualification)
-          ? mongoOffer.qualification
-          : 'technicien',
-        secteur_activite: ['soins hospitaliers', 'maison de retraite', 'clinique privée', 'soins à domicile'].includes(mongoOffer.industry)
-          ? mongoOffer.industry
-          : 'soins hospitaliers',
+        qualite_pro: qualitePro,
+        secteur_activite: secteurActivite,
         duree_de_l_offre: 'jusqu’à fermeture',
         entreprise,
       });
@@ -225,6 +219,7 @@ async migrateJobOffersFromMongoToMySQL() {
     throw new Error('Migration failed');
   }
 }
+
 
 
 
