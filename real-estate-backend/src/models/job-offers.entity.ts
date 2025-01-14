@@ -9,7 +9,7 @@ export class JobOfferEntity {
   @PrimaryGeneratedColumn('increment')
   id: number;
 
-  @ManyToOne(() => EntrepriseEntity, (entreprise) => entreprise.id, { nullable: false, onDelete: 'CASCADE' })
+  @ManyToOne(() => EntrepriseEntity, (entreprise) => entreprise.jobOffers, { nullable: false, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'entreprise_id' })
   entreprise: EntrepriseEntity;
 

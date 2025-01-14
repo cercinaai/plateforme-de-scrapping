@@ -44,7 +44,8 @@ const configEnv = (): ConfigModuleOptions => {
       password: process.env.MYSQL_PASSWORD,
       database: process.env.MYSQL_DATABASE,
       entities: [JobOfferEntity, EntrepriseEntity],
-      synchronize: true, 
+      synchronize: true,
+      logging: true, 
     }),
     ThrottlerModule.forRoot([{
       ttl: 60000,
