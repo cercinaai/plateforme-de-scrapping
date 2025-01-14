@@ -340,4 +340,40 @@ async fetchCompaniesAndEmails(): Promise<{ organization: string, emails: string[
   }
 }
 
+
+async enrichEntreprisesWithEmails(): Promise<void> {
+  try {
+    // Récupérer toutes les entreprises dans MySQL
+    const entreprises = await this.entrepriseRepository.find();
+
+    console.log(`Found ${entreprises.length} entreprises to process.`);
+
+    for (const entreprise of entreprises) {
+      // Rechercher l'entreprise dans MongoDB
+      const anymailData = await this.anymailDataModel
+        .findOne({ companyName: entreprise.nom })
+        .exec();
+
+      if (anymailData && anymailData.emails.length > 0) {
+        // Ajouter les emails trouvés à l'entreprise
+        const emails = anymailData.emails.map((email) => email.address).join(', ');
+        entreprise.email = emails;
+        console.log(`Emails updated for entreprise: ${entreprise.nom}`);
+      } else {
+        // Si aucun email trouvé, marquer comme "Pas d'emails"
+        entreprise.email = 'Pas d’emails';
+        console.log(`No emails found for entreprise: ${entreprise.nom}`);
+      }
+
+      // Sauvegarder les changements dans MySQL
+      await this.entrepriseRepository.save(entreprise);
+    }
+
+    console.log('Enrichment of entreprises completed.');
+  } catch (error) {
+    console.error('Error enriching entreprises with emails:', error);
+    throw new Error('Failed to enrich entreprises with emails.');
+  }
+}
+
 }

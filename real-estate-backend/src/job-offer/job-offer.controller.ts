@@ -160,6 +160,20 @@ async fetchAndEnrichJobOffers() {
   }
 }
 
+@Get('enrich-entreprises-emails')
+async enrichEntreprisesWithEmails() {
+  try {
+    await this.jobOfferService.enrichEntreprisesWithEmails();
+    return { message: 'Entreprises enriched with emails successfully!' };
+  } catch (error) {
+    console.error('Error in enrichEntreprisesWithEmails API:', error);
+    throw new HttpException(
+      'Failed to enrich entreprises with emails',
+      HttpStatus.INTERNAL_SERVER_ERROR,
+    );
+  }
+}
+
 
 
 
