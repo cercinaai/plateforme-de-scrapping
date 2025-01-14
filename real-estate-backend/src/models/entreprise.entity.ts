@@ -4,16 +4,16 @@ import { JobOfferEntity } from './job-offers.entity';
 @Entity('entreprises')
 export class EntrepriseEntity {
   @PrimaryGeneratedColumn('increment')
-  id: number; 
+  id: number;
 
   @Column({ unique: true })
   nom: string;
-  
+
   @Column({ type: 'text', nullable: true })
   description: string;
 
-  @Column('json', { nullable: true })
-  email: string[];
+  @Column({ type: 'json', nullable: true })
+  email: string[]; 
 
   @Column({ length: 255, nullable: true })
   localisation: string;
@@ -48,3 +48,4 @@ export class EntrepriseEntity {
   @OneToMany(() => JobOfferEntity, (jobOffer) => jobOffer.entreprise, { cascade: true })
   jobOffers: JobOfferEntity[];
 }
+

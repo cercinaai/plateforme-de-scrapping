@@ -179,21 +179,38 @@ async migrateJobOffersFromMongoToMySQL() {
         continue; // Passer à la prochaine offre
       }
 
-      // Créer et sauvegarder une nouvelle offre d'emploi
+      // Préparer les champs
+      const competences = mongoOffer.competences?.join(', ') || null;
+      const savoirEtre = mongoOffer.savoirEtre?.join(', ') || null;
+      const formation = mongoOffer.formation?.join(', ') || null;
+      const specialite = mongoOffer.specialties?.join(', ') || null;
+
       const jobOfferEntity = this.jobOfferRepository.create({
         titre: mongoOffer.title,
         description: mongoOffer.description,
         localisation: mongoOffer.location,
-        type_de_contrat: mongoOffer.contract,
-        salaire_brut: mongoOffer.salary,
-        competences: mongoOffer.competences?.join(', '),
-        savoir_etre: mongoOffer.savoirEtre?.join(', '),
-        specialite: mongoOffer.specialties?.join(', '),
-        occupation: mongoOffer.workHours,
-        experience: mongoOffer.experience,
-        formation: mongoOffer.formation?.join(', '),
-        qualite_pro: mongoOffer.qualification,
-        secteur_activite: mongoOffer.industry,
+        type_de_contrat: ['CDI', 'CDD', 'intérim', 'saisonnier', 'stage', 'autres'].includes(mongoOffer.contract)
+          ? mongoOffer.contract
+          : 'autres',
+        salaire_brut: ['salaire précis', 'fourchette salariale', 'non précisé'].includes(mongoOffer.salary)
+          ? mongoOffer.salary
+          : 'non précisé',
+        competences,
+        savoir_etre: savoirEtre,
+        specialite,
+        occupation: ['Full-time', 'flexible', 'Part-time'].includes(mongoOffer.workHours)
+          ? mongoOffer.workHours
+          : 'Full-time',
+        experience: ['sans experience', '1 à 3 ans', '3 à 5 ans', '5 à 10 ans', 'plus de 10 ans'].includes(mongoOffer.experience)
+          ? mongoOffer.experience
+          : 'sans experience',
+        formation,
+        qualite_pro: ['technicien', 'cadre de santé', 'auxiliaire médical'].includes(mongoOffer.qualification)
+          ? mongoOffer.qualification
+          : 'technicien',
+        secteur_activite: ['soins hospitaliers', 'maison de retraite', 'clinique privée', 'soins à domicile'].includes(mongoOffer.industry)
+          ? mongoOffer.industry
+          : 'soins hospitaliers',
         duree_de_l_offre: 'jusqu’à fermeture',
         entreprise,
       });
