@@ -6,14 +6,15 @@ export class EntrepriseEntity {
   @PrimaryGeneratedColumn('increment')
   id: number;
 
+
   @Column({ unique: true })
   nom: string;
 
   @Column({ type: 'text', nullable: true })
   description: string;
 
-  @Column({ type: 'json', nullable: true })
-  email: string[]; 
+  @Column({ type: 'text', nullable: true })
+  email: string; 
 
   @Column({ length: 255, nullable: true })
   localisation: string;

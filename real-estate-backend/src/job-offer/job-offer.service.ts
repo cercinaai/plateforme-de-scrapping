@@ -164,7 +164,7 @@ async migrateJobOffersFromMongoToMySQL() {
         entreprise = await this.entrepriseRepository.save(
           this.entrepriseRepository.create({
             nom: mongoOffer.company?.name,
-            email: emailList,
+            email:JSON.stringify(emailList)
           }),
         );
       }

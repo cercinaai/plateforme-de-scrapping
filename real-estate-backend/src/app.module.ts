@@ -43,7 +43,7 @@ const configEnv = (): ConfigModuleOptions => {
       username: process.env.MYSQL_USERNAME, 
       password: process.env.MYSQL_PASSWORD,
       database: process.env.MYSQL_DATABASE,
-      entities: [JobOfferEntity, EntrepriseEntity],
+      entities: [EntrepriseEntity],
       synchronize: true,
       logging: true, 
     }),
