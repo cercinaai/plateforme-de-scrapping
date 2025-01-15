@@ -32,6 +32,27 @@ async getEntreprisesWithEmails() {
     }
   }
 
+  @Post('update-entreprise-details/:id')
+  async updateEntrepriseDetails(
+    @Param('id') id: number,
+    @Body('emails') emails: string[],
+    @Body('site_web') siteWeb?: string,
+  ): Promise<{ message: string }> {
+    try {
+      await this.jobOfferService.updateEntrepriseDetails(id, emails, siteWeb);
+      return { message: 'Entreprise details updated successfully!' };
+    } catch (error) {
+      console.error('Error in updateEntrepriseDetails API:', error);
+      throw new HttpException(
+        `Failed to update details for entreprise ID ${id}: ${error.message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+  
+  
+
+
   @Post('enrich-entreprises-emails')
   async enrichEntreprisesWithEmails() {
     try {

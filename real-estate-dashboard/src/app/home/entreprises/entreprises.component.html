@@ -1,0 +1,48 @@
+<div class="entreprises-container">
+    <h1>Gérer les emails et le site web des entreprises</h1>
+  
+    <form [formGroup]="entreprisesForm">
+      <table>
+        <thead>
+          <tr>
+            <th>Nom de l'entreprise</th>
+            <th>Emails</th>
+            <th>Site Web</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody formArrayName="entreprisesForms">
+          <tr *ngFor="let entrepriseForm of getEntreprisesFormsControls(); let i = index" [formGroupName]="i">
+            <td>{{ entreprises[currentPage * pageSize + i].nom }}</td>
+            <td>
+              <div formArrayName="emails">
+                <div *ngFor="let emailCtrl of emailsControls(i).controls; let j = index">
+                  <input
+                    [formControlName]="j"
+                    placeholder="Email"
+                  />
+                </div>
+                <button type="button" (click)="addEmailField(i)">+ Ajouter un email</button>
+              </div>
+            </td>
+            <td>
+              <input formControlName="siteWeb" placeholder="Site Web" />
+            </td>
+            <td>
+              <button type="button" (click)="updateEmailsAndSite(i)">
+                Sauvegarder
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </form>
+  
+    <mat-paginator
+      [length]="totalEntreprises"
+      [pageSize]="pageSize"
+      [pageSizeOptions]="[5, 10, 25, 100]"
+      (page)="onPageChange($event)">
+    </mat-paginator>
+  </div>
+  

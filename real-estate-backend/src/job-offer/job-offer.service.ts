@@ -384,11 +384,42 @@ async getEntreprisesWithEmails(): Promise<{ id: number; nom: string; emails: str
       id: entreprise.id,
       nom: entreprise.nom,
       emails: entreprise.email ? entreprise.email.split(',').map((email) => email.trim()) : [],
+      site_web: entreprise.site_web || '', 
     }));
   } catch (error) {
     console.error('Error fetching entreprises with emails:', error);
     throw new Error('Failed to fetch entreprises with emails.');
   }
 }
+
+async updateEntrepriseDetails(id: number, emails: string[], site_web?: string): Promise<void> {
+  try {
+    const entreprise = await this.entrepriseRepository.findOne({ where: { id } });
+
+    if (!entreprise) {
+      throw new Error(`Entreprise with ID ${id} not found`);
+    }
+
+    // Update emails: replace existing emails with new ones if provided
+    if (emails && emails.length > 0) {
+      const updatedEmails = emails.filter(email => email && email.trim() !== ''); // Filter valid emails
+      entreprise.email = updatedEmails.join(', '); // Join emails as a string
+    }
+
+    // Update site_web if provided
+    if (site_web) {
+      entreprise.site_web = site_web.trim(); // Set site_web
+    }
+
+    await this.entrepriseRepository.save(entreprise);
+    console.log(
+      `Updated details for entreprise ${entreprise.nom}: Emails - ${entreprise.email}, Site Web - ${entreprise.site_web || 'N/A'}`
+    );
+  } catch (error) {
+    console.error('Error updating entreprise details:', error);
+    throw new Error('Failed to update entreprise details.');
+  }
+}
+
 
 }

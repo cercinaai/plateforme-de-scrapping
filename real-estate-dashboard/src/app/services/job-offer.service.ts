@@ -25,4 +25,21 @@ export class JobOfferService {
     return this.http.post<JobOffer[]>(`${environment.api_url}/job-offers`, filters);
   }
 
+  getEntreprisesWithEmails(): Observable<{ id: string; nom: string; emails: string[]; siteWeb: string }[]> {
+    return this.http.get<{ id: string; nom: string; emails: string[]; siteWeb: string }[]>(
+      `${environment.api_url}/job-offers/entreprises-emails`
+    );
+  }
+  
+  
+  updateEntrepriseDetails(id: string, emails: string[], siteWeb: string): Observable<any> {
+    return this.http.post(`${environment.api_url}/job-offers/update-entreprise-details/${id}`, {
+      emails,
+      site_web: siteWeb,
+    });
+  }
+  
+  
+  
+
 }

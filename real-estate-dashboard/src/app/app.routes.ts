@@ -7,7 +7,7 @@ import { DataListComponent } from './home/data-list/data-list.component';
 import { NavigationComponent } from './home/navigation/navigation.component';
 import { CrawlerConfigComponent } from './home/crawler-config/crawler-config.component';
 import { JobOfferListComponent } from './home/job-offer-list/job-offer-list.component';
-
+import { EntreprisesComponent } from './home/entreprises/entreprises.component';
 export const routes: Routes = [
     {
         path: '',
@@ -40,6 +40,7 @@ export const routes: Routes = [
                 path: 'offers-list',
                 component: JobOfferListComponent
             },
+
             {
                 path: 'crawler-config',
                 component: CrawlerConfigComponent
@@ -49,5 +50,7 @@ export const routes: Routes = [
     {
         path: 'login',
         component: LoginComponent
-    }
+    },
+    { path: 'entreprises', component: EntreprisesComponent },
+
 ];

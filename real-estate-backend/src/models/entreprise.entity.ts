@@ -17,6 +17,10 @@ export class EntrepriseEntity {
   email: string; 
 
   @Column({ length: 255, nullable: true })
+  site_web: string;
+
+
+  @Column({ length: 255, nullable: true })
   localisation: string;
 
   @Column({ length: 20, nullable: true })
